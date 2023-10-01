@@ -1,14 +1,15 @@
 import random
 import numpy as np
-from numpy.typing import NDArray
+from xgboost import XGBClassifier
 from scipy.spatial import distance
 
 from sklearn.cluster import KMeans
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn import tree
-from loader_and_preprocessor import read_dataset
+from loader_and_preprocessor import read_potability_dataset
 
 # def calc_distances_diff_classes(data_cluster: NDArray, n_labels: int
 #                                 ) -> NDArray:
@@ -150,7 +151,7 @@ def ensemble_classification(X, y, votings_weights):
     ensemble = []
 
     for _ in range(n_clusters):
-        classifier = select_random_classifier()
+        classifier = RandomForestClassifier()  # select_random_classifier()
         classifier.fit(X_train, y_train)
         ensemble.append(classifier)
 
@@ -159,12 +160,12 @@ def ensemble_classification(X, y, votings_weights):
     probabilities = np.sum(predictions * votings_weights[idx_test], axis=1)
     y_pred = np.round(probabilities)
     accuracy = sum(y_pred == y_test) / len(y_test)
-    print(ensemble)
+    # print(ensemble, "\n")
     print("Acurácia ensemble:", accuracy)
 
 
 if __name__ == "__main__":
-    df_potability = read_dataset("potabilidade.csv")
+    df_potability = read_potability_dataset("potabilidade.csv")
 
     X = df_potability.drop(columns="Potability").values
     X = (X - X.min()) / (X.max() - X.min())
