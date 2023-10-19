@@ -3,22 +3,23 @@ import numpy as np
 from xgboost import XGBClassifier
 from scipy.spatial import distance
 
-from sklearn.cluster import KMeans
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.cluster import KMeans, SpectralClustering
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn import tree
 from loader_and_preprocessor import read_potability_dataset
+from sklearn.metrics import silhouette_score
 
 # def calc_distances_diff_classes(data_cluster: NDArray, n_labels: int
 #                                 ) -> NDArray:
-#     """
+#
 #     Calc distance between data samples from different
 #     classes in the same cluster.
 #
 #     data_cluster: data from a specific cluster
-#     """
+#
 #     distances = np.zeros((n_labels, n_labels))
 #     samples_class = {lbl: np.where(data_cluster == lbl)[0]
 #                      for lbl in range(n_labels)}
@@ -99,13 +100,13 @@ def calc_membership_values(samples, centroids):
 def select_random_classifier():
     rnd = random.random()
     if rnd < 0.25:
-        return SVC(C=1.0, kernel='rbf')
+        return RandomForestClassifier()
     elif rnd < 0.5:
-        return KNeighborsClassifier(n_neighbors=3)
+        return RandomForestClassifier()
     elif rnd < 0.75:
-        return tree.DecisionTreeClassifier()
+        return GradientBoostingClassifier()
     else:
-        return GaussianNB()
+        return GradientBoostingClassifier()
 
 
 def split_train_test(X, train_size = 0.8):
@@ -140,60 +141,127 @@ def classification(X, y, model_name):
     print("Acurácia %s: %f" % (model_name, accuracy))
 
 
-def ensemble_classification(X, y, votings_weights):
-    n_clusters = votings_weights.shape[1]
+def ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters):
+    #idx_train, idx_test = split_train_test(X)
 
-    idx_train, idx_test = split_train_test(X)
-
-    X_train, y_train = X[idx_train], y[idx_train]
-    X_test, y_test = X[idx_test], y[idx_test]
+    #X_train, y_train = X[idx_train], y[idx_train]
+    #X_test, y_test = X[idx_test], y[idx_test]
 
     ensemble = []
+    possible_clusters = np.unique(clusters)
 
-    for _ in range(n_clusters):
-        classifier = RandomForestClassifier()  # select_random_classifier()
-        classifier.fit(X_train, y_train)
+    for c in possible_clusters:
+        idx_cluster = np.where(clusters == c)[0]
+
+        if np.all(y_train[idx_cluster] == y_train[idx_cluster[0]]):
+            classifier = RandomForestClassifier()
+        else:
+            classifier = select_random_classifier()  # SVC(kernel='rbf')
+
+        classifier.fit(X_train[idx_cluster], y_train[idx_cluster])
         ensemble.append(classifier)
 
-    predictions = np.array([ensemble[c].predict(X_test) for c in range(n_clusters)]).T
+    u = calc_membership_values(X_test, centroids[possible_clusters])
 
-    probabilities = np.sum(predictions * votings_weights[idx_test], axis=1)
+    predictions = np.array([ensemble[c].predict(X_test)
+                            for c in range(possible_clusters.shape[0])]).T
+    # print(predictions)
+    probabilities = np.sum(predictions * u, axis=1)
     y_pred = np.round(probabilities)
     accuracy = sum(y_pred == y_test) / len(y_test)
-    # print(ensemble, "\n")
-    print("Acurácia ensemble:", accuracy)
+    print(ensemble, "\n")
+    print("Proposta:", accuracy)
 
 
-if __name__ == "__main__":
-    df_potability = read_potability_dataset("potabilidade.csv")
+def calc_intra_cluster(X_class, clusters_k, centroids_k, n_clusters):
+    #intra = sum^n_samplesk|X-r| / (n_samplesk * max^n_samplesk|X-r|)
+    intra_dists = np.empty(n_clusters)
 
-    X = df_potability.drop(columns="Potability").values
-    X = (X - X.min()) / (X.max() - X.min())
-    # distance_matrix = distance.pdist(X)
+    for c in range(n_clusters):
+        X_cluster = X_class[np.where(clusters_k == c)[0]]
+        n_samples = X_cluster.shape[0]
+        if len(X_cluster) < 2:
+            intra_dists[c] = 1
+        else:
+            dists_samples_center = np.linalg.norm(X_cluster - centroids_k[c], axis=0)**2
+            intra_dists[c] = np.sum(dists_samples_center) / (
+                             np.max(dists_samples_center) * n_samples)
 
-    y = df_potability["Potability"].values
+    intra = np.sum(intra_dists) / n_clusters
 
-    n_labels = np.unique(y).shape[0]
-    n_clusters = 3
+    avg_dist_centroids = 2 * distance.pdist(centroids_k).sum() / (
+        n_clusters * (n_clusters - 1))
 
-    clusters, centroids = cluster_data(X, n_clusters)
-    dist_centroids_cluster = get_distances_between_diff_classes_per_cluster(
-        X, y, clusters, n_clusters, n_labels)
-    print("Distância entre centroides por classe para cada cluster:")
-    print(dist_centroids_cluster)
-    print("======================================")
+    mean_centroids = np.mean(centroids_k, axis=0)
+    beta = np.linalg.norm(centroids_k - mean_centroids)**2 / n_clusters
 
-    u = calc_membership_values(X, centroids)
-    print("Valores de pertinência:")
-    print(u)
-    print("======================================")
+    inter = np.exp(-avg_dist_centroids / beta)
+    return intra * inter
 
-    ensemble_classification(X, y, u)
-    classification(X, y, "svm")
-    classification(X, y, "knn")
-    classification(X, y, "dt")
 
-'''
- TODO
- - ensemble
-'''
+def find_best_partition_per_class(X_train, y_train):
+    n_samples = X_train.shape[0]
+    classes = np.unique(y_train)
+    clusters = np.empty(n_samples)
+    best_cluster_labels = None
+
+    for label in classes:
+        best_intra_inter = float("inf")
+        idxs = np.where(y_train == label)[0]
+        X_class = X_train[idxs]
+        max_clusters = int(np.sqrt(n_samples))
+
+        for k in range(2, max_clusters+1):
+            clusters_k, centroids_k = cluster_data(X_class, k)
+            intra_inter = calc_intra_cluster(X_class, clusters_k, centroids_k, k)
+            if intra_inter < best_intra_inter:
+                best_cluster_labels = clusters_k.astype(int)
+                best_intra_inter = intra_inter
+
+        clusters[idxs] = best_cluster_labels
+    return clusters
+
+
+def construct_training_clusters(X_train, y_train):
+    classes = np.unique(y_train)
+    n_classes = classes.shape[0]
+    clusters = find_best_partition_per_class(X_train, y_train)
+
+    for lbl1 in range(n_classes):
+        idxs_1 = np.where(y_train == lbl1)[0]
+
+        for lbl2 in range(lbl1+1, n_classes):
+            idxs_2 = np.where(y_train == lbl2)[0]
+
+#if __name__ == "__main__":
+#    df_potability = read_potability_dataset("potabilidade.csv")
+#
+#    X = df_potability.drop(columns="Potability").values
+#    X = (X - X.min()) / (X.max() - X.min())
+#    # distance_matrix = distance.pdist(X)
+#
+#    y = df_potability["Potability"].values
+#
+#    n_labels = np.unique(y).shape[0]
+#    n_clusters = 3
+#
+#    clusters, centroids = cluster_data(X, n_clusters)
+#    dist_centroids_cluster = get_distances_between_diff_classes_per_cluster(
+#        X, y, clusters, n_clusters, n_labels)
+#    print("Distância entre centroides por classe para cada cluster:")
+#    print(dist_centroids_cluster)
+#    print("======================================")
+#
+#    u = calc_membership_values(X, centroids)
+#    print("Valores de pertinência:")
+#    print(u)
+#    print("======================================")
+#
+#    ensemble_classification(X, y, u, clusters)
+#    classification(X, y, "svm")
+#    classification(X, y, "knn")
+#    classification(X, y, "dt")
+#
+#'''
+# - ensemble
+#'''

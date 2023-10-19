@@ -33,6 +33,29 @@ def test_get_distances_between_diff_classes_per_cluster():
     np.testing.assert_almost_equal(expected, predicted)
 
 
+def test_calc_intra_cluster():
+    X = np.array([[-2.0000000001, -1.0000000001], [2.0000000001, 0.0000000001], [2, 0], [-2, -1], [8.0000000001, 8.0000000001], [8, 8]])
+    clusters = np.array([0, 1, 1, 0, 2, 2])
+    n_clusters = 3
+    centroids = np.empty((n_clusters, X.shape[1]))
+
+    for c in range(n_clusters):
+        c_samples = np.where(clusters == c)[0]
+        centroids[c] = np.mean(X[c_samples], axis=0)
+    predicted = cc.calc_intra_cluster(X, clusters, centroids, n_clusters)
+    print(predicted)
+
+
+def test_find_best_partition_per_class():
+    # X = np.array([[1, 2], [1, 0], [0, 0], [0, 1], [3, 2], [2, 2], [7, 1], [5, 5], [2, 9], [8, 7], [5,5], [5,2], [9,0], [3,1]])
+    n_samples = 2000
+    X = np.random.random(size=(n_samples, 10))
+    y = np.random.randint(2, size=(n_samples))
+    print(cc.find_best_partition_per_class(X, y))
+
+
 if __name__ == "__main__":
-    test_calc_centroids_same_cluster()
-    test_get_distances_between_diff_classes_per_cluster()
+    # test_calc_centroids_same_cluster()
+    # test_get_distances_between_diff_classes_per_cluster()
+    # test_calc_intra_cluster()
+    # test_find_best_partition_per_class()
