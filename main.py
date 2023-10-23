@@ -25,7 +25,7 @@ def find_optimal_n_clusters(X_train, y_train, n_labels):
         clusters, centroids = cc.cluster_data(X_train, n_clusters)
         fitness_func = fitness_dists_centroids(X_train, y_train, n_clusters, n_labels)
         score = fitness_func(None, centroids, 0)
-        score = score + silhouette_score(X_train, clusters)
+        # score = score + silhouette_score(X_train, clusters)
 
         if score > best_fitness:
             best_fitness = score

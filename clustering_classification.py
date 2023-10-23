@@ -222,16 +222,24 @@ def find_best_partition_per_class(X_train, y_train):
     return clusters
 
 
+def combine_all_cluster_permutations(clusters, label, k):
+    if len(clusters) == label + 1:
+        return clusters[label]
+
+
 def construct_training_clusters(X_train, y_train):
     classes = np.unique(y_train)
     n_classes = classes.shape[0]
-    clusters = find_best_partition_per_class(X_train, y_train)
+    n_labels = np.unique(y_train).shape[0]
+    cluster_configs = []
+    clusters_by_label = []
 
-    for lbl1 in range(n_classes):
-        idxs_1 = np.where(y_train == lbl1)[0]
+    for label in range(n_labels):
+        clusters = find_best_partition_per_class(X_train, y_train, label)
+        clusters_by_label.append(clusters)
 
-        for lbl2 in range(lbl1+1, n_classes):
-            idxs_2 = np.where(y_train == lbl2)[0]
+    combine_all_cluster_permutations(clusters_by_label, 0, y_train)
+
 
 #if __name__ == "__main__":
 #    df_potability = read_potability_dataset("potabilidade.csv")
