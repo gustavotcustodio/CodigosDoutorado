@@ -7,17 +7,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_score
 
 
-def fitness_dists_centroids(X_train, y_train, n_clusters, n_labels):
+def fitness_dists_centroids(X_train, y_train, n_clusters, n_labels, distances_samples):
     def wrapper_fitness(ga_instance, solution, solution_idx):
         centroids = np.reshape(solution, (n_clusters, X_train.shape[1]))
 
-        distances = [np.linalg.norm(X_train - center, axis=1)
-                     for center in centroids]
-        distances = np.array(distances)
+        cluster_distances = [np.linalg.norm(X_train - center, axis=1)
+                             for center in centroids]
+        cluster_distances = np.array(cluster_distances)
+        clusters = np.argmin(cluster_distances, axis=0)
 
-        clusters = np.argmin(distances, axis=0)
         dists_clusters = get_distances_between_diff_classes_per_cluster(
-            X_train, y_train, clusters, n_clusters, n_labels)
+            y_train, clusters, n_clusters, n_labels, distances_samples)
         return np.mean(dists_clusters)
     return wrapper_fitness
 

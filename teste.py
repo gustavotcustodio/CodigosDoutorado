@@ -1,6 +1,8 @@
+from math import dist
 import numpy as np
 from sklearn.svm import SVC
 from scipy.spatial import distance
+from scipy.spatial import distance_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -35,10 +37,12 @@ def calc_intra_cluster(X_class, clusters_k, centroids_k, n_clusters):
     inter = np.exp(-avg_dist_centroids / beta)
     return intra * inter
 
+
 def cluster_data(data, n_clusters: int) -> tuple:
     clusterer = KMeans(n_clusters, n_init='auto')
     clusterer.fit(data)
     return clusterer.labels_, clusterer.cluster_centers_
+
 
 def find_best_partition_per_class(X_train, y_train):
     n_samples = X_train.shape[0]
@@ -62,6 +66,7 @@ def find_best_partition_per_class(X_train, y_train):
         clusters[idxs] = best_cluster_labels
     return clusters
 
+
 def create_dict_labels_cluster(y, clusters):
     S = {}
     for lbl in np.unique(y):
@@ -74,16 +79,18 @@ def create_dict_labels_cluster(y, clusters):
                 S[lbl][k] = idxs
     return S
 
-def combine_clusters2(S):
-    cluster_configs = []
-    k1 = len(S[0].keys())
-    for i in range(k1):
-        k2 = len(S[1].keys())
-        for j in range(k2):
-            combined_idxs = np.concatenate((S[0][i], S[1][j]))
-            cluster_configs.append(combined_idxs)
 
-    return cluster_configs
+#def combine_clusters2(S):
+#    cluster_configs = []
+#    k1 = len(S[0].keys())
+#    for i in range(k1):
+#        k2 = len(S[1].keys())
+#        for j in range(k2):
+#            combined_idxs = np.concatenate((S[0][i], S[1][j]))
+#            cluster_configs.append(combined_idxs)
+#
+#    return cluster_configs
+
 
 def combine_clusters(S, cluster_configs, idxs_cluster, lbl, k):
     # Ver se k < 0 ou k > limite lbl > limite
@@ -91,8 +98,7 @@ def combine_clusters(S, cluster_configs, idxs_cluster, lbl, k):
         return
 
     if lbl >= 0:
-        print(lbl, k)
-        idxs_cluster = np.concatenate((idxs_cluster, S[lbl][k]))
+        idxs_cluster = np.concatenate((idxs_cluster.astype(int), S[lbl][k]))
         if lbl == len(S.keys())-1:
             cluster_configs.append(idxs_cluster)
 
@@ -106,18 +112,59 @@ def combine_clusters(S, cluster_configs, idxs_cluster, lbl, k):
             idxs_cluster = idxs_cluster[:-1]
 
 
+def get_distances_between_diff_classes_per_cluster(y, clusters, n_clusters, n_labels, distances):
+    dist_centroids_cluster = np.empty((n_clusters))
+
+    for c in range(n_clusters):
+        # Samples belonging to the specific cluster c
+        samples_c = np.where(clusters == c)[0]
+        # centroids_by_class = calc_centroids_same_cluster(
+        #     X[samples_c], y[samples_c], n_labels)
+
+        avg_distance_cluster = 0
+        n_distances = 0
+        # # Sum of Distances between the centroids from different classes in the same cluster
+        # dist_centroids_cluster[c] = np.sum(distance.pdist(centroids_by_class))
+        for lbl1 in range(n_labels):
+            for lbl2 in range(lbl1+1, n_labels):
+
+                samples_lbl1 = np.where(y == lbl1)[0]
+                samples_lbl1 = np.intersect1d(samples_lbl1, samples_c)
+
+                samples_lbl2 = np.where(y == lbl2)[0]
+                samples_lbl2 = np.intersect1d(samples_lbl2, samples_c)
+
+                n_distances += len(samples_lbl1) * len(samples_lbl2)
+                avg_distance_cluster += distances[samples_lbl1, :][:, samples_lbl2].sum()
+        dist_centroids_cluster[c] = avg_distance_cluster / n_distances
+    return dist_centroids_cluster
+
+
 if __name__ == "__main__":
     X, y = read_wdbc_dataset()
 
+    dist_matrix = distance_matrix(X, X)
     n_labels = np.unique(y).shape[0]
+    n_clusters = 2
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
-    clusters = find_best_partition_per_class(X_train, y_train)
+    clusters, centers = cluster_data(X, n_clusters)
 
-    S = create_dict_labels_cluster(y_train, clusters)
+    get_distances_between_diff_classes_per_cluster(X, y, clusters, n_clusters, n_labels, dist_matrix)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
+    # clusters = find_best_partition_per_class(X_train, y_train)
 
-    cluster_configs = []
-    combine_clusters(S, cluster_configs, np.array([]), -1, 0)
-    print(cluster_configs)
-    cluster_configs = combine_clusters2(S)
+    # S = create_dict_labels_cluster(y_train, clusters)
 
+    # cluster_configs = []
+    # combine_clusters(S, cluster_configs, np.array([]), -1, 0)
+
+    # X_new_data = []
+    # new_clusters = []
+
+    # for c, idxs in enumerate(cluster_configs):
+    #     X_new_data.append(X_train[idxs])
+    #     new_clusters += [c] * len(idxs)
+    # X_new_data = np.vstack(X_new_data)
+    # new_clusters = np.array(new_clusters)
+
+    # print(cluster_configs)

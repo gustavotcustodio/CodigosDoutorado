@@ -11,19 +11,28 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.decomposition import PCA
+from scipy.spatial import distance_matrix
+
+
+PAPER_66 = 0
+CLUSTERING_ANALYSIS = 1
+CENTROID_OPTIMIZATION = 2
 
 
 def find_optimal_n_clusters(X_train, y_train, n_labels):
-    min_clusters = 2
+    dist_matrix = distance_matrix(X_train, X_train)
+
     max_clusters = int(np.sqrt(X_train.shape[0]))
     best_fitness = float("-inf")
     optimal_n_clusters = min_clusters
 
-    for n_clusters in range(min_clusters, max_clusters):
+    for n_clusters in range(2, max_clusters):
         # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_clusters, n_labels)
         # score = silhouette_score(X_train, clusters)
         clusters, centroids = cc.cluster_data(X_train, n_clusters)
-        fitness_func = fitness_dists_centroids(X_train, y_train, n_clusters, n_labels)
+        fitness_func = fitness_dists_centroids(
+            X_train, y_train, n_clusters, n_labels, dist_matrix)
+
         score = fitness_func(None, centroids, 0)
         # score = score + silhouette_score(X_train, clusters)
 
@@ -63,10 +72,13 @@ def plot_clusters(X_train, y_train, clusters, centroids):
     plt.show()
 
 
-def perform_ga_step(X_train, y_train, n_clusters, n_labels):
+def perform_ga_step(X_train, y_train, n_labels):
+    n_clusters = find_optimal_n_clusters(X_train, y_train, n_labels)
     n_genes = n_clusters * X_train.shape[1]
 
-    ff = fitness_dists_centroids(X_train, y_train, n_clusters, n_labels)
+    dist_matrix = distance_matrix(X_train, X_train)
+    ff = fitness_dists_centroids(X_train, y_train, n_clusters,
+                                 n_labels, dist_matrix)
 
     centroids, final_fitness = run_ga(ff, n_genes)
     centroids = centroids.reshape((n_clusters, X_train.shape[1]))
@@ -87,8 +99,11 @@ def perform_clustering_analysis(X_train, y_train, n_labels):
     best_fitness = float("-inf")
     best_labels = None
 
+    dist_matrix = distance_matrix(X_train, X_train)
+
     for c in range(min_clusters, max_clusters + 1):
-        fitness_function = fitness_overlap(X_train, y_train, c, n_labels)
+        fitness_function = fitness_dists_centroids(
+            X_train, y_train, c, n_labels, dist_matrix)
 
         clusterer = KMeans(n_clusters=c, n_init='auto')
         clusterer.fit(X_train)
@@ -98,7 +113,6 @@ def perform_clustering_analysis(X_train, y_train, n_labels):
             best_fitness = fitness_value
             best_labels = clusterer.labels_
 
-    # print(best_c)
     return best_centroids, best_fitness, best_labels
 
 
@@ -109,170 +123,49 @@ def run_pca(X_train, X_test):
     return X_train, X_test
 
 
+def run_experiments_for_dataset(dataset_name, read_function, experiment):
+    print(f"================== {dataset_name} =====================")
+
+    X, y = read_function()
+
+    n_labels = np.unique(y).shape[0]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
+    # X_train, X_test = run_pca(X_train, X_test)
+
+    if experiment == PAPER_66:
+        print("Combining clusters of different labels:")
+        X_train, y_train, centroids, clusters = cc.construct_training_clusters(X_train, y_train)
+    elif experiment == CLUSTERING_ANALYSIS:
+        print("Searching for best partitioning:")
+        centroids, final_fitness, clusters = perform_clustering_analysis(X_train, y_train, n_labels)
+    else:
+        print("Searching centroids using GA:")
+        centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_labels)
+
+    plot_clusters(X_train, y_train, clusters, centroids)
+
+    best_clf = cc.preselect_classifiers(X_train, y_train)
+    ensemble_classification(X_train, y_train, X_test, y_test, centroids,
+                            clusters, base_classifier = best_clf)
+
+    classifier = RandomForestClassifier()
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    accuracy = sum(y_pred == y_test) / len(y_test)
+
+    print("Random Forest:", accuracy)
+
+    classifier = GradientBoostingClassifier()
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    accuracy = sum(y_pred == y_test) / len(y_test)
+
+    print("GBClassifier:", accuracy)
+
+
 if __name__ == "__main__":
-    print("================== Credit Score =====================")
-
-    X, y = read_german_credit_dataset()
-
-    n_labels = np.unique(y).shape[0]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
-    X_train, X_test = run_pca(X_train, X_test)
-
-    n_clusters = find_optimal_n_clusters(X_train, y_train, n_labels)
-
-    centroids, final_fitness, clusters = perform_clustering_analysis(X_train, y_train, n_labels)
-    # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_clusters, n_labels)
-
-    plot_clusters(X_train, y_train, clusters, centroids)
-
-    ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters)
-
-    classifier = RandomForestClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-
-    print("Random Forest:", accuracy)
-
-    classifier = GradientBoostingClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-
-    print("GBClassifier:", accuracy)
-
-    #------------------------------------------------------
-
-    print("================== Water =====================")
-
-    X, y = read_potability_dataset()
-
-    n_labels = np.unique(y).shape[0]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
-    X_train, X_test = run_pca(X_train, X_test)
-
-    n_clusters = find_optimal_n_clusters(X_train, y_train, n_labels)
-
-    centroids, final_fitness, clusters = perform_clustering_analysis(X_train, y_train, n_labels)
-    # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_clusters, n_labels)
-
-    plot_clusters(X_train, y_train, clusters, centroids)
-
-    ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters)
-
-    classifier = RandomForestClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-
-    print("Random Forest:", accuracy)
-
-    classifier = GradientBoostingClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-
-    print("GBClassifier:", accuracy)
-
-    ## -----------------------------------------------------
-    #clusters = np.argmax(u, axis=1)
-
-    #print("GA:", final_fitness)
-    #print("Silhouette GA:", silhouette_score(X_train, clusters))
-
-    ## =======================================================
-    # ff = fitness_dists_centroids(X_train, y_train, n_clusters, n_labels)
-
-    # clusterer = KMeans(n_clusters, n_init='auto')
-    # clusterer.fit(X_train)
-    # # print(ff(None, clusterer.cluster_centers_, 0))  # , clusterer.cluster_centers_
-    # fitness_kmeans = ff(None, clusterer.cluster_centers_, 0)
-
-    # print("KMeans:", fitness_kmeans)
-    # print("Silhouette KMeans:", silhouette_score(X_train, clusterer.labels_))
-
-    # from sklearn.svm import SVC
-    # X = np.loadtxt("./glass/glass.data", delimiter=',')
-
-    # np.random.shuffle(X)
-    # y = X[:, -1]
-
-    # X = (X - X.min()) / (X.max() - X.min())
-    # X = X[:, :-1]
-
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
-
-    # n_labels = np.unique(y).shape[0]
-
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
-
-    # centroids, final_fitness = perform_clustering_analysis(X_train, y_train, n_labels)
-    # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, initial_n_clusters, n_labels)
-
-    # u = cc.calc_membership_values(X_train, centroids)
-    # ensemble_classification(X_train, y_train, u)
-
-
-    print("================== Wine =====================")
-
-    X, y = read_wine_dataset()
-
-    n_labels = np.unique(y).shape[0]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
-    X_train, X_test = run_pca(X_train, X_test)
-
-    n_clusters = find_optimal_n_clusters(X_train, y_train, n_labels)
-    centroids, final_fitness, clusters = perform_clustering_analysis(X_train, y_train, n_labels)
-    # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_clusters, n_labels)
-
-    plot_clusters(X_train, y_train, clusters, centroids)
-
-    ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters)
-
-    classifier = RandomForestClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print("Random Forest:", accuracy)
-
-    classifier = GradientBoostingClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print("GBClassifier:", accuracy)
-
-
-    print("================== Cancer =====================")
-    X, y = read_wdbc_dataset()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
-    X_train, X_test = run_pca(X_train, X_test)
-
-    n_labels = np.unique(y).shape[0]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
-
-    n_clusters = find_optimal_n_clusters(X_train, y_train, n_labels)
-
-    centroids, final_fitness, clusters = perform_clustering_analysis(X_train, y_train, n_labels)
-    # centroids, final_fitness, clusters = perform_ga_step(X_train, y_train, n_clusters, n_labels)
-
-    plot_clusters(X_train, y_train, clusters, centroids)
-
-    ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters)
-
-    classifier = RandomForestClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print("Random Forest:", accuracy)
-
-    classifier = GradientBoostingClassifier()
-    classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print("GBClassifier:", accuracy)
-
-    # Overlap de cada atributo para cada cluster diferente
+    run_experiments_for_dataset("Credit Score", read_german_credit_dataset, CLUSTERING_ANALYSIS)
+    # run_experiments_for_dataset("Water", read_potability_dataset, CLUSTERING_ANALYSIS)
+    run_experiments_for_dataset("Wine", read_wine_dataset, CLUSTERING_ANALYSIS)
+    run_experiments_for_dataset("Cancer", read_wdbc_dataset, CLUSTERING_ANALYSIS)

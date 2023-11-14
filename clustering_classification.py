@@ -2,15 +2,23 @@ import random
 import numpy as np
 from xgboost import XGBClassifier
 from scipy.spatial import distance
-
+from sklearn.model_selection import cross_val_score
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn import tree
-from loader_and_preprocessor import read_potability_dataset
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import silhouette_score
+from loader_and_preprocessor import read_potability_dataset
+from enum import Enum
+from deslib.des.knora_e import KNORAE
+
+class BaseClassifiers(Enum):
+    SVM = 0
+    DT = 1
+    KNN = 2
+    NB = 3
 
 # def calc_distances_diff_classes(data_cluster: NDArray, n_labels: int
 #                                 ) -> NDArray:
@@ -59,19 +67,46 @@ def cluster_data(data, n_clusters: int) -> tuple:
     return clusterer.labels_, clusterer.cluster_centers_
 
 
-def get_distances_between_diff_classes_per_cluster(X, y, clusters, n_clusters, n_labels):
+def get_distances_between_diff_classes_per_cluster(y, clusters, n_clusters, n_labels, distances):
     dist_centroids_cluster = np.empty((n_clusters))
 
     for c in range(n_clusters):
-        # Samples belonging to the specific cluster c
+        possible_labels = np.unique(y)
         samples_c = np.where(clusters == c)[0]
-        centroids_by_class = calc_centroids_same_cluster(
-            X[samples_c], y[samples_c], n_labels)
 
-        # Sum of Distances between the centroids from different classes in the same cluster
-        dist_centroids_cluster[c] = np.sum(distance.pdist(centroids_by_class))
+        avg_distance_cluster = 0
+        n_distances = 0
+        for lbl1 in possible_labels:
+            possible_labels = possible_labels[1:]
+            for lbl2 in possible_labels:
 
+                samples_lbl1 = np.where(y == lbl1)[0]
+                samples_lbl1 = np.intersect1d(samples_lbl1, samples_c)
+
+                samples_lbl2 = np.where(y == lbl2)[0]
+                samples_lbl2 = np.intersect1d(samples_lbl2, samples_c)
+
+                n_distances += len(samples_lbl1) * len(samples_lbl2)
+                avg_distance_cluster += distances[samples_lbl1, :][:, samples_lbl2].sum()
+        if n_distances > 0:
+            dist_centroids_cluster[c] = avg_distance_cluster / n_distances
+        else:
+            dist_centroids_cluster[c] = 0.0
     return dist_centroids_cluster
+
+# def get_distances_between_diff_classes_per_cluster(X, y, clusters, n_clusters, n_labels):
+#     dist_centroids_cluster = np.empty((n_clusters))
+# 
+#     for c in range(n_clusters):
+#         # Samples belonging to the specific cluster c
+#         samples_c = np.where(clusters == c)[0]
+#         centroids_by_class = calc_centroids_same_cluster(
+#             X[samples_c], y[samples_c], n_labels)
+# 
+#         # Sum of Distances between the centroids from different classes in the same cluster
+#         dist_centroids_cluster[c] = np.sum(distance.pdist(centroids_by_class))
+# 
+#     return dist_centroids_cluster
 
 
 def calc_membership_values(samples, centroids):
@@ -97,16 +132,16 @@ def calc_membership_values(samples, centroids):
     return u
 
 
-def select_random_classifier():
-    rnd = random.random()
-    if rnd < 0.25:
-        return RandomForestClassifier()
-    elif rnd < 0.5:
-        return RandomForestClassifier()
-    elif rnd < 0.75:
-        return GradientBoostingClassifier()
+def select_classifier(base_classifier):
+    # rnd = random.random()
+    if base_classifier == BaseClassifiers.DT:
+        return DecisionTreeClassifier()
+    elif base_classifier == BaseClassifiers.KNN:
+        return KNeighborsClassifier(n_neighbors = 5)
+    elif base_classifier == BaseClassifiers.NB:
+        return GaussianNB()
     else:
-        return GradientBoostingClassifier()
+        return SVC(kernel='rbf')
 
 
 def split_train_test(X, train_size = 0.8):
@@ -131,7 +166,7 @@ def classification(X, y, model_name):
     elif model_name == "knn":
         model = KNeighborsClassifier(n_neighbors=3)
     elif model_name == "dt":
-        model = tree.DecisionTreeClassifier()
+        model = DecisionTreeClassifier()
     else:
         model = GaussianNB()
 
@@ -141,7 +176,8 @@ def classification(X, y, model_name):
     print("Acurácia %s: %f" % (model_name, accuracy))
 
 
-def ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters):
+def ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters,
+                            base_classifier=BaseClassifiers.SVM):
     #idx_train, idx_test = split_train_test(X)
 
     #X_train, y_train = X[idx_train], y[idx_train]
@@ -156,7 +192,7 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids, cluster
         if np.all(y_train[idx_cluster] == y_train[idx_cluster[0]]):
             classifier = RandomForestClassifier()
         else:
-            classifier = select_random_classifier()  # SVC(kernel='rbf')
+            classifier = select_classifier(base_classifier)
 
         classifier.fit(X_train[idx_cluster], y_train[idx_cluster])
         ensemble.append(classifier)
@@ -171,6 +207,34 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids, cluster
     accuracy = sum(y_pred == y_test) / len(y_test)
     print(ensemble, "\n")
     print("Proposta:", accuracy)
+
+
+def preselect_knora(X_train, y_train):
+    return 0
+
+
+def preselect_classifiers(X_train, y_train):
+    # SVM = 0
+    # DT = 1
+    # KNN = 2
+    # NB = 3
+    best_accuracy = 0.0
+    best_clf = 0
+
+    classifiers = {BaseClassifiers.SVM: SVC(kernel='rbf'),
+                   BaseClassifiers.DT: DecisionTreeClassifier(),
+                   BaseClassifiers.KNN: KNeighborsClassifier(n_neighbors=5),
+                   BaseClassifiers.NB: GaussianNB()}
+    for name_clf in BaseClassifiers:
+        clf = classifiers[name_clf]
+
+        scores = cross_val_score(clf, X_train, y_train, cv=5)
+        avg_accuracy = scores.mean()
+
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_clf = name_clf
+    return best_clf
 
 
 def calc_intra_cluster(X_class, clusters_k, centroids_k, n_clusters):
@@ -222,9 +286,37 @@ def find_best_partition_per_class(X_train, y_train):
     return clusters
 
 
-def combine_all_cluster_permutations(clusters, label, k):
-    if len(clusters) == label + 1:
-        return clusters[label]
+def create_dict_labels_cluster(y, clusters):
+    S = {}
+    for lbl in np.unique(y):
+        S[lbl] = {}
+        for k in np.unique(clusters):
+            idxs_cluster = np.where(clusters == k)[0]
+            idxs_label = np.where(y == lbl)[0]
+            idxs = np.intersect1d(idxs_cluster, idxs_label)
+            if len(idxs) > 0:
+                S[lbl][k] = idxs
+    return S
+
+
+def combine_clusters(S, cluster_configs, idxs_cluster, lbl, k):
+    # Ver se k < 0 ou k > limite lbl > limite
+    if (lbl>=0 and lbl not in S) or (lbl>=0 and k not in S[lbl]):
+        return
+
+    if lbl >= 0:
+        idxs_cluster = np.concatenate((idxs_cluster.astype(int), S[lbl][k]))
+        if lbl == len(S.keys())-1:
+            cluster_configs.append(idxs_cluster)
+
+    if lbl < len(S.keys())-1:
+        clusters = sorted(S[lbl+1].keys())
+
+        for k in clusters:
+            combine_clusters(S, cluster_configs, idxs_cluster, lbl+1, k)
+
+            # Remover o último elemento
+            idxs_cluster = idxs_cluster[:-1]
 
 
 def construct_training_clusters(X_train, y_train):
@@ -234,12 +326,30 @@ def construct_training_clusters(X_train, y_train):
     cluster_configs = []
     clusters_by_label = []
 
-    for label in range(n_labels):
-        clusters = find_best_partition_per_class(X_train, y_train, label)
-        clusters_by_label.append(clusters)
+    clusters = find_best_partition_per_class(X_train, y_train)
 
-    combine_all_cluster_permutations(clusters_by_label, 0, y_train)
+    S = create_dict_labels_cluster(y_train, clusters)
 
+    cluster_configs = []
+    combine_clusters(S, cluster_configs, np.array([]), -1, 0)
+
+    X_new_train = []
+    y_new_train = []
+    new_clusters = []
+    centroids = []
+
+    for c, idxs in enumerate(cluster_configs):
+        X_new_train.append(X_train[idxs])
+        y_new_train.append(y_train[idxs])
+        new_clusters += [c] * len(idxs)
+        centroids.append(np.mean(X_train[idxs], axis=0))
+
+    X_new_train = np.vstack(X_new_train)
+    y_new_train = np.concatenate(y_new_train)
+    new_clusters = np.array(new_clusters)
+    centroids = np.array(centroids)
+
+    return X_new_train, y_new_train, centroids, new_clusters
 
 #if __name__ == "__main__":
 #    df_potability = read_potability_dataset("potabilidade.csv")
