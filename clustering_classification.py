@@ -2,6 +2,7 @@ import random
 import numpy as np
 from xgboost import XGBClassifier
 from scipy.spatial import distance
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import cross_val_score
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -9,10 +10,14 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import silhouette_score
 from loader_and_preprocessor import read_potability_dataset
 from enum import Enum
 from deslib.des.knora_e import KNORAE
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plt
 
 class BaseClassifiers(Enum):
     SVM = 0
@@ -155,20 +160,11 @@ def split_train_test(X, train_size = 0.8):
     return idx_train, idx_test
 
 
-def classification(X, y, model_name):
+def classification(X, y, model, model_name):
     idx_train, idx_test = split_train_test(X)
 
     X_train, y_train = X[idx_train], y[idx_train]
     X_test, y_test = X[idx_test], y[idx_test]
-
-    if model_name == "svm":
-        model = SVC(C=1.0, kernel='rbf')
-    elif model_name == "knn":
-        model = KNeighborsClassifier(n_neighbors=3)
-    elif model_name == "dt":
-        model = DecisionTreeClassifier()
-    else:
-        model = GaussianNB()
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -176,8 +172,8 @@ def classification(X, y, model_name):
     print("Acurácia %s: %f" % (model_name, accuracy))
 
 
-def ensemble_classification(X_train, y_train, X_test, y_test, centroids, clusters,
-                            base_classifier=BaseClassifiers.SVM):
+def ensemble_classification(X_train, y_train, X_test, y_test, centroids,
+                            clusters, base_classifiers):
     #idx_train, idx_test = split_train_test(X)
 
     #X_train, y_train = X[idx_train], y[idx_train]
@@ -192,7 +188,7 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids, cluster
         if np.all(y_train[idx_cluster] == y_train[idx_cluster[0]]):
             classifier = RandomForestClassifier()
         else:
-            classifier = select_classifier(base_classifier)
+            classifier = base_classifiers[c]
 
         classifier.fit(X_train[idx_cluster], y_train[idx_cluster])
         ensemble.append(classifier)
@@ -204,37 +200,66 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids, cluster
     # print(predictions)
     probabilities = np.sum(predictions * u, axis=1)
     y_pred = np.round(probabilities)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print(ensemble, "\n")
-    print("Proposta:", accuracy)
+    return y_pred
+    # accuracy = sum(y_pred == y_test) / len(y_test)
+    # print(ensemble, "\n")
+    # print(f"{experiment_name}:", accuracy)
+    # disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix(y_test, y_pred))
+    # disp.plot()
+    # plt.title(f"Proposta")
+    # plt.show()
+
+# def preselect_base_classifiers(X_train, y_train, n_to_select):
+#     pool_classifiers = [GaussianNB(), SVC(C=1.0, kernel='rbf'),
+#                         SVC(C=0.5, kernel='rbf'), SVC(C=1.0, kernel='linear'),
+#                         DecisionTreeClassifier(), KNeighborsClassifier(n_neighbors=5),
+#                         KNeighborsClassifier(n_neighbors=7), LogisticRegression(),
+#                         MLPClassifier(max_iter=100),]
+#     classifiers_evaluations = []
+# 
+#     for classifier in pool_classifiers:
+#         scores = cross_val_score(classifier, X_train, y_train, cv=5)
+#         avg_score = scores.mean()
+# 
+#         classifiers_evaluations.append((classifier, avg_score))
+#         # Perform cross validation of each classifier individually
+#         # Get classifiers with highest accuracy
+# 
+#     classifiers_evaluations.sort(key = lambda x: x[1], reverse=True)
+# 
+#     sorted_classifiers = [clf for clf, _ in classifiers_evaluations]
+# 
+#     return sorted_classifiers[0:n_to_select]
 
 
-def preselect_knora(X_train, y_train):
-    return 0
+def preselect_base_classifiers(X_train, y_train, n_clusters):
+    a = [GaussianNB(), SVC(C=1.0, kernel='rbf'), SVC(C=0.5, kernel='rbf'), SVC(C=1.0, kernel='linear'), DecisionTreeClassifier(), KNeighborsClassifier(n_neighbors=5), KNeighborsClassifier(n_neighbors=7), LogisticRegression(), MLPClassifier(max_iter=100),]
+
+    return
 
 
-def preselect_classifiers(X_train, y_train):
-    # SVM = 0
-    # DT = 1
-    # KNN = 2
-    # NB = 3
-    best_accuracy = 0.0
-    best_clf = 0
-
-    classifiers = {BaseClassifiers.SVM: SVC(kernel='rbf'),
-                   BaseClassifiers.DT: DecisionTreeClassifier(),
-                   BaseClassifiers.KNN: KNeighborsClassifier(n_neighbors=5),
-                   BaseClassifiers.NB: GaussianNB()}
-    for name_clf in BaseClassifiers:
-        clf = classifiers[name_clf]
-
-        scores = cross_val_score(clf, X_train, y_train, cv=5)
-        avg_accuracy = scores.mean()
-
-        if avg_accuracy > best_accuracy:
-            best_accuracy = avg_accuracy
-            best_clf = name_clf
-    return best_clf
+# def preselect_classifiers(X_train, y_train):
+#     # SVM = 0
+#     # DT = 1
+#     # KNN = 2
+#     # NB = 3
+#     best_accuracy = 0.0
+#     best_clf = 0
+# 
+#     classifiers = {BaseClassifiers.SVM: SVC(kernel='rbf'),
+#                    BaseClassifiers.DT: DecisionTreeClassifier(),
+#                    BaseClassifiers.KNN: KNeighborsClassifier(n_neighbors=5),
+#                    BaseClassifiers.NB: GaussianNB()}
+#     for name_clf in BaseClassifiers:
+#         clf = classifiers[name_clf]
+# 
+#         scores = cross_val_score(clf, X_train, y_train, cv=5)
+#         avg_accuracy = scores.mean()
+# 
+#         if avg_accuracy > best_accuracy:
+#             best_accuracy = avg_accuracy
+#             best_clf = name_clf
+#     return best_clf
 
 
 def calc_intra_cluster(X_class, clusters_k, centroids_k, n_clusters):
@@ -275,7 +300,7 @@ def find_best_partition_per_class(X_train, y_train):
         X_class = X_train[idxs]
         max_clusters = int(np.sqrt(n_samples))
 
-        for k in range(2, max_clusters+1):
+        for k in range(5, max_clusters+1):
             clusters_k, centroids_k = cluster_data(X_class, k)
             intra_inter = calc_intra_cluster(X_class, clusters_k, centroids_k, k)
             if intra_inter < best_intra_inter:

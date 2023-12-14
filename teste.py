@@ -10,6 +10,13 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans, SpectralClustering
 import matplotlib.pyplot as plt
 from loader_and_preprocessor import read_potability_dataset, read_wine_dataset, read_wdbc_dataset
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
+from deslib.des.knora_e import KNORAE
 
 
 def calc_intra_cluster(X_class, clusters_k, centroids_k, n_clusters):
@@ -140,6 +147,18 @@ def get_distances_between_diff_classes_per_cluster(y, clusters, n_clusters, n_la
     return dist_centroids_cluster
 
 
+def preselect_knora(X_train, y_train, n_to_select):
+    pool_classifiers = [GaussianNB(), SVC(C=1.0, kernel='rbf'), SVC(C=0.5, kernel='rbf'), SVC(C=1.0, kernel='linear'), SVC(C=0.5, kernel='linear'), DecisionTreeClassifier(), MLPClassifier(), KNeighborsClassifier(n_neighbors=5), KNeighborsClassifier(n_neighbors=7)]
+
+    for classifier in pool_classifiers:
+        classifier.fit(X_train, y_train)
+
+    knora_e = KNORAE(pool_classifiers, k=7)
+    knora_e.fit(X_train, y_train)
+    knora_e.select()
+    return 0
+
+
 if __name__ == "__main__":
     X, y = read_wdbc_dataset()
 
@@ -149,22 +168,4 @@ if __name__ == "__main__":
 
     clusters, centers = cluster_data(X, n_clusters)
 
-    get_distances_between_diff_classes_per_cluster(X, y, clusters, n_clusters, n_labels, dist_matrix)
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
-    # clusters = find_best_partition_per_class(X_train, y_train)
-
-    # S = create_dict_labels_cluster(y_train, clusters)
-
-    # cluster_configs = []
-    # combine_clusters(S, cluster_configs, np.array([]), -1, 0)
-
-    # X_new_data = []
-    # new_clusters = []
-
-    # for c, idxs in enumerate(cluster_configs):
-    #     X_new_data.append(X_train[idxs])
-    #     new_clusters += [c] * len(idxs)
-    # X_new_data = np.vstack(X_new_data)
-    # new_clusters = np.array(new_clusters)
-
-    # print(cluster_configs)
+    preselect_knora(X, y, 4)
