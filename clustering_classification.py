@@ -1,9 +1,9 @@
 import random
+from re import M
 import numpy as np
 from xgboost import XGBClassifier
 from scipy.spatial import distance
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import brier_score_loss, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
@@ -19,12 +19,21 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 
+class Experiments(Enum):
+    PAPER_66 = 0
+    CLUSTERING_ANALYSIS = 1
+    CENTROID_OPTIMIZATION = 2
+    RANDOM_FOREST = 3
+    GRADIENT_BOOSTING = 4
+    SVM = 5
+
 class BaseClassifiers(Enum):
     SVM = 0
     DT = 1
     KNN = 2
     NB = 3
 
+POSSIBLE_CLASSIFIERS = [ SVC(C=1.0, kernel='rbf'), SVC(C=1.0, kernel='linear'), GaussianNB(), DecisionTreeClassifier(), KNeighborsClassifier(n_neighbors=5), LogisticRegression(), RandomForestClassifier(), GradientBoostingClassifier()]  # , MLPClassifier(max_iter=100),]
 # def calc_distances_diff_classes(data_cluster: NDArray, n_labels: int
 #                                 ) -> NDArray:
 #
@@ -66,9 +75,13 @@ def calc_centroids_same_cluster(X_cluster, y_cluster, n_labels):
     return centroids[labels_in_cluster]
 
 
-def cluster_data(data, n_clusters: int) -> tuple:
+def cluster_data(data, n_clusters: int, fitness_function=None) -> tuple:
     clusterer = KMeans(n_clusters, n_init='auto')
     clusterer.fit(data)
+
+    if fitness_function:
+        fitness_value = fitness_function(None, clusterer.cluster_centers_, 0)
+        return clusterer.labels_, clusterer.cluster_centers_, fitness_value
     return clusterer.labels_, clusterer.cluster_centers_
 
 
@@ -160,16 +173,14 @@ def split_train_test(X, train_size = 0.8):
     return idx_train, idx_test
 
 
-def classification(X, y, model, model_name):
-    idx_train, idx_test = split_train_test(X)
-
-    X_train, y_train = X[idx_train], y[idx_train]
-    X_test, y_test = X[idx_test], y[idx_test]
-
+def regular_classification(X_train, y_train, X_test, y_test, experiment):
+    if experiment == Experiments.RANDOM_FOREST:
+        model = RandomForestClassifier()
+    else:
+        model = GradientBoostingClassifier()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    accuracy = sum(y_pred == y_test) / len(y_test)
-    print("Acurácia %s: %f" % (model_name, accuracy))
+    return y_pred
 
 
 def ensemble_classification(X_train, y_train, X_test, y_test, centroids,
@@ -232,10 +243,51 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids,
 #     return sorted_classifiers[0:n_to_select]
 
 
-def preselect_base_classifiers(X_train, y_train, n_clusters):
-    a = [GaussianNB(), SVC(C=1.0, kernel='rbf'), SVC(C=0.5, kernel='rbf'), SVC(C=1.0, kernel='linear'), DecisionTreeClassifier(), KNeighborsClassifier(n_neighbors=5), KNeighborsClassifier(n_neighbors=7), LogisticRegression(), MLPClassifier(max_iter=100),]
 
-    return
+def select_best_clf_for_cluster(X_cluster, y_cluster):
+    best_clf = POSSIBLE_CLASSIFIERS[0]
+    best_accuracy = float("-inf")
+
+    # Check if the minority class has less samples than folds
+    n_folds = 5
+
+    labels, n_samples_per_label = np.unique(y_cluster, return_counts=True)
+
+    if min(n_samples_per_label) < n_folds:
+        n_folds = min(n_samples_per_label)
+
+    for clf in POSSIBLE_CLASSIFIERS:
+        # If the cross validation is not possible, select a SVM as base classifier
+        if n_folds < 2:
+            return best_clf
+        accuracy = cross_val_score(clf, X_cluster, y_cluster, cv=n_folds).mean()
+
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_clf = clf
+    return best_clf
+
+
+def preselect_base_classifiers(X, y, clusters, n_clusters):
+    base_classifiers = []
+
+    X_cluster = [[] for _ in range(n_clusters)]
+    y_cluster = [[] for _ in range(n_clusters)]
+
+    for idx, c in zip(range(X.shape[0]), clusters):
+        X_cluster[c].append(X[idx])
+        y_cluster[c].append(y[idx])
+
+    for c in np.unique(clusters):
+        if np.all(np.array(y_cluster[c]) == y_cluster[c][0]):
+            best_classifier = KNeighborsClassifier(n_neighbors=5)
+        else:
+            best_classifier = select_best_clf_for_cluster(
+                np.array(X_cluster[c]), np.array(y_cluster[c])
+            )
+        # best_classifier = SVC()
+        base_classifiers.append(best_classifier)
+    return base_classifiers
 
 
 # def preselect_classifiers(X_train, y_train):
@@ -298,9 +350,11 @@ def find_best_partition_per_class(X_train, y_train):
         best_intra_inter = float("inf")
         idxs = np.where(y_train == label)[0]
         X_class = X_train[idxs]
+
+        min_clusters = 2
         max_clusters = int(np.sqrt(n_samples))
 
-        for k in range(5, max_clusters+1):
+        for k in range(min_clusters, max_clusters+1):
             clusters_k, centroids_k = cluster_data(X_class, k)
             intra_inter = calc_intra_cluster(X_class, clusters_k, centroids_k, k)
             if intra_inter < best_intra_inter:
@@ -373,7 +427,6 @@ def construct_training_clusters(X_train, y_train):
     y_new_train = np.concatenate(y_new_train)
     new_clusters = np.array(new_clusters)
     centroids = np.array(centroids)
-
     return X_new_train, y_new_train, centroids, new_clusters
 
 #if __name__ == "__main__":
