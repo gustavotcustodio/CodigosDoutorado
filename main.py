@@ -56,6 +56,7 @@ def find_optimal_n_clusters(X_train, y_train, n_labels):
             X_train, y_train, n_clusters, n_labels, dist_matrix)
 
         # score = fitness_func(None, centroids, 0)
+        #TODO fala disso
         score = davies_bouldin_score(X_train, clusters)
 
         if score > best_fitness:
@@ -154,43 +155,55 @@ def perform_clustering_analysis(X_train, y_train, n_labels, n_clusters=None):
 def show_number_labels_by_cluster(labels, clusters, n_labels, filename): 
     n_samples = len(labels)
     n_clusters = np.unique(clusters).shape[0]
-    cluster_counting = [[0 for l in range(n_labels)]
-                        for c in range(n_clusters)]
+    cluster_counting = [[0 for l in range(n_clusters)]
+                        for c in range(n_labels)]
     possible_labels = [l for l in range(n_labels)]
 
     for i in range(n_samples):
         c = int(clusters[i])
         l = int(labels[i])
 
-        cluster_counting[c][l] += 1
+        cluster_counting[l][c] += 1
     
     # Plot the barplot with the information
     fig, ax = plt.subplots(layout='constrained')
     width = 0.25
     multiplier = 0
 
-    x = np.arange(n_labels)
-    for c in range(n_clusters):
+    x = np.arange(n_clusters)
+    for lbl in range(n_labels):
         offset = width * multiplier
-        lbl = multiplier % (n_labels + 1)
-        rects = ax.bar(x + offset, cluster_counting[c], width, label=f"Label {lbl}")
+        current_lbl = multiplier % (n_labels + 1)
+        rects = ax.bar(x + offset, cluster_counting[lbl], width,
+                       label=f"Label {current_lbl}")
         ax.bar_label(rects, padding=3)
         multiplier += 1
 
-    fullpath = os.path.join(EXPERIMENT_FOLDER, "pca_matrices", f"{filename}.png")
     ax.set_ylabel('Number of samples')
     ax.set_title('Distribution of labels by cluster')
-    ax.legend(loc='upper left', ncols=3)
+    ax.legend(loc='best', ncols=3)
     ax.set_xticks(x + width, [f"Cluster {c+1}" for c in range(n_clusters)])
     fullpath = os.path.join(EXPERIMENT_FOLDER, "distributions_per_cluster", f"{filename}.png")
-    # plt.savefig(fullpath)
-    # plt.clf()
+
+    plt.savefig(fullpath)
+    plt.clf()
+    print(f"Cluster distribution saved successfully.")
 
 
-def calc_avg_separability(X, labels, clusters):
-    """TODO
-    """
-    pass
+def calc_avg_separability(X_train, y_train, centroids, predicted_labels):
+    # TODO
+    n_clusters = centroids.shape[0]
+
+    dist_matrix = distance_matrix(X_train, X_train)
+    avg_distance = fitness_function(None, centroids, 0)
+
+    fitness_function = fitness_dists_centroids(
+        X_train, y_train, n_clusters, n_labels, dist_matrix
+    )
+
+    # for d in distances_samples:
+    # fitness_dists_centroids(X_train, y_train, n_clusters, n_labels, distances_samples)
+    # Calculate the average distance for each cluster
 
 
 def run_experiments_for_dataset(dataset_name, read_function, experiment, n_runs=1, n_clusters=None):
@@ -222,7 +235,9 @@ def run_experiments_for_dataset(dataset_name, read_function, experiment, n_runs=
                 )
             else:
                 print("Searching for best partitioning:")
-                clusters, centroids, final_fitness = perform_clustering_analysis(X_train, y_train, n_labels)
+                clusters, centroids, final_fitness = perform_clustering_analysis(
+                    X_train, y_train, n_labels
+                )
         elif experiment == Experiments.CENTROID_OPTIMIZATION:
             print("Searching centroids using GA:")
             clusters, centroids, final_fitness = perform_ga_step(X_train, y_train, n_labels)
@@ -241,13 +256,14 @@ def run_experiments_for_dataset(dataset_name, read_function, experiment, n_runs=
             base_classifiers = cc.preselect_base_classifiers(X_train, y_train, clusters, n_clusters)
             y_pred = ensemble_classification(X_train, y_train, X_test, y_test, centroids,
                                              clusters, base_classifiers)
+
+            show_number_labels_by_cluster(y_pred, clusters, n_labels, filename)
         else:
             base_classifiers = "Simple"
             # Perform classification with classical algorithms (Random Forest, Gradient Boosting)
             y_pred = cc.regular_classification(X_train, y_train, X_test, y_test, experiment)
         # Show the percentage of each samples with each label in each different cluster.
 
-        show_number_labels_by_cluster(y_pred, clusters, n_labels, filename)
 
         plot_confusion_matrix(y_test, y_pred, dataset_name,
                               experiment_names[experiment], filename)
@@ -327,34 +343,34 @@ if __name__ == "__main__":
     # filename = f"{dataset}_{experiment_names[experiment_type]}"
     # calc_avg_std_save_results(results, n_runs, filename)
     #############################
-    # experiment_type = Experiments.RANDOM_FOREST
+    experiment_type = Experiments.RANDOM_FOREST
 
-    # dataset = "Credit Score"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Cancer"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Water"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Credit Score"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Wine"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Water"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Cancer"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Wine"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # ###############################
-    # experiment_type = Experiments.GRADIENT_BOOSTING
+    ################################
+    experiment_type = Experiments.GRADIENT_BOOSTING
 
-    # dataset = "Credit Score"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Cancer"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Water"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Credit Score"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Wine"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Water"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    # dataset = "Cancer"
-    # run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Wine"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
     #############################
     experiment_type = Experiments.CLUSTERING_ANALYSIS
@@ -374,18 +390,18 @@ if __name__ == "__main__":
         run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
 
     ###############################
-    #experiment_type = Experiments.PAPER_66
+    experiment_type = Experiments.PAPER_66
 
-    #dataset = "Credit Score"
-    #run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Cancer"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    #dataset = "Water"
-    #run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Credit Score"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    #dataset = "Wine"
-    #run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Water"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
-    #dataset = "Cancer"
-    #run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    dataset = "Wine"
+    run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
     ###############################

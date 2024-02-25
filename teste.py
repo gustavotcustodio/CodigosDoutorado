@@ -9,7 +9,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans, SpectralClustering
 import matplotlib.pyplot as plt
-from loader_and_preprocessor import read_potability_dataset, read_wine_dataset, read_wdbc_dataset
+from loader_and_preprocessor import read_potability_dataset, read_wine_dataset, read_wdbc_dataset, read_german_credit_dataset
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
@@ -158,14 +158,34 @@ def preselect_knora(X_train, y_train, n_to_select):
     knora_e.select()
     return 0
 
+def plot_clusters(X_train, y_train, dataset):
+    tsne_model = TSNE(n_components=2)
+    low_dim_data = tsne_model.fit_transform(X_train)
+
+    for l in np.unique(y_train):
+        idx_labels = np.where(y_train == l)[0]
+
+        plt.scatter(low_dim_data[idx_labels, 0], low_dim_data[idx_labels, 1],
+                    alpha=0.7, label="Label %d" % l)
+
+    plt.legend()  # (loc='upper left', bbox_to_anchor=(1, 1))
+
+    plt.savefig(dataset + ".png")
+    plt.clf()
 
 if __name__ == "__main__":
+    dataset = "Breast Cancer"
     X, y = read_wdbc_dataset()
+    plot_clusters(X, y, dataset)
 
-    dist_matrix = distance_matrix(X, X)
-    n_labels = np.unique(y).shape[0]
-    n_clusters = 2
+    dataset = "Wine"
+    X, y = read_wine_dataset()
+    plot_clusters(X, y, dataset)
 
-    clusters, centers = cluster_data(X, n_clusters)
+    dataset = "Water Potability"
+    X, y = read_potability_dataset()
+    plot_clusters(X, y, dataset)
 
-    preselect_knora(X, y, 4)
+    dataset = "German Credit Score"
+    X, y = read_german_credit_dataset()
+    plot_clusters(X, y, dataset)

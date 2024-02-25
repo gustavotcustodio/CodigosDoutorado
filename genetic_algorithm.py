@@ -18,6 +18,8 @@ def fitness_dists_centroids(X_train, y_train, n_clusters, n_labels, distances_sa
 
         dists_clusters = get_distances_between_diff_classes_per_cluster(
             y_train, clusters, n_clusters, n_labels, distances_samples)
+        print(f"Distância {n_clusters} clusters {n_labels} labels:")
+        print(dists_clusters)
         return np.mean(dists_clusters)
     return wrapper_fitness
 
