@@ -2,8 +2,8 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
-from pandas.core import base
-from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, plot_tree
+from sklearn.model_selection import GridSearchCV
 
 
 def filter_files(filelist, dataset):
@@ -55,6 +55,34 @@ def save_tree(df_base_classifiers, filename, metric="Accuracy"):
     print(f"Arquivo {filename} salvo com sucesso.")
 
 
+def cross_val_tree(df_base_classifiers, filepath_tree, metric="Accuracy"):
+    params =  [{
+        'criterion': ['mse', 'friedman_mse', 'absolute_error'],
+        'max_depth': [3, 5, 7, None],
+        'ccp_alpha': [0.0, 0.02, 0.1, 0.3, 0.5]
+    }]
+
+    y = df_base_classifiers[metric]
+    X = df_base_classifiers.drop(columns=metric).values
+
+    dt = DecisionTreeRegressor()
+    gs_tree = GridSearchCV(dt,
+                           param_grid=params,
+                           scoring='r2',
+                           cv=10)
+    gs_tree.fit(X, y)
+    print("-"*70)
+    print(filepath_tree)
+    combination_parameters = list(
+        zip(gs_tree.cv_results_["params"],
+            gs_tree.cv_results_['mean_test_score'])
+    )
+    print(combination_parameters)
+
+    print(f"\nBest estimator: {gs_tree.best_estimator_}")
+    print(f"Best R2: {gs_tree.best_score_}")
+
+
 relevant_files = [f for f in os.listdir(".") if ".csv" in f]
 datasets = ["Water", "Cancer", "Credit", "Wine"]
 
@@ -65,6 +93,5 @@ for dataset in datasets:
     base_dir = "arvores_regressao"
     filepath_tree = os.path.join(base_dir, f"{dataset}.png")
     os.makedirs(base_dir, exist_ok=True)
-    save_tree(df_base_classifiers, filepath_tree)
-    
-
+    cross_val_tree(df_base_classifiers, filepath_tree)
+    # save_tree(df_base_classifiers, filepath_tree)

@@ -1,6 +1,7 @@
 import random
 from re import M
 import numpy as np
+from sklearn.decomposition import PCA
 from xgboost import XGBClassifier
 from scipy.spatial import distance
 from sklearn.metrics import brier_score_loss, confusion_matrix, ConfusionMatrixDisplay
@@ -210,7 +211,9 @@ def ensemble_classification(X_train, y_train, X_test, y_test, centroids,
                             for c in range(possible_clusters.shape[0])]).T
     # print(predictions)
     probabilities = np.sum(predictions * u, axis=1)
+
     y_pred = np.round(probabilities)
+
     return y_pred
     # accuracy = sum(y_pred == y_test) / len(y_test)
     # print(ensemble, "\n")

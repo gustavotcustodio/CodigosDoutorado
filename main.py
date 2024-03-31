@@ -343,6 +343,7 @@ if __name__ == "__main__":
     # filename = f"{dataset}_{experiment_names[experiment_type]}"
     # calc_avg_std_save_results(results, n_runs, filename)
     #############################
+    '''
     experiment_type = Experiments.RANDOM_FOREST
 
     dataset = "Cancer"
@@ -371,25 +372,27 @@ if __name__ == "__main__":
 
     dataset = "Wine"
     run_experiment_and_save_results(dataset, experiment_type, n_runs)
+    '''
 
     #############################
     experiment_type = Experiments.CLUSTERING_ANALYSIS
 
-    for c in range(2, 6):
+    for c in range(3, 4):
 
-        dataset = "Cancer"
-        run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
+    #    dataset = "Cancer"
+    #    run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
 
-        dataset = "Credit Score"
-        run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
+    #    dataset = "Credit Score"
+    #    run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
 
-        dataset = "Water"
-        run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
+    #    dataset = "Water"
+    #    run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
 
         dataset = "Wine"
         run_experiment_and_save_results(dataset, experiment_type, n_runs, n_clusters = c)
 
     ###############################
+    '''
     experiment_type = Experiments.PAPER_66
 
     dataset = "Cancer"
@@ -405,3 +408,4 @@ if __name__ == "__main__":
     run_experiment_and_save_results(dataset, experiment_type, n_runs)
 
     ###############################
+    '''
