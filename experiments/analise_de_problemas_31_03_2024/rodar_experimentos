@@ -1,7 +1,7 @@
 #!/bin/bash
 for n_clusters in 2 3 4; do
     for run in 1 2 3 4 5; do
-        python teste.py "$n_clusters" "$run"> "./resultados/$n_clusters"_clusters_experimento_"$run"
+        python ./experimentos.py "$n_clusters" "$run"> "./resultados/$n_clusters"_clusters_experimento_"$run"
         echo "Experimento $n_clusters clusters execução $run finalizado."
     done
 done
