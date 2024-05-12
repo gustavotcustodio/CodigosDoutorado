@@ -27,7 +27,11 @@ from matplotlib.colors import ListedColormap
 from yellowbrick.cluster import silhouette_visualizer, SilhouetteVisualizer
 
 
-POSSIBLE_CLASSIFIERS = [SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier()]
+POSSIBLE_CLASSIFIERS = [SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier(),
+                        SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier(),
+                        SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier(),
+                        SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier(),
+                        SVC(), SVC(), RandomForestClassifier(), SVC(), GradientBoostingClassifier(),]
 
 
 def plotar_clusters(X_train, y_train, clusters, centroids, filename):
@@ -36,8 +40,10 @@ def plotar_clusters(X_train, y_train, clusters, centroids, filename):
     COLORS_CLASS = ["red", "blue", "green"]
 
     pca = PCA(n_components=2, random_state=42)
+    
     pca.fit(np.vstack((X_train, centroids)))
     reduced_data = pca.transform(X_train)
+
     # reduced_data = (reduced_data - reduced_data.min(axis=0)) / (
     #                 reduced_data.max(axis=0) - reduced_data.min(axis=0))
     reduced_centroids = pca.transform(centroids)
@@ -138,12 +144,14 @@ def calc_membership_values(X_samples, centroids):
 
     u = np.empty((n_samples, n_clusters))
 
+
     for k in range(n_clusters):
         u[:, k] = np.sum([
-            dists_samples_centroids[:, k] / dists_samples_centroids[:, c]
+            dists_samples_centroids[:, k] / (dists_samples_centroids[:, c] + 0.00000001)
             for c in range(n_clusters)
         ], axis=0)
-    u = 1 / u
+    u = 1 / (u + 0.00000001)
+    u[u > 1] = 1
     return u
 
 
@@ -170,7 +178,7 @@ def ensemble_prediction(X_test, centroids, possible_clusters, ensemble):
 
 
 def ensemble_training(X_train, y_train, X_test, y_test, centroids,
-                            clusters, base_classifiers=None):
+                      clusters, base_classifiers=None):
 
     n_clusters = centroids.shape[0]
     if base_classifiers is None:
@@ -272,18 +280,88 @@ def calc_centroids(n_clusters, clusters_test, X_test):
     centroids_test = []
     for c in range(n_clusters):
         idx_cluster = np.where(clusters_test == c)[0]
-        X_cluster = X_test[idx_cluster]
-        centroids_test.append(np.mean(X_cluster, axis=0))
-
+        if len(idx_cluster) > 0:
+            X_cluster = X_test[idx_cluster]
+            centroids_test.append(np.mean(X_cluster, axis=0))
+        else:
+            centroids_test.append(np.ones(X_test.shape[1]))
     centroids_test = np.array(centroids_test)
     return centroids_test
 
 
 def plotar_silhueta(clusterer, X, filename):
+    print(f"---------- Silhouette ----------")
+    print(silhouette_score(X, clusterer.predict(X)))
+    print()
     visualizer = SilhouetteVisualizer(clusterer, is_fitted=True)
     visualizer.fit(X)
     plt.savefig(f"{filename}_silhouette.png")
-    # plt.savefig("kelbow_minibatchkmeans.png")
+
+
+def create_co_assoc_matrix(n_samples, votation_clusters):
+    co_association_matrix = np.zeros((n_samples, n_samples))
+
+    for partition in votation_clusters:
+        for i in range(0, len(partition)):
+            for j in range(i, len(partition)):
+                if partition[i] == partition[j]:
+                    co_association_matrix[i, j] +=1
+    # co_association_matrix = co_association_matrix + co_association_matrix.T
+
+    #for i in range(n_samples):
+    #    co_association_matrix[i, i] = 0
+    return co_association_matrix
+
+
+def combine_clusters(co_association_matrix):
+    co_association_matrix /= co_association_matrix.max()
+
+    n_samples = co_association_matrix.shape[0]
+    # max_matching = co_association_matrix.max().astype(int)
+    min_matching = 0.5
+    clusters = np.empty(n_samples)
+    clusters.fill(-1)
+
+    clusters[0] = 0
+    current_cluster = 1
+
+    for i in range(n_samples):
+        matches = np.where(co_association_matrix[i] >= min_matching)[0]
+        if len(matches) > 0:
+            if np.any(clusters[matches] > -1):
+                clusters[matches] = min(
+                    np.delete(clusters[matches], clusters[matches] == -1)
+                )
+            else:
+                clusters[matches] = current_cluster
+                current_cluster += 1
+    return clusters
+
+
+def consensus_clustering(X_train):
+    n_clusterings = 3
+    votation_clusters = []
+    max_clusters = int(np.sqrt(len(X_train)))
+    n_samples = X_train.shape[0]
+
+    for n_clusters in range(2, max_clusters):
+        for _ in range(n_clusterings):
+            clusterer = KMeans(n_clusters=n_clusters, n_init='auto')
+            clusterer.fit(X_train)
+            # centroids = clusterer.cluster_centers_
+            clusters = clusterer.labels_
+
+            votation_clusters.append(clusters)
+
+    # n_samples = 10
+    # votation_clusters = []
+    # votation_clusters.append([0,0,2,2,2,0,0,1,0,2]) 
+    # votation_clusters.append([1,1,2,2,2,1,0,1,1,2])
+    # votation_clusters.append([0,0,2,2,2,1,0,1,1,2])
+    co_association_matrix = create_co_assoc_matrix(n_samples, votation_clusters)
+    clusters = combine_clusters(co_association_matrix)
+    
+    return clusters.astype(int)
 
 
 def rodar_programa(n_clusters, run, dataset_loader=read_wdbc_dataset):
@@ -299,6 +377,15 @@ def rodar_programa(n_clusters, run, dataset_loader=read_wdbc_dataset):
     clusterer.fit(X_train)
     centroids = clusterer.cluster_centers_
     clusters = clusterer.labels_
+
+    # Consensus ##########################################
+    clusters = consensus_clustering(X_train)
+    n_clusters = len(np.unique(clusters))
+    centroids = calc_centroids(n_clusters, clusters, X_train)
+
+    clusterer = KMeans(n_clusters=n_clusters, init=centroids, n_init=1)
+    clusterer.fit(centroids)
+    # Consensus ##########################################
 
     ensemble = ensemble_training(
         X_train, y_train, X_test, y_test, centroids, clusters, base_classifiers=None)
@@ -329,4 +416,4 @@ if __name__ == "__main__":
     n_clusters = int(sys.argv[1])
     run = int(sys.argv[2])
 
-    rodar_programa(n_clusters, run, read_wdbc_dataset)
+    rodar_programa(n_clusters, run, read_wine_dataset)
