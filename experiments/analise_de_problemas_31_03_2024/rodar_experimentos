@@ -1,8 +1,10 @@
 #!/bin/bash
-#for n_clusters in 2 3 4; do
 for n_clusters in 2; do
-    for run in 1 2 3 4 5; do
-        python ./experimentos.py "$n_clusters" "$run"> "./resultados/$n_clusters"_clusters_experimento_"$run"
-        echo "Experimento $n_clusters clusters execução $run finalizado."
+#for n_clusters in 2; do
+    for dataset in "wine" "wdbc" "creditscore" "water"; do
+        for run in 0 1 2 3 4 5 6 7 8 9; do
+            python ./experimentos.py "$n_clusters" "$run" "$dataset"> ./resultados/"$dataset"_"$n_clusters"_clusters_experimento_"$run"
+            echo "Experimento $n_clusters clusters dataset $dataset execução $run finalizado."
+        done
     done
 done

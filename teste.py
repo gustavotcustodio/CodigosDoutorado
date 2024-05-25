@@ -173,6 +173,7 @@ def plot_clusters(X_train, y_train, dataset):
     plt.savefig(dataset + ".png")
     plt.clf()
 
+
 if __name__ == "__main__":
     dataset = "Breast Cancer"
     X, y = read_wdbc_dataset()

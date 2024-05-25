@@ -28,7 +28,7 @@ def create_classification_matrix(filelist, filename, metric="Accuracy"):
     plt.xlabel("Number of clusters")
     plt.ylabel("Run")
     plt.savefig(filename)
-    plt.clf()
+    plt.clear()
     print(f"Arquivo {filename} salvo com sucesso.")
 
 
