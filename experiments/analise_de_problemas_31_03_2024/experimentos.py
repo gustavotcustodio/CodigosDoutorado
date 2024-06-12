@@ -1,14 +1,10 @@
 import sys
-import random
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from re import M
 from collections import Counter
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import mutual_info_classif
-from xgboost import XGBClassifier
 from scipy.spatial import distance
 from sklearn.metrics import recall_score, precision_score, f1_score, brier_score_loss, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.cluster import KMeans, SpectralClustering
@@ -20,22 +16,20 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, accuracy_score
+from sklearn.multiclass import OneVsRestClassifier
 from enum import Enum
 from deslib.des.knora_e import KNORAE
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import MultiLabelBinarizer
 from matplotlib.colors import ListedColormap
 from yellowbrick.cluster import silhouette_visualizer, SilhouetteVisualizer
+import dataset_loader
 
+POSSIBLE_CLASSIFIERS = [SVC()] * 100
+# POSSIBLE_CLASSIFIERS = [OneVsRestClassifier(SVC())] * 20
 
-POSSIBLE_CLASSIFIERS = [SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
-                        ] 
 
 def create_PCA_reducer(X):
     """
@@ -44,15 +38,14 @@ def create_PCA_reducer(X):
 
     """
     pca = PCA(n_components=2, random_state=42)
-    
     pca.fit(X)
     return pca
 
 
 def plotar_clusters(X_train, y_train, clusters, centroids, filename, pca):
     # Rosa, Verde, Azul, Amarelo
-    COLORS_CLUSTER = ['#FFAAAA', '#AAFFAA', '#AAAAFF', '#FFD700']
-    COLORS_CLASS = ["red", "blue", "green"]
+    COLORS_CLUSTER = ['#FFAAAA', '#AAFFAA', '#AAAAFF', '#FFD700', "#5E93A8", "#1D502A"]
+    COLORS_CLASS = ["red", "blue", "green", "#7C006C", "#0027B4", "#F1E447"]
 
     n_clusters = len(np.unique(clusters))
     n_classes = len(np.unique(y_train))
@@ -110,47 +103,6 @@ def plotar_clusters(X_train, y_train, clusters, centroids, filename, pca):
     plt.clf()
 
 
-def read_potability_dataset():
-    df_potability = pd.read_csv("potabilidade.csv")
-    df_potability.fillna(df_potability.mean(), inplace=True)
-    df_potability = (df_potability - df_potability.min()) / (
-                     df_potability.max() - df_potability.min())
-    y = df_potability["Potability"].values
-    X = df_potability.drop(columns="Potability").values
-    return X, y
-
-
-def read_german_credit_dataset():
-    X = np.loadtxt("./german.data-numeric", delimiter=" ")
-    np.random.shuffle(X)
-    y = X[:, -1] - 1
-    X = X[:, :-1]
-    for i in range(X.shape[1]):
-        X[:, i] = (X[:, i] - X[:, i].min()) / (X[:, i].max() - X[:, i].min())
-    return X, y
-
-
-def read_wine_dataset():
-    X = np.loadtxt("./wine.data", delimiter=",")
-    np.random.shuffle(X)
-    y = X[:, 0] - 1
-    X = X[:, 1:]
-    for i in range(X.shape[1]):
-        X[:, i] = (X[:, i] - X[:, i].min()) / (X[:, i].max() - X[:, i].min())
-    return X, y
-
-
-def read_wdbc_dataset():
-    X = np.loadtxt("./wdbc.data", delimiter=",")
-    np.random.shuffle(X)
-
-    y = X[:, 1]
-    X = np.hstack((X[:, [0]], X[:, 2:]))
-    for i in range(X.shape[1]):
-        X[:, i] = (X[:, i] - X[:, i].min()) / (X[:, i].max() - X[:, i].min())
-    return X, y
-
-
 def calc_membership_values(X_samples, centroids):
     # u_ik =          1
     #       -----------------------
@@ -179,16 +131,21 @@ def calc_membership_values(X_samples, centroids):
 def ensemble_prediction(X_test, centroids, possible_clusters, attribs_by_cluster, ensemble):
     n_clusters = centroids.shape[0]
     u = calc_membership_values(X_test, centroids[possible_clusters])
-
     # predictions = np.array([ensemble[c].predict(X_test)
     #                         for c in range(possible_clusters.shape[0])]).T
     predictions = []
+
     for c in range(possible_clusters.shape[0]):
         X_cluster = X_test[:, attribs_by_cluster[c]]
         y_pred = ensemble[c].predict(X_cluster)
         predictions.append(y_pred)
-        
-    predictions = np.array(predictions).T.astype(int)
+
+    predictions = np.array(predictions).astype(int)
+
+    if len(predictions.shape) > 2:
+        predictions = predictions.argmax(axis=2)
+
+    predictions = predictions.T
 
     n_labels = int(predictions.max()) + 1
     # probabilities = np.sum(predictions * u, axis=1)
@@ -212,7 +169,7 @@ def get_attribs_by_mutual_info(X_cluster, y_cluster, information):
 
     if np.all(mutual_info == 0):
         return [i for i in range(X_cluster.shape[1])]
-        
+
     norm_mutual_info = mutual_info / np.sum(mutual_info)
 
     sorted_attrs = mutual_info.argsort()[::-1]
@@ -269,9 +226,11 @@ def ensemble_training(X_train, y_train, X_test, y_test, centroids,
 
 def calcular_acuracia_por_cluster(y_pred, y_real, clusters, tipo="teste"):
     print("=" * 10 + f" Análise do {tipo} " + "=" * 10)
+
     for c in np.unique(clusters):
         indexes_c = np.where(clusters == c)[0]
-        acc = sum(y_pred[indexes_c] == y_real[indexes_c]) / len(y_real[indexes_c])
+        acc = accuracy_score(y_real[indexes_c], y_pred[indexes_c])
+        # acc = sum(y_pred[indexes_c] == y_real[indexes_c]) / len(y_real[indexes_c])
         recall_value = recall_score(y_real[indexes_c], y_pred[indexes_c], average="weighted", zero_division=0.0) 
         precision_value = precision_score(y_real[indexes_c], y_pred[indexes_c], average="weighted", zero_division=0.0 )
         f1_value = f1_score(y_real[indexes_c], y_pred[indexes_c], average="weighted" )
@@ -285,7 +244,8 @@ def calcular_acuracia_por_cluster(y_pred, y_real, clusters, tipo="teste"):
         print("Classificador Base do cluster:", POSSIBLE_CLASSIFIERS[c])
         print("-------------------------------")
 
-    acc = sum(y_pred == y_real) / len(y_real)
+    # acc = sum(y_pred == y_real) / len(y_real)
+    acc = accuracy_score(y_real, y_pred)
     recall_value = recall_score(y_real, y_pred, average="weighted") 
     precision_value = precision_score(y_real, y_pred, average="weighted", zero_division=0.0 )
     f1_value = f1_score(y_real, y_pred, average="weighted" )
@@ -408,7 +368,7 @@ def consensus_clustering(X_train):
     # votation_clusters.append([0,0,2,2,2,1,0,1,1,2])
     co_association_matrix = create_co_assoc_matrix(n_samples, votation_clusters)
     clusters = combine_clusters(co_association_matrix)
-    
+
     return clusters.astype(int)
 
 
@@ -493,17 +453,16 @@ def select_optimal_partition(X_train, y_train):
             if macro_avg_dist > best_macro_avg_distance:
                 best_macro_avg_distance = macro_avg_dist
                 best_clusterer = clusterer
-                
     return best_clusterer
 
 
 def rodar_programa(n_clusters, run, dataset):
-    dataset_loader = select_dataset_function(dataset)
+    dataset_loader_function = dataset_loader.select_dataset_function(dataset)
 
     filename = f"./resultados/{dataset}_{n_clusters}_clusters_experimento_{run}"
 
     print(dataset)
-    X, y = dataset_loader()
+    X, y = dataset_loader_function()
     y = y.astype(int)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)  #, random_state=42)
@@ -513,7 +472,7 @@ def rodar_programa(n_clusters, run, dataset):
     # clusterer.fit(X_train)
     centroids = clusterer.cluster_centers_
     clusters = clusterer.labels_
-    
+
     # Consensus ##########################################
     # clusters = consensus_clustering(X_train)
     n_clusters = len(np.unique(clusters))
@@ -544,35 +503,26 @@ def rodar_programa(n_clusters, run, dataset):
 
     pca = create_PCA_reducer(np.vstack((X, centroids, centroids_test)))
 
+    if len(y_test.shape) > 1:
+        y_test = y_test.argmax(axis=1)
+
     calcular_acuracia_por_cluster(y_pred, y_test, clusters_test)
     pesos_por_amostra(predictions, y_pred, y_test, clusters_test, u)
     plotar_clusters(X_test, y_test, clusters_test, centroids_test, f"{filename}_test.png", pca)
     plotar_silhueta(clusterer, X_test, f"{filename}_silh_test.png")
-    
+
     y_pred_train, predictions_train, u_train = ensemble_prediction(
         X_train, centroids, np.unique(clusters), attribs_by_cluster, ensemble
     )
+
+    if len(y_train.shape) > 1:
+        y_train = y_train.argmax(axis=1)
 
     mostrar_distribuicao_de_amostras_treino(y_train, clusters, n_clusters)
     calcular_acuracia_por_cluster(y_pred_train, y_train, clusters, tipo="treino")
     pesos_por_amostra(predictions_train, y_pred_train, y_train, clusters, u_train)
     plotar_clusters(X_train, y_train, clusters, centroids, f"{filename}_train.png", pca)
     plotar_silhueta(clusterer, X_train, f"{filename}_silh_train.png")
-
-
-def select_dataset_function(dataset):
-    if dataset == "wine":
-        read_function = read_wine_dataset
-    elif dataset == "creditscore":
-        read_function = read_german_credit_dataset
-    elif dataset == "wdbc":
-        read_function = read_wdbc_dataset
-    elif dataset == "water":
-        read_function = read_potability_dataset
-    else:
-        print("Erro ao selecionar dataset.")
-        sys.exit()
-    return read_function
 
 
 if __name__ == "__main__":
