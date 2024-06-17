@@ -1,0 +1,24 @@
+
+        \documentclass[12pt,a4paper]{standalone}
+        \usepackage{booktabs}
+        \usepackage{caption}
+
+        \begin{document}
+        \begin{tabular}{llllll}
+            \toprule
+            \textbf{Method} & \textbf{Accuracy} & \textbf{Recall}  & \textbf{Precision} & \textbf{F1-Score}  & \textbf{Clusters} \\ \midrule
+
+            Cbeg Distances & $0.621 \pm 0.176$ & $0.551 \pm 0.319$ & $0.528 \pm 0.247$ & $0.464 \pm 0.178$ & $16.1 \pm 7.543$ \\ \midrule
+Cbeg Silhouette & $0.734 \pm 0.039$ & $0.56 \pm 0.116$ & $0.67 \pm 0.086$ & $0.598 \pm 0.055$ & $2.2 \pm 0.4$ \\ \midrule
+Cbeg Distances Silhouette & $0.76 \pm 0.034$ & $0.567 \pm 0.081$ & $0.693 \pm 0.073$ & $0.617 \pm 0.05$ & $2.2 \pm 0.4$ \\ \midrule
+Cbeg 2 Clusters & $0.764 \pm 0.026$ & $0.576 \pm 0.073$ & $0.677 \pm 0.068$ & $0.617 \pm 0.039$ & $2.0 \pm 0.0$ \\ \midrule
+Cbeg 3 Clusters & $0.772 \pm 0.027$ & $0.526 \pm 0.064$ & $0.705 \pm 0.068$ & $0.599 \pm 0.052$ & $3.0 \pm 0.0$ \\ \midrule
+Cbeg 4 Clusters & $0.763 \pm 0.02$ & $0.539 \pm 0.044$ & $0.688 \pm 0.081$ & $0.601 \pm 0.042$ & $4.0 \pm 0.0$ \\ \midrule
+Cbeg 5 Clusters & $0.756 \pm 0.035$ & $0.514 \pm 0.064$ & $0.675 \pm 0.069$ & $0.581 \pm 0.059$ & $5.0 \pm 0.0$ \\ \midrule
+Xgboost & $0.742 \pm 0.031$ & $0.616 \pm 0.063$ & $0.623 \pm 0.048$ & $0.617 \pm 0.039$ & $0.0 \pm 0.0$ \\ \midrule
+Gradient Boosting & $0.748 \pm 0.026$ & $0.599 \pm 0.06$ & $0.661 \pm 0.056$ & $0.626 \pm 0.038$ & $0.0 \pm 0.0$ \\ \midrule
+Random Forest & $0.771 \pm 0.032$ & $0.596 \pm 0.041$ & $0.697 \pm 0.064$ & $0.641 \pm 0.043$ & $0.0 \pm 0.0$ \\ \midrule
+Svm & $0.771 \pm 0.04$ & $0.571 \pm 0.092$ & $0.73 \pm 0.079$ & $0.636 \pm 0.07$ & $0.0 \pm 0.0$ \\ \midrule
+
+        \end{tabular}
+        \end{document}

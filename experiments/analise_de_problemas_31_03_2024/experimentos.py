@@ -18,7 +18,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import silhouette_score, accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
-from enum import Enum
 from deslib.des.knora_e import KNORAE
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
@@ -27,8 +26,18 @@ from matplotlib.colors import ListedColormap
 from yellowbrick.cluster import silhouette_visualizer, SilhouetteVisualizer
 import dataset_loader
 
-POSSIBLE_CLASSIFIERS = [SVC()] * 100
-# POSSIBLE_CLASSIFIERS = [OneVsRestClassifier(SVC())] * 20
+POSSIBLE_CLASSIFIERS = [SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
+                        ]
 
 
 def create_PCA_reducer(X):
@@ -161,10 +170,11 @@ def ensemble_prediction(X_test, centroids, possible_clusters, attribs_by_cluster
     return y_pred_votation, predictions, u
 
 
-def get_attribs_by_mutual_info(X_cluster, y_cluster, information):
-    return [i for i in range(X_cluster.shape[1])]
-    if len(X_cluster) == 1:
+def get_attribs_by_mutual_info(X_cluster, y_cluster, mutual_info_percent):
+    if mutual_info_percent >= 100 or len(X_cluster) == 1:
         return [i for i in range(X_cluster.shape[1])]
+
+    mutual_info_percent /= 100
     mutual_info = mutual_info_classif(X_cluster, y_cluster)
 
     if np.all(mutual_info == 0):
@@ -176,13 +186,13 @@ def get_attribs_by_mutual_info(X_cluster, y_cluster, information):
 
     cumsum_info = norm_mutual_info.cumsum()
 
-    max_attr = np.where(cumsum_info >= information)[0][0]
+    max_attr = np.where(cumsum_info >= mutual_info_percent)[0][0] + 1
     selected_attrs = sorted_attrs[0 : max_attr]
     return selected_attrs
 
 
-def ensemble_training(X_train, y_train, X_test, y_test, centroids,
-                      clusters, attribs_by_cluster, base_classifiers=None):
+def ensemble_training(X_train, y_train, centroids, clusters,
+                      attribs_by_cluster, base_classifiers=None):
 
     n_clusters = centroids.shape[0]
     if base_classifiers is None:
@@ -196,7 +206,8 @@ def ensemble_training(X_train, y_train, X_test, y_test, centroids,
         X_cluster, y_cluster = X_train[:, attribs_by_cluster[c]][idx_cluster], y_train[idx_cluster]
 
         if np.all(y_cluster == y_cluster[0]):
-            classifier = RandomForestClassifier()
+            classifier = KNeighborsClassifier(n_neighbors=1)
+            POSSIBLE_CLASSIFIERS[c] = classifier
         else:
             classifier = base_classifiers[c]
 
@@ -227,13 +238,17 @@ def ensemble_training(X_train, y_train, X_test, y_test, centroids,
 def calcular_acuracia_por_cluster(y_pred, y_real, clusters, tipo="teste"):
     print("=" * 10 + f" Análise do {tipo} " + "=" * 10)
 
+    if len(np.unique(y_real)) > 2:
+        avg_type = "weighted"
+    else:
+        avg_type = "binary"
+
     for c in np.unique(clusters):
         indexes_c = np.where(clusters == c)[0]
         acc = accuracy_score(y_real[indexes_c], y_pred[indexes_c])
-        # acc = sum(y_pred[indexes_c] == y_real[indexes_c]) / len(y_real[indexes_c])
-        recall_value = recall_score(y_real[indexes_c], y_pred[indexes_c], average="weighted", zero_division=0.0) 
-        precision_value = precision_score(y_real[indexes_c], y_pred[indexes_c], average="weighted", zero_division=0.0 )
-        f1_value = f1_score(y_real[indexes_c], y_pred[indexes_c], average="weighted" )
+        recall_value = recall_score(y_real[indexes_c], y_pred[indexes_c], average=avg_type, zero_division=0.0)
+        precision_value = precision_score(y_real[indexes_c], y_pred[indexes_c], average=avg_type, zero_division=0.0)
+        f1_value = f1_score(y_real[indexes_c], y_pred[indexes_c], average=avg_type, zero_division=0.0)
         print(f"Acurácia cluster {c}: {acc}")
         print(f"Recall cluster {c}: {recall_value}")
         print(f"Precisão cluster {c}: {precision_value}")
@@ -244,11 +259,10 @@ def calcular_acuracia_por_cluster(y_pred, y_real, clusters, tipo="teste"):
         print("Classificador Base do cluster:", POSSIBLE_CLASSIFIERS[c])
         print("-------------------------------")
 
-    # acc = sum(y_pred == y_real) / len(y_real)
     acc = accuracy_score(y_real, y_pred)
-    recall_value = recall_score(y_real, y_pred, average="weighted") 
-    precision_value = precision_score(y_real, y_pred, average="weighted", zero_division=0.0 )
-    f1_value = f1_score(y_real, y_pred, average="weighted" )
+    recall_value = recall_score(y_real, y_pred, average=avg_type, zero_division=0.0)
+    precision_value = precision_score(y_real, y_pred, average=avg_type, zero_division=0.0)
+    f1_value = f1_score(y_real, y_pred, average=avg_type, zero_division=0.0)
     print("Acurácia total:", acc)
     print("Recall total:", recall_value)
     print("Precisão total:", precision_value)
@@ -372,53 +386,72 @@ def consensus_clustering(X_train):
     return clusters.astype(int)
 
 
-def get_attribs_by_cluster(X_train, y_train, clusters, n_clusters):
+def get_attribs_by_cluster(X_train, y_train, clusters, n_clusters, mutual_info_percent):
     selected_attribs = []
 
     for c in range(n_clusters):
         idx_cluster = np.where(clusters == c)[0]
         if len(idx_cluster) > 0:
             X_cluster, y_cluster = X_train[idx_cluster], y_train[idx_cluster]
-            attribs_cluster = get_attribs_by_mutual_info(X_cluster, y_cluster, information=0.5)
+            attribs_cluster = get_attribs_by_mutual_info(X_cluster, y_cluster, mutual_info_percent)
 
             selected_attribs.append(attribs_cluster)
     return selected_attribs
 
 
-def get_distances_between_diff_classes_per_cluster(y, clusters, n_clusters, distances):
-    dists_centroids_cluster = np.empty((n_clusters))
+def get_silhouette(X):
+    def wrapper(clusters):
+        return silhouette_score(X, clusters)
+    return wrapper
 
-    for c in range(n_clusters):
+
+def get_distances_between_diff_classes_per_cluster(y, n_clusters, distances):
+    def wrapper(clusters):
         possible_labels = np.unique(y)
-        samples_c = np.where(clusters == c)[0]
 
-        avg_distance_cluster = 0
-        n_distances = 0
-        for lbl1 in possible_labels:
-            possible_labels = possible_labels[1:]
-            for lbl2 in possible_labels:
+        dists_centroids_cluster = np.empty((n_clusters))
 
-                samples_lbl1 = np.where(y == lbl1)[0]
-                samples_lbl1 = np.intersect1d(samples_lbl1, samples_c)
+        for c in range(n_clusters):
+            labels_cluster = np.copy(possible_labels)
+            samples_c = np.where(clusters == c)[0]
 
-                samples_lbl2 = np.where(y == lbl2)[0]
-                samples_lbl2 = np.intersect1d(samples_lbl2, samples_c)
+            avg_distance_cluster = 0
+            n_distances = 0
+            for lbl1 in labels_cluster:
+                labels_cluster = labels_cluster[1:]
 
-                n_distances += len(samples_lbl1) * len(samples_lbl2)
-                avg_distance_cluster += distances[samples_lbl1, :][:, samples_lbl2].sum()
-        if n_distances > 0:
-            dists_centroids_cluster[c] = avg_distance_cluster / n_distances
-        else:
-            dists_centroids_cluster[c] = 1.0
+                for lbl2 in labels_cluster:
+                    # print(lbl1, "e", lbl2)
 
-    #max_dist = np.max(dist_centroids_cluster)
-    #idx_zeros = np.where(dist_centroids_cluster <= 0)[0]
+                    samples_lbl1 = np.where(y == lbl1)[0]
+                    samples_lbl1 = np.intersect1d(samples_lbl1, samples_c)
 
-    #dist_centroids_cluster[idx_zeros] = max_dist
-    return dists_centroids_cluster
+                    samples_lbl2 = np.where(y == lbl2)[0]
+                    samples_lbl2 = np.intersect1d(samples_lbl2, samples_c)
+
+                    n_distances += len(samples_lbl1) * len(samples_lbl2)
+                    avg_distance_cluster += distances[samples_lbl1, :][:, samples_lbl2].sum()
+
+            if n_distances > 0:
+                dists_centroids_cluster[c] = avg_distance_cluster / n_distances
+            else:
+                dists_centroids_cluster[c] = 1.0
+            # print("n distancias",n_distances)
+            # print(dists_centroids_cluster[c])
+            # print(y[samples_c])
+        #max_dist = np.max(dist_centroids_cluster)
+        #idx_zeros = np.where(dist_centroids_cluster <= 0)[0]
+
+        #dist_centroids_cluster[idx_zeros] = max_dist
+        macro_avg_metric = np.mean(dists_centroids_cluster)
+
+        # print("Macro media",macro_avg_metric)
+        # print("##################################")
+        return macro_avg_metric
+    return wrapper
 
 
-def select_optimal_partition(X_train, y_train):
+def select_optimal_partition(X_train, y_train, evaluation_metric="distances"):
     """Select the best partition according to
         the distance between samples from different classes.
 
@@ -426,56 +459,76 @@ def select_optimal_partition(X_train, y_train):
         2d-numpy array.
     :arg2: y_train
         1d-numpy array.
+    :arg3: evaluation_metric
+        str - The metric that evaluates the best partition.
     :returns: best_clusterer
         Best KMeans found.
-
     """
     best_clusterer = None
     # Calculate distances between samples
     distances = cosine_distances(X_train, X_train)
-    best_macro_avg_distance = 0
+    best_evaluation = 0
 
     max_clusters = int(np.sqrt(X_train.shape[0]))
 
     for n_clusters in range(2, max_clusters + 1):
-        for _ in range(3):
-            clusterer = KMeans(n_clusters=n_clusters, n_init='auto')
-            clusterer.fit(X_train)
-            # centroids = clusterer.cluster_centers_
-            clusters = clusterer.labels_
+        if evaluation_metric == "silhouette":
+            evaluation_function = get_silhouette(X_train)
 
-            # Calculate distances betweeen samples from different classes
-            dists_centroids_cluster = get_distances_between_diff_classes_per_cluster(
-                y_train, clusters, n_clusters, distances
-            )
-            macro_avg_dist = np.mean(dists_centroids_cluster)
+        elif evaluation_metric == "distances_silhouette":
+            evaluation_part_1 = get_distances_between_diff_classes_per_cluster(y_train, n_clusters, distances)
+            evaluation_part_2 = get_silhouette(X_train)
+            evaluation_function = lambda x: evaluation_part_1(x) + evaluation_part_2(x)
+        else:
+            evaluation_function = get_distances_between_diff_classes_per_cluster(y_train, n_clusters, distances)
 
-            if macro_avg_dist > best_macro_avg_distance:
-                best_macro_avg_distance = macro_avg_dist
-                best_clusterer = clusterer
+        # for _ in range(3):
+        clusterer = KMeans(n_clusters=n_clusters, n_init='auto')
+        clusterer.fit(X_train)
+        # centroids = clusterer.cluster_centers_
+        clusters = clusterer.labels_
+
+        evaluation_value = evaluation_function(clusters)
+
+        if evaluation_value > best_evaluation:
+            best_evaluation = evaluation_value
+            best_clusterer = clusterer
     return best_clusterer
 
 
-def rodar_programa(n_clusters, run, dataset):
+def rodar_programa(n_clusters, run, dataset, mutual_info_percent=100, evaluation_metric="distances"):
     dataset_loader_function = dataset_loader.select_dataset_function(dataset)
 
-    filename = f"./resultados/{dataset}_{n_clusters}_clusters_experimento_{run}"
+    if mutual_info_percent < 100:
+        experiment_type = f"mutual_info_{mutual_info_percent}"
+    else:
+        experiment_type = "10_runs"
+
+    if n_clusters == 0:
+        filename = f"./resultados/{dataset}/{experiment_type}/CBEG_{evaluation_metric}/{dataset}_{n_clusters}_clusters_{evaluation_metric}_experimento_{run}"
+    else:
+        filename = f"./resultados/{dataset}/{experiment_type}/CBEG_{n_clusters}_clusters/{dataset}_{n_clusters}_clusters_experimento_{run}"
 
     print(dataset)
     X, y = dataset_loader_function()
     y = y.astype(int)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)  #, random_state=42)
-    clusterer = select_optimal_partition(X_train, y_train)
 
-    # clusterer = KMeans(n_clusters=n_clusters, n_init='auto')
-    # clusterer.fit(X_train)
+    if n_clusters == 0:
+        clusterer = select_optimal_partition(X_train, y_train, evaluation_metric)
+        clusters = clusterer.labels_
+        n_clusters = len(np.unique(clusters))
+
+    else:
+        clusterer = KMeans(n_clusters=n_clusters, n_init='auto')
+        clusterer.fit(X_train)
+        clusters = clusterer.labels_
+
     centroids = clusterer.cluster_centers_
-    clusters = clusterer.labels_
 
     # Consensus ##########################################
     # clusters = consensus_clustering(X_train)
-    n_clusters = len(np.unique(clusters))
     # centroids = calc_centroids(n_clusters, clusters, X_train)
 
     # clusterer = KMeans(n_clusters=n_clusters, init=centroids, n_init=1)
@@ -483,7 +536,9 @@ def rodar_programa(n_clusters, run, dataset):
     # Consensus ##########################################
 
     ####### Attribs by cluster #############
-    attribs_by_cluster = get_attribs_by_cluster(X_train, y_train, clusters, n_clusters)
+    attribs_by_cluster = get_attribs_by_cluster(
+        X_train, y_train, clusters, n_clusters, mutual_info_percent
+    )
 
     print("*********** Atributos selecionados **********")
     for i, attribs_c in enumerate(attribs_by_cluster):
@@ -492,7 +547,7 @@ def rodar_programa(n_clusters, run, dataset):
 
     ########################################
     ensemble = ensemble_training(
-        X_train, y_train, X_test, y_test, centroids, clusters, attribs_by_cluster, base_classifiers=None
+        X_train, y_train, centroids, clusters, attribs_by_cluster, base_classifiers=None
     )
     y_pred, predictions, u = ensemble_prediction(
         X_test, centroids, np.unique(clusters), attribs_by_cluster, ensemble
@@ -526,8 +581,13 @@ def rodar_programa(n_clusters, run, dataset):
 
 
 if __name__ == "__main__":
-    n_clusters = int(sys.argv[1])
+    dataset = sys.argv[1]
     run = int(sys.argv[2])
-    dataset = sys.argv[3]
+    n_clusters = int(sys.argv[3])
+    mutual_info_percent = int(sys.argv[4])
+    if len(sys.argv) > 5:
+        evaluation_metric = sys.argv[5]
+    else:
+        evaluation_metric = "distances"
 
-    rodar_programa(n_clusters, run, dataset)
+    rodar_programa(n_clusters, run, dataset, mutual_info_percent, evaluation_metric)

@@ -1,11 +1,33 @@
 #!/bin/bash
-for n_clusters in 2; do
-#for n_clusters in 2; do
-    # for dataset in "wine" "wdbc" "creditscore" "water"; do
-    for dataset in "pima" "heart" "iris"; do
-        for run in 0 1 2 3 4 5 6 7 8 9; do
-            python ./experimentos.py "$n_clusters" "$run" "$dataset"> ./resultados/"$dataset"_"$n_clusters"_clusters_experimento_"$run"
-            echo "Experimento $n_clusters clusters dataset $dataset execução $run finalizado."
+for mutual_info in 100; do
+    # Check if mutual_info is 100%
+    if [[ "$mutual_info" -lt 100 ]]; then
+        experiment_type=mutual_info_"$mutual_info";
+    else
+        experiment_type=10_runs;
+    fi
+
+    for dataset in "australian_credit" "iris" "wine" "german_credit" "heart" "pima" "wdbc"; do
+        for n_clusters in 0 2 3 4 5; do
+            if [[ "$n_clusters" -eq "0" ]]; then
+                for tipodistancia in "distances_silhouette" "silhouette" "distances"; do
+                    output_dir=./resultados/"$dataset"/"$experiment_type"/CBEG_"$tipodistancia"
+                    base_filename="$output_dir"/"$dataset"_"$n_clusters"_clusters_"$tipodistancia"
+                    for run in 0 1 2 3 4 5 6 7 8 9; do
+                        mkdir -p "$output_dir"
+                        python ./experimentos.py "$dataset" "$run" "$n_clusters" "$mutual_info" "$tipodistancia"> "$base_filename"_experimento_"$run"
+                        echo "Experimento $mutual_info% dos atributos $n_clusters clusters dataset $dataset fitness $tipodistancia execução $run finalizado."
+                    done
+                done
+            else
+                output_dir=./resultados/"$dataset"/"$experiment_type"/CBEG_"$n_clusters"_clusters
+                base_filename="$output_dir"/"$dataset"_"$n_clusters"_clusters
+                for run in 0 1 2 3 4 5 6 7 8 9; do
+                    mkdir -p "$output_dir"
+                    python ./experimentos.py "$dataset" "$run" "$n_clusters" "$mutual_info" > "$base_filename"_experimento_"$run"
+                    echo "Experimento $mutual_info% dos atributos $n_clusters clusters dataset $dataset execução $run finalizado."
+                done
+            fi
         done
     done
 done

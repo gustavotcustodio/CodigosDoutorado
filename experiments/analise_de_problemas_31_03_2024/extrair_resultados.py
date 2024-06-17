@@ -126,6 +126,7 @@ def extract_information(filelist, algorithm):
 
 
 def get_filelist(fullpath_dataset):
+    os.makedirs(fullpath_dataset, exist_ok=True)
     filelist = os.listdir(fullpath_dataset)
     filelist = [f for f in filelist if ".png" not in f]
     filelist = [f"{fullpath_dataset}/{f}" for f in filelist]
@@ -172,9 +173,11 @@ def create_results_table(results_compilation, filename):
 
 def main():
     datasets = ["german_credit", "australian_credit", "heart", "iris", "pima", "wdbc", "wine"]
-    experiments = ["10_runs"]
-    algorithms = ["CBEG", "xgboost", "gradient_boosting", "random_forest", "svm"]
+    experiments = ["10_runs", ]
+    algorithms = ["CBEG_distances", "CBEG_silhouette", "CBEG_distances_silhouette", "CBEG_2_clusters", "CBEG_3_clusters", "CBEG_4_clusters", "CBEG_5_clusters", "xgboost", "gradient_boosting", "random_forest", "svm"]
 
+    output_latex_dir = "resultados/latex"
+    os.makedirs(output_latex_dir, exist_ok=True)
 
     for dataset in datasets:
         for experiment in experiments:
@@ -182,8 +185,8 @@ def main():
             for algorithm in algorithms:
                 results_compilations.append( get_compilation_results(dataset, experiment, algorithm) )
 
-            filename = f"resultados/result_{dataset}_{experiment}.tex"
-            create_results_table(results_compilations, filename)
+            output_latex_file = f"{output_latex_dir}/result_{dataset}_{experiment}.tex"
+            create_results_table(results_compilations, output_latex_file)
 
 
 if __name__ == '__main__':

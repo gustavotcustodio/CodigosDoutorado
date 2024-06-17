@@ -1,8 +1,8 @@
 #!/bin/bash
 # for dataset in "australian_credit" "wine" "heart" "german_credit" "heart" "iris" "pima" "wdbc"; do
-for dataset in "wdbc"; do
-    # for classifier in "xgboost" "random_forest" "gradient_boosting" "svm"; do
-    for classifier in "random_forest"; do
+for dataset in "australian_credit"; do
+    for classifier in "xgboost" "random_forest" "gradient_boosting" "svm"; do
+    # for classifier in "random_forest"; do
         for run in 0 1 2 3 4 5 6 7 8 9; do
             mkdir -p ./resultados/"$dataset"/10_runs/"$classifier"
             python ./experimentos_baseline.py "$classifier" "$dataset"> ./resultados/"$dataset"/10_runs/"$classifier"/"$dataset"_experimento_"$run"

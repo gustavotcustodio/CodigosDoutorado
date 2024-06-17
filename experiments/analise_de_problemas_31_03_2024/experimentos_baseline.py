@@ -1,5 +1,6 @@
 import re
 import sys
+import numpy as np
 from scipy.sparse import data
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
@@ -31,16 +32,16 @@ def calcular_e_printar_metricas(classifier_name, dataset):
 
     accuracy_value = accuracy_score(y_test, y_pred)
 
-    n_classes = len(y_train.unique())
+    n_classes = len(np.unique(y_train))
 
     if n_classes > 2:
-        recall_value = recall_score(y_test, y_pred, average="weighted", zero_division=0.0)
-        precision_value = precision_score(y_test, y_pred, average="weighted", zero_division=0.0 )
-        f1_value = f1_score(y_test, y_pred, average="weighted" )
+        avg_type = "weighted"
     else:
-        recall_value = recall_score(y_test, y_pred)
-        precision_value = precision_score(y_test, y_pred)
-        f1_value = f1_score(y_test, y_pred)
+        avg_type = "binary"
+
+    recall_value = recall_score(y_test, y_pred, average=avg_type, zero_division=0.0)
+    precision_value = precision_score(y_test, y_pred, average=avg_type, zero_division=0.0 )
+    f1_value = f1_score(y_test, y_pred, average=avg_type )
 
     print("Acurácia total:", accuracy_value)
     print("Recall total:", recall_value)
