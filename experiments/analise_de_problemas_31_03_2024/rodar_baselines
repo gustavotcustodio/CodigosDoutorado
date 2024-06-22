@@ -1,12 +1,21 @@
 #!/bin/bash
-# for dataset in "australian_credit" "wine" "heart" "german_credit" "heart" "iris" "pima" "wdbc"; do
-for dataset in "australian_credit"; do
-    for classifier in "xgboost" "random_forest" "gradient_boosting" "svm"; do
-    # for classifier in "random_forest"; do
-        for run in 0 1 2 3 4 5 6 7 8 9; do
-            mkdir -p ./resultados/"$dataset"/10_runs/"$classifier"
-            python ./experimentos_baseline.py "$classifier" "$dataset"> ./resultados/"$dataset"/10_runs/"$classifier"/"$dataset"_experimento_"$run"
-            echo "Experimento com classificador $classifier dataset $dataset execução $run finalizado."
+for mutual_info in 75 50; do
+    if [[ "$mutual_info" -lt 100 ]]; then
+        experiment_type=mutual_info_"$mutual_info";
+    else
+        experiment_type=10_runs;
+    fi
+
+    for dataset in "australian_credit" "wine" "heart" "german_credit" "iris" "pima" "wdbc"; do
+    # for dataset in "australian_credit"; do
+        for classifier in "xgboost" "random_forest" "gradient_boosting" "svm"; do
+        # for classifier in "random_forest"; do
+            for run in 0 1 2 3 4 5 6 7 8 9; do
+                folder=./resultados/"$dataset"/"$experiment_type"/"$classifier"
+                mkdir -p  "$folder"
+                python ./experimentos_baseline.py "$classifier" "$dataset" "$mutual_info"> "$folder"/"$dataset"_experimento_"$run"
+                echo "Experimento com classificador $classifier dataset $dataset execução $run finalizado."
+            done
         done
     done
 done

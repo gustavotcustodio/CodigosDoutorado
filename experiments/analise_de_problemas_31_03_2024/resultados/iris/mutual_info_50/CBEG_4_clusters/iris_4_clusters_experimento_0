@@ -1,20 +1,20 @@
 iris
 *********** Atributos selecionados **********
-Cluster 0: [2 3 1]
+Cluster 0: [0, 1, 2, 3]
 
 Cluster 1: [3 2]
 
-Cluster 2: [0, 1, 2, 3]
+Cluster 2: [2 3 0]
 
-Cluster 3: [3 2 1]
+Cluster 3: [2 3 0]
 
 ========== Análise do teste ==========
 Acurácia cluster 0: 1.0
 Recall cluster 0: 1.0
 Precisão cluster 0: 1.0
 F1-Score cluster 0: 1.0
-Número de amostras no cluster: 7
-Classificador Base do cluster: SVC()
+Número de amostras no cluster: 1
+Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
 -------------------------------
 Acurácia cluster 1: 1.0
 Recall cluster 1: 1.0
@@ -23,67 +23,67 @@ F1-Score cluster 1: 1.0
 Número de amostras no cluster: 11
 Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
 -------------------------------
-Acurácia cluster 2: 1.0
-Recall cluster 2: 1.0
-Precisão cluster 2: 1.0
-F1-Score cluster 2: 1.0
-Número de amostras no cluster: 6
-Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
+Acurácia cluster 2: 0.9166666666666666
+Recall cluster 2: 0.9166666666666666
+Precisão cluster 2: 0.9375
+F1-Score cluster 2: 0.9201680672268907
+Número de amostras no cluster: 12
+Classificador Base do cluster: SVC()
 -------------------------------
-Acurácia cluster 3: 0.8333333333333334
-Recall cluster 3: 0.8333333333333334
-Precisão cluster 3: 0.9166666666666666
-F1-Score cluster 3: 0.851851851851852
+Acurácia cluster 3: 1.0
+Recall cluster 3: 1.0
+Precisão cluster 3: 1.0
+F1-Score cluster 3: 1.0
 Número de amostras no cluster: 6
 Classificador Base do cluster: SVC()
 -------------------------------
 Acurácia total: 0.9666666666666667
 Recall total: 0.9666666666666667
-Precisão total: 0.9703703703703703
-F1-Score: 0.9668534080298786
+Precisão total: 0.9700000000000001
+F1-Score: 0.9666666666666667
 
 ---------- Cluster 0 ----------
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.6680456  0.12090365 0.05787185 0.15317899]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.6729199  0.02824233 0.04001562 0.25882253]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.70043321 0.02033028 0.03470219 0.24453481]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.91228268 0.01118992 0.01369398 0.06283482]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.65076947 0.13514545 0.05855316 0.15553201]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.59938155 0.04674639 0.0551556  0.29871668]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.62291658 0.12270155 0.07472673 0.1796552 ]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.56732806 0.02055362 0.07070856 0.34140988]
 ---------- Cluster 1 ----------
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.01261039 0.97397206 0.0048482  0.00857056]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [2.59569947e-03 9.94856815e-01 9.00165663e-04 1.65460386e-03]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.09058888 0.82515578 0.03038932 0.05386613]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.02503572 0.95172348 0.00820948 0.01503198]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.08509624 0.8116211  0.03777912 0.06550367]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.07838184 0.82585005 0.03551853 0.06024971]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.11095869 0.7427068  0.05616829 0.09016628]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.05794089 0.8908742  0.0179448  0.03324035]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03627781 0.92305981 0.01478003 0.02588273]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.06056144 0.88841441 0.01752043 0.03350401]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.04220237 0.90948651 0.01771886 0.03059255]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.03282055 0.8392725  0.08463677 0.04327031]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00304437 0.98188229 0.01054114 0.00453391]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00110383 0.99389192 0.00343041 0.00157852]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01453086 0.91072301 0.05253065 0.02221574]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00809919 0.95180633 0.02797143 0.01212356]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.02732059 0.83367527 0.09695192 0.04205232]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00159659 0.99110623 0.00501199 0.00228835]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00927811 0.95071742 0.02705289 0.01295211]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01581786 0.90051206 0.05912548 0.02454483]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01833065 0.90400697 0.05240101 0.02526163]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00781152 0.95464198 0.02596472 0.0115823 ]
 ---------- Cluster 2 ----------
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.07773043 0.02057019 0.63796492 0.26373464]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 1], Pesos: [0.10989707 0.05231548 0.61554668 0.22224081]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.08575414 0.02699344 0.6697974  0.21745513]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.04617714 0.01282358 0.79236928 0.14863036]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.01668953 0.00493916 0.92755796 0.05081446]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.02111799 0.00547236 0.89106263 0.08234811]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.10160488 0.04202057 0.4486507  0.40772395]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.03220279 0.06976174 0.81527551 0.08276015]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05313262 0.02565013 0.52558242 0.395635  ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.04864769 0.04922568 0.74593506 0.15619171]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.0303458  0.06144168 0.83215481 0.07605795]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.0420631  0.02841498 0.73962693 0.18989522]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01724301 0.02951504 0.90465016 0.04859232]
+Real: 1, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.03166147 0.02039081 0.78769886 0.16024922]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.04891838 0.02505939 0.58800045 0.33802197]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.04030953 0.09309913 0.7655311  0.10106037]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.03375436 0.06804765 0.80768176 0.09051642]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06782767 0.04339212 0.57643121 0.3123491 ]
 ---------- Cluster 3 ----------
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.17666162 0.03475919 0.14713819 0.64144118]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.07853655 0.01530917 0.30725443 0.59890013]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.05910305 0.00650781 0.0497978  0.88459267]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.06085175 0.00834906 0.06529577 0.86550444]
-Real: 2, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.27333974 0.02655546 0.12028318 0.57982179]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.07411632 0.01452923 0.437007   0.4743477 ]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.16354263 0.02557983 0.15515765 0.65572004]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.08550531 0.01296283 0.07271456 0.82881768]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.18389226 0.02882868 0.13505195 0.65222722]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.15891669 0.03308805 0.17463961 0.63335575]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.0863534  0.01227143 0.06677033 0.8346052 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.12810927 0.04041209 0.3352896  0.49618913]
 
 ---------- Silhouette ----------
-0.4607848316327722
+0.4442390919081963
 
 ========== Distribuição das amostras de treino ==========
 ---------- Cluster 0 ----------
 Label 0: 0
-Label 1: 20
+Label 1: 0
 Label 2: 2
 ---------- Cluster 1 ----------
 Label 0: 39
@@ -91,20 +91,20 @@ Label 1: 0
 Label 2: 0
 ---------- Cluster 2 ----------
 Label 0: 0
-Label 1: 0
-Label 2: 23
+Label 1: 38
+Label 2: 11
 ---------- Cluster 3 ----------
 Label 0: 0
-Label 1: 22
-Label 2: 14
+Label 1: 2
+Label 2: 28
 
 ========== Análise do treino ==========
-Acurácia cluster 0: 0.9090909090909091
-Recall cluster 0: 0.9090909090909091
-Precisão cluster 0: 0.8264462809917354
-F1-Score cluster 0: 0.8658008658008658
-Número de amostras no cluster: 22
-Classificador Base do cluster: SVC()
+Acurácia cluster 0: 1.0
+Recall cluster 0: 1.0
+Precisão cluster 0: 1.0
+F1-Score cluster 0: 1.0
+Número de amostras no cluster: 2
+Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
 -------------------------------
 Acurácia cluster 1: 1.0
 Recall cluster 1: 1.0
@@ -113,150 +113,150 @@ F1-Score cluster 1: 1.0
 Número de amostras no cluster: 39
 Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
 -------------------------------
-Acurácia cluster 2: 1.0
-Recall cluster 2: 1.0
-Precisão cluster 2: 1.0
-F1-Score cluster 2: 1.0
-Número de amostras no cluster: 23
-Classificador Base do cluster: KNeighborsClassifier(n_neighbors=1)
--------------------------------
-Acurácia cluster 3: 0.9444444444444444
-Recall cluster 3: 0.9444444444444444
-Precisão cluster 3: 0.9444444444444444
-F1-Score cluster 3: 0.9444444444444444
-Número de amostras no cluster: 36
+Acurácia cluster 2: 0.9795918367346939
+Recall cluster 2: 0.9795918367346939
+Precisão cluster 2: 0.9812925170068026
+F1-Score cluster 2: 0.9798994380360839
+Número de amostras no cluster: 49
 Classificador Base do cluster: SVC()
 -------------------------------
-Acurácia total: 0.9666666666666667
-Recall total: 0.9666666666666667
-Precisão total: 0.9673525798525798
-F1-Score: 0.9666156670746634
+Acurácia cluster 3: 0.9666666666666667
+Recall cluster 3: 0.9666666666666667
+Precisão cluster 3: 0.967816091954023
+F1-Score cluster 3: 0.9614035087719298
+Número de amostras no cluster: 30
+Classificador Base do cluster: SVC()
+-------------------------------
+Acurácia total: 0.9833333333333333
+Recall total: 0.9833333333333333
+Precisão total: 0.984108527131783
+F1-Score: 0.9833180708180708
 
 ---------- Cluster 0 ----------
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.67808034 0.12156321 0.05248677 0.14786979]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.96105126 0.00470059 0.00570444 0.02854763]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.96202947 0.00535874 0.00619728 0.02641775]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.71188638 0.05212448 0.05771778 0.17827154]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.93539934 0.01201835 0.01074534 0.04183854]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.82157631 0.01665135 0.02254458 0.1392286 ]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.83490898 0.04176291 0.02890157 0.09442692]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.60599841 0.04501894 0.05434996 0.29463292]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.9094357  0.01138815 0.01284571 0.06633202]
-Real: 2, Predito: 1, Preditos por cluster: [1 0 2 2], Pesos: [0.55987971 0.06189253 0.09725992 0.28096792]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.78189375 0.03690343 0.03688847 0.14431471]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.88786388 0.02386905 0.01968212 0.06858564]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.7214573  0.04599782 0.0417192  0.19082599]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.58174563 0.02736857 0.04759825 0.34328785]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.81361422 0.03114684 0.02915874 0.1260807 ]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.56371461 0.03541444 0.08176208 0.31910902]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.86512495 0.02104432 0.02488358 0.08894773]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.50858969 0.03574844 0.100961   0.35470099]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.92322013 0.00777195 0.01046288 0.05854717]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.82086924 0.04541204 0.02919627 0.10452286]
-Real: 2, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.48590455 0.03552547 0.10901381 0.36955629]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.47096357 0.04413355 0.07788377 0.40701926]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.97919379 0.00151245 0.00436969 0.01492716]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.97980047 0.00161761 0.00453741 0.01404762]
 ---------- Cluster 1 ----------
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.06122178 0.86971217 0.02471283 0.04435344]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03573071 0.93212446 0.01124416 0.02090113]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00590753 0.98806784 0.00214687 0.00388072]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [8.14380983e-04 9.98409883e-01 2.81883262e-04 5.16847837e-04]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00747689 0.98507862 0.00263262 0.00481432]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.01032085 0.97906012 0.00377554 0.00684518]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00415307 0.99189882 0.00138912 0.00256354]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.04819035 0.90903587 0.01495316 0.02782095]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.02615951 0.95016094 0.00826097 0.01541926]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.04301511 0.90783129 0.0179593  0.0311946 ]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.02921665 0.94181985 0.01009559 0.01886854]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.15180326 0.62236124 0.08988832 0.13594721]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.09454573 0.79127774 0.04165163 0.07252501]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03603987 0.92870642 0.01214    0.02311426]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.05213349 0.89883062 0.01750982 0.03152632]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.04988755 0.90134841 0.01670955 0.03205487]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00649123 0.98690401 0.00233969 0.00426788]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.02100904 0.95851974 0.00727091 0.01320107]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00953945 0.98143164 0.00311098 0.00592015]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.0170468  0.96700864 0.00561484 0.01033075]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03831456 0.92080966 0.01466558 0.02621058]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03499266 0.92675594 0.01370219 0.02454964]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03573071 0.93212446 0.01124416 0.02090113]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03232805 0.93781156 0.01054045 0.01932042]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.25452717 0.5462933  0.06963492 0.12954464]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.01586031 0.96899626 0.00528805 0.00985655]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.08875297 0.79733561 0.04369519 0.07021631]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03699663 0.93074377 0.01114539 0.0211147 ]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.04418442 0.90585896 0.01816803 0.03178889]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03698679 0.93030682 0.01093576 0.02177125]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.08280788 0.84340894 0.02610438 0.04767894]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03332045 0.93075644 0.01325572 0.02266774]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.10527711 0.8039958  0.03187395 0.05885325]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.05793666 0.89336106 0.01663619 0.0320664 ]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.03573071 0.93212446 0.01124416 0.02090113]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.11367694 0.73192504 0.06002228 0.09437579]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00601901 0.98778853 0.00221323 0.00398208]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.00655672 0.98707346 0.00225049 0.00412207]
-Real: 0, Predito: 0, Preditos por cluster: [1 0 2 1], Pesos: [0.05414061 0.89928373 0.01610967 0.0304663 ]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01232154 0.9377562  0.03326198 0.01666066]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [7.76819940e-04 9.95791749e-01 2.34132170e-03 1.09658996e-03]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01234955 0.93747305 0.03352369 0.01665408]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.05881868 0.61830206 0.22677037 0.09610892]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01210706 0.9394898  0.03218183 0.01622168]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00916614 0.9463975  0.03094427 0.01349265]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00169805 0.990249   0.0055718  0.00248398]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.08269935 0.66883602 0.1527138  0.09575086]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00535067 0.9690371  0.01771682 0.00789623]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01362649 0.91817085 0.04759799 0.02060495]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01032747 0.93892689 0.03534529 0.01540073]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01326172 0.92054605 0.04627027 0.01992233]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.02589466 0.85239656 0.08321641 0.03849247]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00734887 0.95840902 0.02367983 0.01056299]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.05124164 0.78074203 0.10598602 0.06203037]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00244829 0.98708067 0.00707021 0.00340282]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01011283 0.94646649 0.02936564 0.01405552]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01063256 0.93500547 0.03821201 0.01615034]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00222766 0.98737854 0.00716466 0.00323126]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.02712421 0.86921411 0.06795038 0.03571145]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00646809 0.96331152 0.02076416 0.0094569 ]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01527737 0.91244818 0.0496606  0.02261408]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.02922838 0.85649504 0.07554641 0.03873031]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00977907 0.94297387 0.03270614 0.01454132]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.02254871 0.86593756 0.07730457 0.03420929]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01032747 0.93892689 0.03534529 0.01540073]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [5.30442213e-04 9.97024380e-01 1.69061586e-03 7.64163891e-04]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00971594 0.9378719  0.03738763 0.01502506]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [2.52180550e-04 9.98599232e-01 8.04486613e-04 3.63940913e-04]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00108757 0.99401966 0.00334357 0.00155379]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00960751 0.95107723 0.02630562 0.01301015]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00987894 0.9490273  0.02740249 0.01369166]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.035314   0.84231869 0.07836618 0.04400122]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00482576 0.97208405 0.01603573 0.00705545]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01589857 0.90517133 0.05498526 0.02394506]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.04706241 0.79276546 0.10201608 0.05815612]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01032747 0.93892689 0.03534529 0.01540073]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.00188096 0.98975408 0.00571239 0.00265531]
+Real: 0, Predito: 0, Preditos por cluster: [2 0 1 2], Pesos: [0.01497581 0.90591884 0.05603976 0.02306586]
 ---------- Cluster 2 ----------
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.06805207 0.01870497 0.73142792 0.18181522]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.03782806 0.01062333 0.83797747 0.11357157]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.02509665 0.00596717 0.86543464 0.10350248]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.01504629 0.00449533 0.93436446 0.04609518]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.03311674 0.00943867 0.83711007 0.12033509]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.09892017 0.02571385 0.5527787  0.3225874 ]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.05542292 0.01906156 0.79845194 0.12706375]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.04702    0.01112064 0.76888457 0.17297519]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.06859031 0.01901382 0.72166671 0.19072935]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.10198274 0.03387426 0.66350658 0.20063648]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.05087234 0.01523831 0.77299111 0.16089853]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.09149934 0.02886272 0.62917506 0.25046299]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.10623352 0.03183783 0.55030051 0.31162823]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.05339144 0.017308   0.78752887 0.14177192]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 1], Pesos: [0.09967207 0.04618103 0.65092241 0.20322453]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.07963588 0.01843244 0.47580595 0.42612594]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.090442   0.0183499  0.56398617 0.3272221 ]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.00725569 0.00198037 0.96750672 0.02326031]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.09154127 0.01733501 0.50612741 0.38499649]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.0552022  0.01375742 0.74119741 0.18984327]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.05666298 0.01898376 0.79199251 0.13236092]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.08559794 0.02784382 0.69989412 0.18666421]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.06884099 0.02785285 0.74719007 0.1561162 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01123135 0.01684156 0.93928837 0.03263976]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02089987 0.02110933 0.89062487 0.06736656]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01692105 0.01360914 0.90463476 0.06483593]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02315546 0.02556221 0.87605697 0.07522586]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.05599705 0.22141936 0.59943007 0.12315358]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.0552749  0.03000618 0.60659329 0.3081258 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02183571 0.03688898 0.88030717 0.06096852]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05770284 0.03360785 0.59232838 0.31636106]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06572124 0.03176442 0.45878583 0.44372862]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.0085616  0.01350766 0.95285939 0.02507268]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.09835851 0.05379008 0.53651656 0.31133494]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.06162744 0.21920989 0.58493711 0.1342256 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.0606992  0.23535447 0.57342666 0.13051971]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.08712972 0.0422316  0.51833356 0.35230523]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.04106798 0.11534975 0.74674104 0.09684135]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.00677221 0.00884591 0.96339244 0.02099128]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.0250683  0.02054087 0.86424416 0.09014723]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.08293669 0.04682159 0.5807726  0.28946925]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02459361 0.04116905 0.86939049 0.06484725]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05799736 0.03592351 0.66653903 0.23954025]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02491814 0.04492894 0.86002888 0.07012434]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.04487933 0.02457524 0.69700501 0.23354066]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01061311 0.01692809 0.94122553 0.03123424]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01410367 0.01796906 0.92460773 0.04332041]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.03866787 0.06771481 0.7867511  0.10686636]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06197269 0.08518735 0.67700153 0.1758385 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01831163 0.01899069 0.90051489 0.06218351]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.05724847 0.09938249 0.70028661 0.14308251]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01644691 0.02975179 0.90844105 0.04536082]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.03276005 0.04102386 0.82770347 0.09851289]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.09873005 0.06547962 0.55229139 0.28349902]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06842309 0.04414419 0.56754299 0.31988981]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02087164 0.02117661 0.89187389 0.06607845]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.0594069  0.02851505 0.53276371 0.37931451]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02325745 0.03896844 0.87467261 0.06310192]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.02793904 0.06016817 0.83942349 0.07246959]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05770284 0.03360785 0.59232838 0.31636106]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.03939381 0.03437632 0.79844911 0.12778106]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.05464205 0.0490638  0.70304826 0.19324601]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.04617126 0.12181977 0.72207978 0.10992928]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06170804 0.03186079 0.56392241 0.3425089 ]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.07239459 0.04469501 0.62961024 0.25330031]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.10043052 0.04753042 0.48900322 0.36303595]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.01042008 0.00892176 0.93958073 0.04107891]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.04841919 0.02866393 0.69672769 0.22618942]
+Real: 1, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.07875478 0.04279377 0.53987022 0.33858136]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 2], Pesos: [0.07246155 0.20527499 0.56445099 0.15781249]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.06666635 0.0433526  0.66292308 0.22705812]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05663663 0.04771928 0.69066949 0.20497471]
 ---------- Cluster 3 ----------
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.12983839 0.02742901 0.14931246 0.69342038]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.4412003  0.02748613 0.06129377 0.47002005]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.12238224 0.02361848 0.15763551 0.69636404]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.24899879 0.0328751  0.16119963 0.55692661]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.10727465 0.01552091 0.2345115  0.64269321]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.17145119 0.01306695 0.04212576 0.77335682]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.07320354 0.01351497 0.32083833 0.59244347]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.19185661 0.04006564 0.34014373 0.42793408]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.18721243 0.02232003 0.18626755 0.60420017]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.17468014 0.02658151 0.15177718 0.64696137]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.3487047  0.02691869 0.06110871 0.56326819]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.40010471 0.03325276 0.07017399 0.49646874]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.08578899 0.01116749 0.07085008 0.83219418]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.18219489 0.0124376  0.03854076 0.76682752]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.28363458 0.02087332 0.09167497 0.60381738]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.14920753 0.02555448 0.37602194 0.44921616]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.13841041 0.02565652 0.11245369 0.72347969]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.11238313 0.01194816 0.06057337 0.81509606]
-Real: 1, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.15412656 0.01174125 0.05807062 0.77606219]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.08575207 0.01371364 0.22197716 0.67855747]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.14578999 0.02567656 0.13900449 0.6895292 ]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.20801974 0.02846086 0.10548855 0.65803108]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.17798759 0.01702309 0.05157279 0.75341708]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.19991472 0.04737993 0.15588101 0.59682447]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.1723802  0.02669428 0.1066065  0.6943193 ]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.13016057 0.02886856 0.25315114 0.58781989]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.207802   0.0229662  0.13735098 0.63188102]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.11209952 0.01527842 0.10245959 0.77016293]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.207802   0.0229662  0.13735098 0.63188102]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.09044377 0.01003699 0.08583421 0.81368572]
-Real: 2, Predito: 2, Preditos por cluster: [1 0 2 2], Pesos: [0.29760289 0.03439589 0.16988073 0.49812059]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.28055256 0.02930925 0.07766481 0.61247363]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.16586446 0.04416335 0.26403541 0.52593688]
-Real: 2, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.0704196  0.00705488 0.04142462 0.88110221]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.31653841 0.02637253 0.06093238 0.59615697]
-Real: 1, Predito: 1, Preditos por cluster: [1 0 2 1], Pesos: [0.07889089 0.01436834 0.21038417 0.69635697]
+Real: 1, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.07705518 0.02351557 0.26437625 0.6350532 ]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05342987 0.01360801 0.10966098 0.82330151]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.30924213 0.02789537 0.11599721 0.54686537]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.17329496 0.01977442 0.10538395 0.70154683]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.17871544 0.03021343 0.14614525 0.64492598]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05313802 0.01395062 0.1503662  0.78254557]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.15958967 0.01967291 0.10379367 0.71694392]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.04069993 0.01047439 0.10086543 0.84796086]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05693485 0.01074882 0.06873588 0.86358095]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.0257443  0.0035478  0.02243379 0.94827598]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.08639772 0.02697771 0.24459366 0.64203104]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.18743943 0.02127267 0.09690319 0.69438486]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.20493786 0.01679347 0.08689873 0.69137016]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.10696678 0.04540663 0.32304795 0.52457871]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.09723829 0.00986022 0.0510175  0.84188445]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.29483025 0.03390264 0.13279966 0.5384675 ]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06842573 0.01822912 0.18786632 0.72547912]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.06149074 0.01992931 0.25453885 0.66404134]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.04903765 0.00512255 0.02883154 0.91700932]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [5.42636685e-03 8.81085398e-04 6.15410439e-03 9.87546605e-01]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.04667317 0.0124261  0.11203076 0.8288704 ]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.05749403 0.02065949 0.27221282 0.64963387]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.34176156 0.02182955 0.08722695 0.54918204]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.09785323 0.0096788  0.04958862 0.84287982]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 1 2], Pesos: [0.35071774 0.02092846 0.08660197 0.54175194]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.08906726 0.01042591 0.05967048 0.84083686]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.03766247 0.00689082 0.04753712 0.90791043]
+Real: 1, Predito: 1, Preditos por cluster: [2 0 1 1], Pesos: [0.16250519 0.0562476  0.35753851 0.42370877]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.09640951 0.01932844 0.11858337 0.76567891]
+Real: 2, Predito: 2, Preditos por cluster: [2 0 2 2], Pesos: [0.07342018 0.01696028 0.13515514 0.77446472]
 
 ---------- Silhouette ----------
-0.4361751004050457
+0.4746365715838296
 

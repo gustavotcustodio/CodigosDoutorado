@@ -24,6 +24,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import MultiLabelBinarizer
 from matplotlib.colors import ListedColormap
 from yellowbrick.cluster import silhouette_visualizer, SilhouetteVisualizer
+from feature_selector import get_attribs_by_mutual_info
 import dataset_loader
 
 POSSIBLE_CLASSIFIERS = [SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(), SVC(),
@@ -168,27 +169,6 @@ def ensemble_prediction(X_test, centroids, possible_clusters, attribs_by_cluster
     y_pred_votation = np.argmax(voting_labels, axis=1)
 
     return y_pred_votation, predictions, u
-
-
-def get_attribs_by_mutual_info(X_cluster, y_cluster, mutual_info_percent):
-    if mutual_info_percent >= 100 or len(X_cluster) == 1:
-        return [i for i in range(X_cluster.shape[1])]
-
-    mutual_info_percent /= 100
-    mutual_info = mutual_info_classif(X_cluster, y_cluster)
-
-    if np.all(mutual_info == 0):
-        return [i for i in range(X_cluster.shape[1])]
-
-    norm_mutual_info = mutual_info / np.sum(mutual_info)
-
-    sorted_attrs = mutual_info.argsort()[::-1]
-
-    cumsum_info = norm_mutual_info.cumsum()
-
-    max_attr = np.where(cumsum_info >= mutual_info_percent)[0][0] + 1
-    selected_attrs = sorted_attrs[0 : max_attr]
-    return selected_attrs
 
 
 def ensemble_training(X_train, y_train, centroids, clusters,
@@ -396,6 +376,9 @@ def get_attribs_by_cluster(X_train, y_train, clusters, n_clusters, mutual_info_p
             attribs_cluster = get_attribs_by_mutual_info(X_cluster, y_cluster, mutual_info_percent)
 
             selected_attribs.append(attribs_cluster)
+        else:
+            all_attribs = [i for i in range(X_train.shape[1])]
+            selected_attribs.append(all_attribs)
     return selected_attribs
 
 
