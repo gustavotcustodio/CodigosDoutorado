@@ -172,7 +172,7 @@ def create_results_table(results_compilation, filename):
 
 
 def main():
-    datasets = ["german_credit", "australian_credit", "heart", "iris", "pima", "wdbc", "wine"]
+    datasets = ["german_credit", "australian_credit", "heart", "iris", "pima", "wdbc", "wine", "contraceptive"]
     experiments = ["mutual_info_75", "mutual_info_50", "10_runs", ]
     algorithms = ["CBEG_distances", "CBEG_silhouette", "CBEG_distances_silhouette", "CBEG_2_clusters", "CBEG_3_clusters", "CBEG_4_clusters", "CBEG_5_clusters", "xgboost", "gradient_boosting", "random_forest", "svm"]
 

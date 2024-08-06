@@ -22,12 +22,12 @@ def select_classifier(classifer_name):
         return SVC()
 
 
-def calcular_e_printar_metricas(classifier_name, dataset, mutual_info_percent):
+def calcular_e_printar_metricas(classifier_name, run, dataset, mutual_info_percent):
     model = select_classifier(classifier_name)
     read_function = dataset_loader.select_dataset_function(dataset)
     X, y = read_function()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = dataset_loader.split_training_test(X, y, run)
 
     if mutual_info_percent < 100:
         selected_attrs = get_attribs_by_mutual_info(X_train, y_train, mutual_info_percent)
@@ -67,13 +67,14 @@ def main():
 
     classifier_name = sys.argv[1]
     dataset = sys.argv[2]
+    run = int(sys.argv[3])
 
-    if len(sys.argv) > 3:
-        mutual_info_percent = float(sys.argv[3])
+    if len(sys.argv) > 4:
+        mutual_info_percent = float(sys.argv[4])
     else:
         mutual_info_percent = 100
 
-    calcular_e_printar_metricas(classifier_name, dataset, mutual_info_percent)
+    calcular_e_printar_metricas(classifier_name, run, dataset, mutual_info_percent)
 
 
 if __name__ == "__main__":

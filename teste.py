@@ -158,6 +158,7 @@ def preselect_knora(X_train, y_train, n_to_select):
     knora_e.select()
     return 0
 
+# from sklearn.manifold import TSNE
 def plot_clusters(X_train, y_train, dataset):
     tsne_model = TSNE(n_components=2)
     low_dim_data = tsne_model.fit_transform(X_train)

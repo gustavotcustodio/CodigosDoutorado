@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import mutual_info_classif
 from scipy.spatial import distance
-from sklearn.metrics import recall_score, precision_score, f1_score, brier_score_loss, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import recall_score, precision_score, f1_score, classification_report # brier_score_loss, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import pairwise_distances
@@ -243,6 +243,7 @@ def calcular_acuracia_por_cluster(y_pred, y_real, clusters, tipo="teste"):
     recall_value = recall_score(y_real, y_pred, average=avg_type, zero_division=0.0)
     precision_value = precision_score(y_real, y_pred, average=avg_type, zero_division=0.0)
     f1_value = f1_score(y_real, y_pred, average=avg_type, zero_division=0.0)
+    # print(classification_report(y_real, y_pred))
     print("Acurácia total:", acc)
     print("Recall total:", recall_value)
     print("Precisão total:", precision_value)
@@ -494,9 +495,10 @@ def rodar_programa(n_clusters, run, dataset, mutual_info_percent=100, evaluation
 
     print(dataset)
     X, y = dataset_loader_function()
-    y = y.astype(int)
+    X_train, X_test, y_train, y_test = dataset_loader.split_training_test(X, y, run)
+    # y = y.astype(int)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)  #, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)  #, random_state=42)
 
     if n_clusters == 0:
         clusterer = select_optimal_partition(X_train, y_train, evaluation_metric)
