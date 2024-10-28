@@ -63,7 +63,6 @@ def plot_comparison_and_save(results_mutual_info, baseline_name, filename):
             mutual_info_label = "\n\n\n75% of\nmutual\ninformation"
         else:
             mutual_info_label = "\n\n\nall\nfeatures"
-
         x_ticklabels += [
                          "",
                          f"{round(metrics_baseline['n_attribs'], 2)}\nfeatures",

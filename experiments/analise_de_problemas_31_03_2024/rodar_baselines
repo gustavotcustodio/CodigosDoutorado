@@ -6,8 +6,8 @@ for mutual_info in 100 75 50; do
         experiment_type=10_runs;
     fi
 
-    for dataset in "wine" "contraceptive" "australian_credit" "german_credit" "iris" "pima" "wdbc"; do
-    # for dataset in  "wine"; do
+    # for dataset in "wine" "contraceptive" "australian_credit" "german_credit" "iris" "pima" "wdbc"; do
+    for dataset in  "heart"; do
         for classifier in "xgboost" "random_forest" "gradient_boosting" "svm"; do
         # for classifier in "random_forest"; do
             for run in 0 1 2 3 4 5 6 7 8 9; do

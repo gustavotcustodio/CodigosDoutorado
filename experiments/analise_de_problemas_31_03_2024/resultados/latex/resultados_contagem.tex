@@ -1,0 +1,53 @@
+\documentclass[12pt,a4paper]{standalone}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage[table,xcdraw]{xcolor}
+
+
+\newcolumntype{C}{>{\centering\arraybackslash}p{1.2cm}}
+
+\begin{document}
+
+\begin{tabular}{llCCCCCCC|CCCC}
+\toprule
+\multirow{2}{*}{\textbf{Dataset}}  & \multirow{2}{*}{\textbf{Metric}} & \multicolumn{7}{c}{ \textbf{CBEG}} & \multicolumn{4}{c}{ \textbf{Baseline}}  \\ \cmidrule{3-13}
+                                   &                                  & \rotatebox{0}{\textbf{ DBC}}       & \rotatebox{0}{\textbf{ SS}}                                & \rotatebox{0}{\textbf{ DBCS}} &
+\rotatebox{0}{$\mathbf{k=2}$}      & \rotatebox{0}{$\mathbf{k=3}$}    & \rotatebox{0}{$\mathbf{ k=4}$}     & \rotatebox{0}{$\mathbf{ k=5}$}                             &
+\rotatebox{0}{\textbf{XGB}}        & \rotatebox{0}{\textbf{GB}} & \rotatebox{0}{\textbf{RF}} & \rotatebox{0}{\textbf{SVM}} \\ \midrule
+\multirow{4}{*}{Australian Credit} & Accuracy                   &                            & \cellcolor{blue!15}1                    &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 &                      & \cellcolor{blue!15}1 & \\
+                               & Recall    &                      &                      &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 \\
+                               & Precision &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 &                      & \cellcolor{blue!15}1 & \\
+                               & F1        &                      & \cellcolor{blue!15}1 &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 &                      & \cellcolor{blue!30}2 & \\ \midrule
+\multirow{4}{*}{German Credit} & Accuracy  &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \\
+                               & Recall    &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      & \\
+                               & Precision &                      &                      &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 &                      &                      &                      & \cellcolor{blue!15}1 & \\
+                               & F1        &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      & \\ \midrule
+\multirow{4}{*}{Heart disease} & Accuracy  &    \cellcolor{blue!15}1                 &                      &                      &                      &                      &                      &                      &                      &                      &          \cellcolor{blue!30}2           & \\
+                               & Recall    &    \cellcolor{blue!30}2                 &                      &                      &                      &                      &                      &          \cellcolor{blue!15}1           &                      &                      &                      & \\
+                               & Precision &                      &                      &                      &                      &         \cellcolor{blue!45}3            &                      &                      &                      &                      &                      & \\
+                               & FX        &    \cellcolor{blue!15}1                 &                      &                      &                      &                      &                      &                      &                      &                      &        \cellcolor{blue!30}2             & \\ \midrule
+\multirow{4}{*}{Pima diabetes} & Accuracy  &                      &                      &                      &                      & \cellcolor{blue!15}1 &                      &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 \\
+                               & Recall    &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 &                      & \\
+                               & Precision & \cellcolor{blue!45}3 &                      &                      &                      &                      &                      &                      &                      &                      &                      & \\
+                               & F1        &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \\ \midrule
+\multirow{4}{*}{Breast Cancer} & Accuracy  &                      &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 &                      &                      &                      & \cellcolor{blue!30}2 \\
+                               & Recall    &                      & \cellcolor{blue!15}1 &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 &                      & \cellcolor{blue!15}1 &                      &                      & \cellcolor{blue!15}1 \\
+                               & Precision &                      &                      & \cellcolor{blue!15}1 &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!30}2 \\
+                               & F1        &                      &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 &                      &                      &                      & \cellcolor{blue!30}2 \\ \midrule
+\multirow{4}{*}{Contraceptive} & Accuracy  &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      & \\
+                               & Recall    &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      & \\
+                               & Precision &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      & \\
+                               & F1        &                      &                      &                      &                      &                      &                      &                      &                      & \cellcolor{blue!45}3 &                      & \\ \midrule
+\multirow{4}{*}{Iris}          & Accuracy  &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \cellcolor{blue!30}2 &                      &                      &                      &                      &                      &                      & \\
+                               & Recall    &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \cellcolor{blue!30}2 &                      &                      &                      &                      &                      &                      & \\
+                               & Precision &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \cellcolor{blue!30}2 &                      &                      &                      &                      &                      &                      & \\
+                               & F1        &                      & \cellcolor{blue!30}2 & \cellcolor{blue!15}1 & \cellcolor{blue!30}2 &                      &                      &                      &                      &                      &                      & \\ \midrule
+\multirow{4}{*}{Wine}          & Accuracy  &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 \\
+                               & Recall    &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 \\
+                               & Precision &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 & \cellcolor{blue!15}1 \\
+                               & F1        &                      &                      &                      & \cellcolor{blue!45}3 &                      &                      &                      &                      &                      & \cellcolor{blue!15}1 & \\
+\bottomrule
+\end{tabular}
+\end{document}

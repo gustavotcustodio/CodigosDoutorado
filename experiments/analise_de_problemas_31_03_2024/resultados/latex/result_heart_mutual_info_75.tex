@@ -1,24 +1,23 @@
+\documentclass[12pt,a4paper]{standalone}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage[table,xcdraw]{xcolor}
 
-        \documentclass[12pt,a4paper]{standalone}
-        \usepackage{booktabs}
-        \usepackage{caption}
-
-        \begin{document}
-        \begin{tabular}{llllll}
-            \toprule
-            \textbf{Method} & \textbf{Accuracy} & \textbf{Recall}  & \textbf{Precision} & \textbf{F1-Score}  & \textbf{Clusters} \\ \midrule
-
-            Cbeg Distances & $0.811 \pm 0.042$ & $0.767 \pm 0.051$ & $0.8 \pm 0.077$ & $0.781 \pm 0.051$ & $3.0 \pm 3.0$ \\ \midrule
-Cbeg Silhouette & $0.756 \pm 0.058$ & $0.606 \pm 0.114$ & $0.81 \pm 0.131$ & $0.681 \pm 0.092$ & $13.5 \pm 1.285$ \\ \midrule
-Cbeg Distances Silhouette & $0.789 \pm 0.062$ & $0.749 \pm 0.084$ & $0.776 \pm 0.102$ & $0.757 \pm 0.071$ & $10.3 \pm 5.551$ \\ \midrule
-Cbeg 2 Clusters & $0.811 \pm 0.051$ & $0.758 \pm 0.063$ & $0.806 \pm 0.084$ & $0.779 \pm 0.063$ & $2.0 \pm 0.0$ \\ \midrule
-Cbeg 3 Clusters & $0.811 \pm 0.045$ & $0.696 \pm 0.113$ & $0.873 \pm 0.106$ & $0.763 \pm 0.063$ & $3.0 \pm 0.0$ \\ \midrule
-Cbeg 4 Clusters & $0.785 \pm 0.052$ & $0.66 \pm 0.102$ & $0.813 \pm 0.088$ & $0.724 \pm 0.086$ & $4.0 \pm 0.0$ \\ \midrule
-Cbeg 5 Clusters & $0.763 \pm 0.083$ & $0.633 \pm 0.102$ & $0.796 \pm 0.156$ & $0.701 \pm 0.112$ & $5.0 \pm 0.0$ \\ \midrule
-Xgboost & $0.789 \pm 0.047$ & $0.7 \pm 0.058$ & $0.811 \pm 0.104$ & $0.746 \pm 0.051$ & $0.0 \pm 0.0$ \\ \midrule
-Gradient Boosting & $0.789 \pm 0.057$ & $0.697 \pm 0.068$ & $0.809 \pm 0.119$ & $0.744 \pm 0.071$ & $0.0 \pm 0.0$ \\ \midrule
-Random Forest & $0.778 \pm 0.047$ & $0.697 \pm 0.068$ & $0.788 \pm 0.106$ & $0.734 \pm 0.055$ & $0.0 \pm 0.0$ \\ \midrule
-Svm & $0.767 \pm 0.05$ & $0.688 \pm 0.081$ & $0.771 \pm 0.129$ & $0.719 \pm 0.071$ & $0.0 \pm 0.0$ \\ \midrule
-
-        \end{tabular}
-        \end{document}
+\begin{document}
+\begin{tabular}{lllllll}
+    \toprule
+    \textbf{Dataset}                & \textbf{Method}   & \textbf{Accuracy}                             & \textbf{Recall}                               & \textbf{Precision}                            & \textbf{F1-Score}                             & \textbf{Clusters} \\ \midrule
+    \multirow{11}{*}{Heart Disease} & CBEG DBC          & \cellcolor{gray!50}$0.811 \pm 0.042$          & \cellcolor{gray!50}$\mathbf{0.767 \pm 0.051}$ & $0.8 \pm 0.077$                               & \cellcolor{gray!50}$0.781 \pm 0.051$          & $3.0 \pm 3.0$ \\ \nopagebreak
+                                    & CBEG SS           & $0.756 \pm 0.058$                             & $0.606 \pm 0.114$                             & $0.81 \pm 0.131$                              & $0.681 \pm 0.092$                             & $13.5 \pm 1.3$ \\ \nopagebreak
+                                    & CBEG DBC-SS       & $0.789 \pm 0.062$                             & $0.749 \pm 0.084$                             & $0.776 \pm 0.102$                             & $0.757 \pm 0.071$                             & $10.3 \pm 5.6$ \\ \nopagebreak
+                                    & CBEG 2 Clusters   & \cellcolor{gray!50}$0.811 \pm 0.051$          & $0.758 \pm 0.063$                             & $0.806 \pm 0.084$                             & $0.779 \pm 0.063$                             & $2.0$ \\ \nopagebreak
+                                    & CBEG 3 Clusters   & \cellcolor{gray!50}$0.811 \pm 0.045$          & $0.696 \pm 0.113$                             & \cellcolor{gray!50}$\mathbf{0.873 \pm 0.106}$ & $0.763 \pm 0.063$                             & $3.0$ \\ \nopagebreak
+                                    & CBEG 4 Clusters   & $0.785 \pm 0.052$                             & $0.66 \pm 0.102$                              & $0.813 \pm 0.088$                             & $0.724 \pm 0.086$                             & $4.0$ \\ \nopagebreak
+                                    & CBEG 5 Clusters   & $0.763 \pm 0.083$                             & $0.633 \pm 0.102$                             & $0.796 \pm 0.156$                             & $0.701 \pm 0.112$                             & $5.0$ \\ \cmidrule{2-7}
+                                    & XGBoost           & $0.781 \pm 0.054$                             & $0.733 \pm 0.117$                             & $0.779 \pm 0.101$                             & $0.747 \pm 0.066$                             & - \\ \nopagebreak
+                                    & Gradient Boosting & $0.778 \pm 0.079$                             & $0.725 \pm 0.106$                             & $0.778 \pm 0.123$                             & $0.744 \pm 0.085$                             & - \\ \nopagebreak
+                                    & Random Forest     & $0.815 \pm 0.064$                             & \cellcolor{gray!50}$0.742 \pm 0.12$           & $0.835 \pm 0.104$                             & $0.778 \pm 0.082$                             & - \\ \nopagebreak
+                                    & SVM               & \cellcolor{gray!50}$\mathbf{0.819 \pm 0.054}$ & \cellcolor{gray!50}$0.742 \pm 0.079$          & \cellcolor{gray!50}$0.843 \pm 0.101$          & \cellcolor{gray!50}$\mathbf{0.784 \pm 0.063}$ & - \\ \midrule
+\end{tabular}
+\end{document}
