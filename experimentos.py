@@ -127,7 +127,6 @@ def calc_membership_values(X_samples, centroids):
 
     u = np.empty((n_samples, n_clusters))
 
-
     for k in range(n_clusters):
         u[:, k] = np.sum([
             dists_samples_centroids[:, k] / (dists_samples_centroids[:, c] + 0.00000001)

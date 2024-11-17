@@ -16,7 +16,7 @@ class Testing(unittest.TestCase):
                               [0.1, 0.1]])
         y_cluster = np.array([1, 1, 1])
         best_classifier = self.cbeg.choose_best_classifier(
-                X_cluster, y_cluster)
+                X_cluster, y_cluster, classification_metrics)
         assert isinstance(best_classifier, DummyClassifier)
 
     # TODO test crossval
