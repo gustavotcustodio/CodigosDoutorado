@@ -29,9 +29,6 @@ BASE_CLASSIFIERS = {"nb": GaussianNB,
                     "lr": LogisticRegression,
                     }
 
-CLASSIFICATION_METRICS = ['accuracy', 'roc_auc']
-
-
 def create_classifier(classifier_name: str):
     if classifier_name == "knn7":
         return KNeighborsClassifier(n_neighbors=7)
@@ -46,7 +43,7 @@ class CBEG:
     """Framework for ensemble creation."""
     n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
-    mutual_info_percent: float  = 100.0
+    min_mutual_info_percentage: float  = 100.0
     clustering_evaluation_metric: str = "dbc"
     combination_strategy: str = "weighted_membership"
     
@@ -207,7 +204,7 @@ class CBEG:
 
         print("Performing attribute selection...")
         self.features_module = FeatureSelectionModule(
-            samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=50
+            samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=self.min_mutual_info_percentage
         )
         samples_by_cluster = self.features_module.select_attributes_by_cluster()
 
@@ -228,7 +225,7 @@ if __name__ == "__main__":
     X, y = read_german_credit_dataset()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG()
+    cbeg = CBEG(min_mutual_info_percentage=100)
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)
