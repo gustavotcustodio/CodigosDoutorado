@@ -1,17 +1,15 @@
-from ast import Call
 import numpy as np
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from typing import Callable
-from sklearn.cluster import DBSCAN, BisectingKMeans, KMeans, SpectralClustering, kmeans_plusplus
+from typing import Callable, Optional
+from sklearn.cluster import BisectingKMeans, KMeans, SpectralClustering, kmeans_plusplus
 from sklearn.metrics.pairwise import cosine_distances
 
 
 CLUSTERING_ALGORITHMS = {
-    #"kmeans": KMeans,
+    "kmeans": KMeans,
     "kmeans++": KMeans,
-    #"spectral_clustering": SpectralClustering,
-    #"bisecting_kmeans": BisectingKMeans
+    "spectral_clustering": SpectralClustering,
 }
 
 
@@ -22,14 +20,18 @@ class ClusteringModule:
     y: NDArray
     evaluation_metric = "DBC"
 
-    def create_clusterer(self, algorithm: str):
+    def create_clusterer(self, algorithm: str, n_clusters: Optional[int]=None
+                         ) -> KMeans | SpectralClustering:
+        if n_clusters is None:
+            n_clusters = self.n_clusters
+
         if algorithm == "kmeans++":
-            kmeans_pp_init = kmeans_plusplus(self.X, n_clusters=self.n_clusters)
-            return KMeans(n_clusters=self.n_clusters, init=kmeans_pp_init[0])
+            kmeans_pp_init = kmeans_plusplus(self.X, n_clusters=n_clusters)
+            return KMeans(n_clusters, init=kmeans_pp_init[0])
         elif algorithm == "kmeans":
-            return KMeans(n_clusters=self.n_clusters, init="random")
+            return KMeans(n_clusters, init="random", random_state=42)
         else:
-            return CLUSTERING_ALGORITHMS[algorithm](n_clusters=self.n_clusters)
+            return CLUSTERING_ALGORITHMS[algorithm](n_clusters)
          
     def select_evaluation_function(self) -> Callable:
         if self.evaluation_metric == "DBC":
@@ -39,22 +41,26 @@ class ClusteringModule:
             # TODO add other validation methods
             return self.get_DBC_distance()
 
-    def compare_clusterers_and_select(self):
+    def compare_clusterers_and_select(self) -> "Clusterer":
         """ Compare multiple different clusterers and select the best
         according to some metric.
         """
         evaluation_values = []
         possible_clusterers = []
 
-        # TODO change the number of clusters and parallelize
+        n_samples = self.X.shape[0]
+        max_clusters = int(np.sqrt(n_samples) / 2)
+        # TODO paralelize
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
-            clusterer = self.create_clusterer(clustering_algorithm)
-            clusters = clusterer.fit_predict(self.X)
+            for c in range(2, max_clusters):
 
-            evaluation_value = self.evaluation_function(clusters)
+                clusterer = self.create_clusterer(clustering_algorithm, c)
+                clusters = clusterer.fit_predict(self.X)
 
-            evaluation_values.append(evaluation_value)
-            possible_clusterers.append(clusterer)
+                evaluation_value = self.evaluation_function(clusters)
+
+                evaluation_values.append(evaluation_value)
+                possible_clusterers.append(clusterer)
 
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
@@ -75,6 +81,9 @@ class ClusteringModule:
         self.best_clusterer = self.compare_clusterers_and_select()
         clusters = self.best_clusterer.fit_predict(self.X)
 
+        # Change the number of clusters to the optimal number found
+        self.n_clusters = self.best_clusterer.n_clusters
+
         # Define the centroids for the best clusterer
         # If it's Spectral Clustering, the centroids need to be calculated.
         if isinstance(self.best_clusterer, SpectralClustering):
@@ -82,6 +91,7 @@ class ClusteringModule:
                                        for c in range(self.n_clusters)])
         else:
             self.centroids = self.best_clusterer.cluster_centers_
+
 
         # Split the samples according to the cluster they are assigned
         samples_by_cluster = {}
@@ -99,7 +109,7 @@ class ClusteringModule:
         """ The DBC distance measures the average cosine distance between
         samples of different classes in clusters.
         """
-        def wrapper(clusters: NDArray) -> float:
+        def wrapper(clusters: NDArray[np.float64]) -> float:
             dists_centroids_cluster = np.empty((self.n_clusters))
 
             for c in range(self.n_clusters):
@@ -123,6 +133,7 @@ class ClusteringModule:
                 if n_distances > 0:
                     dists_centroids_cluster[c] = avg_distance_cluster / n_distances
                 else:
+                    # If all samples are in the same cluster, it returns 1
                     dists_centroids_cluster[c] = 1.0
 
             macro_avg_metric = np.mean(dists_centroids_cluster).astype(float)

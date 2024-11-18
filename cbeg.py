@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
@@ -12,10 +13,12 @@ from sklearn.svm import SVC
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from cluster_selection import ClusteringModule
-from dataset_loader import read_german_credit_dataset, read_australian_credit_dataset, read_contraceptive_dataset, read_heart_dataset, read_hepatitis_dataset, read_pima_dataset, read_iris_dataset, read_wine_dataset
+from feature_selection import FeatureSelectionModule
+from dataset_loader import read_german_credit_dataset, read_australian_credit_dataset, read_contraceptive_dataset, read_heart_dataset, read_hepatitis_dataset, read_pima_dataset, read_iris_dataset, read_wine_dataset, read_wdbc_dataset
 from collections import Counter
 
-from experimentos import POSSIBLE_CLASSIFIERS
+# TODO informações úteis:
+#   Relação entre distribuição por classe e acurácia por classe
 
 # Default classifier selected for the 
 DEFAULT_CLASSIFIER = "nb"
@@ -24,8 +27,6 @@ BASE_CLASSIFIERS = {"nb": GaussianNB,
                     "svm": SVC,
                     "knn7": KNeighborsClassifier,
                     "lr": LogisticRegression,
-                    "rf": RandomForestClassifier,
-                    "gb": GradientBoostingClassifier
                     }
 
 CLASSIFICATION_METRICS = ['accuracy', 'roc_auc']
@@ -43,10 +44,11 @@ def create_classifier(classifier_name: str):
 @dataclass
 class CBEG:
     """Framework for ensemble creation."""
-    clustering_evaluation_metric: str = "dbc"
-    n_clusters: Optional[int] = None
+    n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
-    mutual_info_percent: float  = 0.0
+    mutual_info_percent: float  = 100.0
+    clustering_evaluation_metric: str = "dbc"
+    combination_strategy: str = "weighted_membership"
     
     def choose_best_classifier(self, X_cluster: NDArray, y_cluster: NDArray,
                                classification_metrics: list) -> BaseEstimator:
@@ -120,7 +122,7 @@ class CBEG:
         """
         selected_base_classifiers = []
 
-        for c in range(self.n_clusters):
+        for c in range(self.cluster_module.n_clusters):
 
             best_classifier = self.choose_best_classifier(
                 samples_by_cluster[c], labels_by_cluster[c], classification_metrics
@@ -143,7 +145,7 @@ class CBEG:
         # Get the majority class for each sample
         return np.argmax(vote_count, axis=1)
 
-    def weighted_voting_membership(
+    def weighted_membership_outputs(
             self, X: NDArray, y_pred_by_clusters: list[NDArray]
         ) -> NDArray:
         """ Get the predicted classes from the classifiers and combine them
@@ -153,6 +155,7 @@ class CBEG:
         vote_sums = np.zeros(shape=(n_samples, self.n_labels))
 
         centroids = self.cluster_module.centroids
+        # Rows correspond to the sample and columns correspond to the cluster
         u = self.cluster_module.calc_membership_matrix(X, centroids)
 
         idx_samples = range(n_samples)
@@ -164,14 +167,25 @@ class CBEG:
     def predict(self, X_test: NDArray) -> NDArray:
         y_pred_by_clusters = []
 
-        # Check if clusterer and n_clusters is set TODO
-        for c in range(self.n_clusters):
+        if self.cluster_module.n_clusters is None:
+            print("Error: Number of clusters isn't set.")
+            sys.exit(1)
+
+        for c in range(self.cluster_module.n_clusters):
+            selected_features = self.features_module.attributes_by_cluster[c]
+            X_test_cluster = X_test[:, selected_features]
+
             # Get the class for the current cluster
-            y_pred_cluster = self.base_classifiers[c].predict(X_test).astype(int)
+            y_pred_cluster = self.base_classifiers[c].predict(X_test_cluster).astype(int)
             y_pred_by_clusters.append(y_pred_cluster)
 
-        # Rows correspond to the sample and columns correspond to the cluster
-        return self.weighted_voting_membership(X_test, y_pred_by_clusters)
+        if self.combination_strategy == "weighted_membership":
+            return self.weighted_membership_outputs(X_test, y_pred_by_clusters)
+        elif self.combination_strategy == "majority_voting":
+            return self.majority_vote_outputs(y_pred_by_clusters)
+        else:
+            print("Invalid combination_strategy value." )
+            sys.exit(1)
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
@@ -183,15 +197,19 @@ class CBEG:
             classification_metrics = ["roc_auc_ovo", "accuracy"]
         else:
             classification_metrics = ["roc_auc", "accuracy"]
-        # CBEG chooses the optimal number of clusters unless a number is provided.
 
-        # Perform the clustering step in order to split the data to each
-        # different classifier
-        self.n_clusters = 2 
-
+        # Perform the pre-clustering step in order to split the data
+        # between the different classifiers
         print("Performing pre-clustering...")
-        self.cluster_module = ClusteringModule(self.n_clusters, X, y)
+        # TODO
+        self.cluster_module = ClusteringModule(2, X, y)
         samples_by_cluster, labels_by_cluster = self.cluster_module.cluster_data()
+
+        print("Performing attribute selection...")
+        self.features_module = FeatureSelectionModule(
+            samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=50
+        )
+        samples_by_cluster = self.features_module.select_attributes_by_cluster()
 
         print("Performing classifier selection...")
         self.base_classifiers = self.select_base_classifiers(
@@ -199,20 +217,20 @@ class CBEG:
         )
 
         # Fit the data in each different cluster to the designated classifier.
-        for c in range(self.n_clusters):
+        for c in range(self.cluster_module.n_clusters):
             X_cluster = samples_by_cluster[c]
             y_cluster = labels_by_cluster[c]
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
 
 if __name__ == "__main__":
-    X, y = read_pima_dataset()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
+    # TODO fix normalization
+    X, y = read_german_credit_dataset()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     cbeg = CBEG()
     cbeg.fit(X_train, y_train)
 
-    # TODO fix iris problem in predict
     y_pred = cbeg.predict(X_test)
 
     print("CBEG", classification_report(y_pred, y_test, zero_division=True))

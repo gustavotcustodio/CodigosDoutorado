@@ -214,7 +214,7 @@ def select_dataset_function(dataset):
 
     else:
         print("Erro ao selecionar dataset.")
-        sys.exit()
+        sys.exit(1)
     return read_function
 
 

@@ -16,10 +16,18 @@ class Testing(unittest.TestCase):
                               [0.1, 0.1]])
         y_cluster = np.array([1, 1, 1])
         best_classifier = self.cbeg.choose_best_classifier(
-                X_cluster, y_cluster, classification_metrics)
+                X_cluster, y_cluster, ["roc_auc"])
         assert isinstance(best_classifier, DummyClassifier)
 
-    # TODO test crossval
+    def test_dummy_classifier(self):
+        X_train = np.array([[0.2, 0.9], [0.5, 0.4], [0.1, 0.1]])
+        y_train = np.array([1, 0, 0])
+
+        X_test = np.array([[0, 3], [5, 6], [9, 9], [1, 1]])
+        dc = DummyClassifier(strategy="most_frequent")
+        dc.fit(X_train, y_train)
+        y_pred = dc.predict(X_test).astype(int)
+        np.testing.assert_array_equal(y_pred, [0, 0, 0, 0])
 
 if __name__ == '__main__':
     unittest.main()
