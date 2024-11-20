@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from typing import Callable, Optional
@@ -15,15 +16,14 @@ CLUSTERING_ALGORITHMS = {
 
 @dataclass
 class ClusteringModule:
-    n_clusters: int
     X: NDArray
     y: NDArray
+    n_clusters: str | int = "compare"
+    clustering_algorithm: str = "kmeans++"
     evaluation_metric = "DBC"
 
-    def create_clusterer(self, algorithm: str, n_clusters: Optional[int]=None
+    def create_clusterer(self, algorithm: str, n_clusters: int
                          ) -> KMeans | SpectralClustering:
-        if n_clusters is None:
-            n_clusters = self.n_clusters
 
         if algorithm == "kmeans++":
             kmeans_pp_init = kmeans_plusplus(self.X, n_clusters=n_clusters)
@@ -52,12 +52,12 @@ class ClusteringModule:
         max_clusters = int(np.sqrt(n_samples) / 2)
         # TODO paralelize
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
-            for c in range(2, max_clusters):
+            for c in range(self.n_labels, max_clusters):
 
                 clusterer = self.create_clusterer(clustering_algorithm, c)
                 clusters = clusterer.fit_predict(self.X)
 
-                evaluation_value = self.evaluation_function(clusters)
+                evaluation_value = self.evaluation_function(clusters, c)
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append(clusterer)
@@ -70,6 +70,10 @@ class ClusteringModule:
         """ Try different clustering algorithms and select the best one
         for the given dataset.
         """
+        if self.n_clusters != "compare" and type(self.n_clusters) != int:
+            print("Error. Invalid n_clusters value.")
+            sys.exit(1)
+
         self.n_labels = len(np.unique(self.y))
 
         # Calculate the average cosine distance between samples
@@ -78,7 +82,14 @@ class ClusteringModule:
         # Select the clustering evaluation function
         self.evaluation_function = self.select_evaluation_function()
 
-        self.best_clusterer = self.compare_clusterers_and_select()
+        # If the number of clusters is None, select the optimal
+        # number of clusters and the best clsutering algorithm
+        if self.n_clusters == "compare":
+            self.best_clusterer = self.compare_clusterers_and_select()
+        else:
+            self.best_clusterer = self.create_clusterer(
+                self.clustering_algorithm, self.n_clusters)
+
         clusters = self.best_clusterer.fit_predict(self.X)
 
         # Change the number of clusters to the optimal number found
@@ -92,7 +103,6 @@ class ClusteringModule:
         else:
             self.centroids = self.best_clusterer.cluster_centers_
 
-
         # Split the samples according to the cluster they are assigned
         samples_by_cluster = {}
         labels_by_cluster = {}
@@ -105,14 +115,14 @@ class ClusteringModule:
         return samples_by_cluster, labels_by_cluster
 
 
-    def get_DBC_distance(self) -> Callable[[NDArray], float]:
+    def get_DBC_distance(self) -> Callable[[NDArray, int], float]:
         """ The DBC distance measures the average cosine distance between
         samples of different classes in clusters.
         """
-        def wrapper(clusters: NDArray[np.float64]) -> float:
-            dists_centroids_cluster = np.empty((self.n_clusters))
+        def wrapper(clusters: NDArray[np.float64], n_clusters: int) -> float:
+            dists_centroids_cluster = np.empty((n_clusters))
 
-            for c in range(self.n_clusters):
+            for c in range(n_clusters):
                 samples_c = np.where(clusters == c)[0]
 
                 avg_distance_cluster = 0

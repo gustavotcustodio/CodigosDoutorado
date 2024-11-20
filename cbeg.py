@@ -46,6 +46,8 @@ class CBEG:
     min_mutual_info_percentage: float  = 100.0
     clustering_evaluation_metric: str = "dbc"
     combination_strategy: str = "weighted_membership"
+    n_cores: int = 1
+    verbose: bool = False
     
     def choose_best_classifier(self, X_cluster: NDArray, y_cluster: NDArray,
                                classification_metrics: list) -> BaseEstimator:
@@ -197,24 +199,35 @@ class CBEG:
 
         # Perform the pre-clustering step in order to split the data
         # between the different classifiers
-        print("Performing pre-clustering...")
-        # TODO
-        self.cluster_module = ClusteringModule(2, X, y)
+        if self.verbose:
+            print("Performing pre-clustering...")
+
+        self.cluster_module = ClusteringModule(X, y, n_clusters=self.n_clusters)
+
         samples_by_cluster, labels_by_cluster = self.cluster_module.cluster_data()
 
-        print("Performing attribute selection...")
+        if self.verbose and self.min_mutual_info_percentage < 100:
+            print("Performing attribute selection...")
+
         self.features_module = FeatureSelectionModule(
             samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=self.min_mutual_info_percentage
         )
         samples_by_cluster = self.features_module.select_attributes_by_cluster()
 
-        print("Performing classifier selection...")
-        self.base_classifiers = self.select_base_classifiers(
-            samples_by_cluster, labels_by_cluster, classification_metrics
-        )
+        # TODO paralelize classifier seleiction
+        if self.base_classifier_selection:
+            if self.verbose:
+                print("Performing classifier selection...")
+
+            self.base_classifiers = self.select_base_classifiers(
+                samples_by_cluster, labels_by_cluster, classification_metrics
+            )
+        else:
+            # If no base classifier is selected the default is GaussianNB
+            self.base_classifiers = [GaussianNB()] * int(self.cluster_module.n_clusters)
 
         # Fit the data in each different cluster to the designated classifier.
-        for c in range(self.cluster_module.n_clusters):
+        for c in range(int(self.cluster_module.n_clusters)):
             X_cluster = samples_by_cluster[c]
             y_cluster = labels_by_cluster[c]
             self.base_classifiers[c].fit(X_cluster, y_cluster)
@@ -222,10 +235,10 @@ class CBEG:
 
 if __name__ == "__main__":
     # TODO fix normalization
-    X, y = read_german_credit_dataset()
+    X, y = read_australian_credit_dataset()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG(min_mutual_info_percentage=100)
+    cbeg = CBEG(verbose=True)
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)
