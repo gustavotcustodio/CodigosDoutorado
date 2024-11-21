@@ -1,17 +1,18 @@
 import sys
 import numpy as np
+import threading
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
 from typing import Mapping, Optional
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
-from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
+from sklearn.model_selection import StratifiedKFold, KFold, cross_validate, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
 from dataset_loader import read_german_credit_dataset, read_australian_credit_dataset, read_contraceptive_dataset, read_heart_dataset, read_hepatitis_dataset, read_pima_dataset, read_iris_dataset, read_wine_dataset, read_wdbc_dataset
@@ -25,15 +26,22 @@ DEFAULT_CLASSIFIER = "nb"
 
 BASE_CLASSIFIERS = {"nb": GaussianNB,
                     "svm": SVC,
+                    "knn5": KNeighborsClassifier,
                     "knn7": KNeighborsClassifier,
                     "lr": LogisticRegression,
+                    "adaboost": AdaBoostClassifier
                     }
 
-def create_classifier(classifier_name: str):
+def create_classifier(classifier_name: str) -> BaseEstimator:
+    #TODO fix knn
     if classifier_name == "knn7":
         return KNeighborsClassifier(n_neighbors=7)
+    elif classifier_name == "knn5":
+        return KNeighborsClassifier(n_neighbors=5)
     elif classifier_name == "svm":
         return SVC(probability=True)
+    elif classifier_name == "adaboost":
+        return AdaBoostClassifier(algorithm="SAMME")
     else:
         return BASE_CLASSIFIERS[classifier_name]()
 
@@ -46,14 +54,27 @@ class CBEG:
     min_mutual_info_percentage: float  = 100.0
     clustering_evaluation_metric: str = "dbc"
     combination_strategy: str = "weighted_membership"
-    n_cores: int = 1
+    max_threads: int = 7
     verbose: bool = False
     
-    def choose_best_classifier(self, X_cluster: NDArray, y_cluster: NDArray,
-                               classification_metrics: list) -> BaseEstimator:
+    def choose_best_classifier(
+        self, X_cluster: NDArray, y_cluster: NDArray,
+        classification_metrics: list, selected_base_classifiers: list
+    ) -> None:
         """ Choose the best classifier according to the average AUC score""" 
+        # TODO: Remove Knn 5 or Knn 7 classifiers if the number of samples is
+        # lower than that
+        possible_base_classifiers = BASE_CLASSIFIERS.copy()
+
+        # if len(X_cluster) < 20:
+        #     del possible_base_classifiers["knn7"]
+        #     del possible_base_classifiers["knn5"]
+
+        # elif len(X_cluster) < 30:
+        #     del possible_base_classifiers["knn7"]
+
         classifiers = {clf_name: create_classifier(clf_name)
-                       for clf_name in BASE_CLASSIFIERS}
+                       for clf_name in possible_base_classifiers}
 
         # Count the number of sample in the minority class.
         # If the number is lower than 10, the number of folds is reduced
@@ -68,17 +89,28 @@ class CBEG:
         # there is only a single instance in the minority class,
         # use a dummy classifier (all samples in this cluster
         # belong to a same class)
-        if np.all(y_cluster == y_cluster[0]) or n_minority_class == 1:
-            return DummyClassifier(strategy="most_frequent")
+        if np.all(y_cluster == y_cluster[0]):
+            dummy_classifier = DummyClassifier(strategy="most_frequent")
+            selected_base_classifiers.append(dummy_classifier)
+            return
 
+        if n_minority_class == 1:
+            # Default classifier is the Naive-Bayes
+            selected_base_classifiers.append(
+                    create_classifier(DEFAULT_CLASSIFIER))
+            return
+            
         auc_by_classifier = self.crossval_classifiers_scores(
             classifiers, X_cluster, y_cluster, classification_metrics,
             n_folds)
 
         selected_classifier = max(auc_by_classifier, key=auc_by_classifier.get)
 
-        # Returns the name of the best classifier for this cluster
-        return classifiers[selected_classifier]
+        # TODO fix inconsistencies with multiple cores. The index must be correct
+
+        # Append the best classifier for this cluster in the list of the
+        # selected classifiers
+        selected_base_classifiers.append( classifiers[selected_classifier] )
 
     def count_minority_class(self, y: NDArray) -> int:
         """ Count the number of samples in the minority class.
@@ -89,7 +121,7 @@ class CBEG:
 
     def crossval_classifiers_scores(
         self, classifiers: Mapping[str, BaseEstimator], X_train: NDArray, 
-        y_train: NDArray, classification_metrics: list, n_folds: int  # list of Scorers
+        y_train: NDArray, classification_metrics: list, n_folds: int
     ) -> dict[str, float]:
 
         """ Perform a cross val for multiple different classifiers. """
@@ -103,7 +135,6 @@ class CBEG:
                                         scoring=classification_metrics)
 
             # Get the mean AUC of the classifier
-
             if 'test_roc_auc_ovo' in cv_results:
                 auc_by_classifier[clf_name] = cv_results['test_roc_auc_ovo'].mean()
             else:
@@ -120,13 +151,37 @@ class CBEG:
         """ Select base classifiers according to the results of cross-val.
         """
         selected_base_classifiers = []
+        threads = []
 
         for c in range(self.cluster_module.n_clusters):
+            args = (samples_by_cluster[c], labels_by_cluster[c],
+                    classification_metrics, selected_base_classifiers)
 
-            best_classifier = self.choose_best_classifier(
-                samples_by_cluster[c], labels_by_cluster[c], classification_metrics
-            )
-            selected_base_classifiers.append(best_classifier)
+            # If the maximum number of threads is used, wait
+            if len(threads) < self.max_threads:
+                threads.append(
+                    threading.Thread(target=self.choose_best_classifier, args=args)
+                )
+                threads[-1].start()
+
+            else: # If all threads are occupied, wait
+                all_threads_occupied = True
+                idx_thread = 0
+
+                # Check if there are any available threads.
+                while all_threads_occupied:
+                    if not(threads[idx_thread].is_alive()):
+                        all_threads_occupied = False
+
+                        threads[idx_thread] = threading.Thread(
+                            target=self.choose_best_classifier, args=args)
+                        threads[idx_thread].start()
+
+                    idx_thread = (idx_thread + 1) % self.max_threads
+
+
+        for idx_thread in range(len(threads)):
+            threads[idx_thread].join()
 
         return selected_base_classifiers
 
@@ -214,7 +269,6 @@ class CBEG:
         )
         samples_by_cluster = self.features_module.select_attributes_by_cluster()
 
-        # TODO paralelize classifier seleiction
         if self.base_classifier_selection:
             if self.verbose:
                 print("Performing classifier selection...")
@@ -235,10 +289,10 @@ class CBEG:
 
 if __name__ == "__main__":
     # TODO fix normalization
-    X, y = read_australian_credit_dataset()
+    X, y = read_german_credit_dataset()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG(verbose=True)
+    cbeg = CBEG(verbose=True, max_threads=7)
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)
