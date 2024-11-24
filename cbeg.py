@@ -29,11 +29,10 @@ BASE_CLASSIFIERS = {"nb": GaussianNB,
                     "knn5": KNeighborsClassifier,
                     "knn7": KNeighborsClassifier,
                     "lr": LogisticRegression,
-                    "adaboost": AdaBoostClassifier
+                    # "adaboost": AdaBoostClassifier
                     }
 
 def create_classifier(classifier_name: str) -> BaseEstimator:
-    #TODO fix knn
     if classifier_name == "knn7":
         return KNeighborsClassifier(n_neighbors=7)
     elif classifier_name == "knn5":
@@ -59,19 +58,20 @@ class CBEG:
     
     def choose_best_classifier(
         self, X_cluster: NDArray, y_cluster: NDArray,
-        classification_metrics: list, selected_base_classifiers: list
+        classification_metrics: list, selected_base_classifiers: list,
+        cluster: int
     ) -> None:
         """ Choose the best classifier according to the average AUC score""" 
         # TODO: Remove Knn 5 or Knn 7 classifiers if the number of samples is
         # lower than that
         possible_base_classifiers = BASE_CLASSIFIERS.copy()
 
-        # if len(X_cluster) < 20:
-        #     del possible_base_classifiers["knn7"]
-        #     del possible_base_classifiers["knn5"]
+        if len(X_cluster) // 10 < 6:
+            del possible_base_classifiers["knn7"]
+            del possible_base_classifiers["knn5"]
 
-        # elif len(X_cluster) < 30:
-        #     del possible_base_classifiers["knn7"]
+        elif len(X_cluster) // 10 < 8:
+            del possible_base_classifiers["knn7"]
 
         classifiers = {clf_name: create_classifier(clf_name)
                        for clf_name in possible_base_classifiers}
@@ -91,13 +91,12 @@ class CBEG:
         # belong to a same class)
         if np.all(y_cluster == y_cluster[0]):
             dummy_classifier = DummyClassifier(strategy="most_frequent")
-            selected_base_classifiers.append(dummy_classifier)
+            selected_base_classifiers[cluster] = dummy_classifier
             return
 
         if n_minority_class == 1:
             # Default classifier is the Naive-Bayes
-            selected_base_classifiers.append(
-                    create_classifier(DEFAULT_CLASSIFIER))
+            selected_base_classifiers[cluster] = create_classifier(DEFAULT_CLASSIFIER)
             return
             
         auc_by_classifier = self.crossval_classifiers_scores(
@@ -106,11 +105,9 @@ class CBEG:
 
         selected_classifier = max(auc_by_classifier, key=auc_by_classifier.get)
 
-        # TODO fix inconsistencies with multiple cores. The index must be correct
-
-        # Append the best classifier for this cluster in the list of the
+        # Associate the best classifier for this cluster in the list of the
         # selected classifiers
-        selected_base_classifiers.append( classifiers[selected_classifier] )
+        selected_base_classifiers[cluster] = classifiers[selected_classifier]
 
     def count_minority_class(self, y: NDArray) -> int:
         """ Count the number of samples in the minority class.
@@ -150,12 +147,13 @@ class CBEG:
 
         """ Select base classifiers according to the results of cross-val.
         """
-        selected_base_classifiers = []
+        n_clusters = int(self.cluster_module.n_clusters)
+        selected_base_classifiers = [None] * n_clusters
         threads = []
 
-        for c in range(self.cluster_module.n_clusters):
+        for c in range(n_clusters):
             args = (samples_by_cluster[c], labels_by_cluster[c],
-                    classification_metrics, selected_base_classifiers)
+                    classification_metrics, selected_base_classifiers, c)
 
             # If the maximum number of threads is used, wait
             if len(threads) < self.max_threads:
@@ -292,7 +290,7 @@ if __name__ == "__main__":
     X, y = read_german_credit_dataset()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG(verbose=True, max_threads=7)
+    cbeg = CBEG(verbose=True, max_threads=7, n_clusters=5)
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)
