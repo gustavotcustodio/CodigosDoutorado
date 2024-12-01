@@ -43,6 +43,23 @@ def read_australian_credit_dataset():
     X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
+def read_elipses_dataset():
+    X = np.loadtxt("./datasets/circles.dat", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+    y = X[:,-1].astype(int)
+    X = X[:, :-1]
+    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    return X, y
+
+def read_rectangles_dataset():
+    X = np.loadtxt("./datasets/rectangles.dat", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+    y = X[:,-1].astype(int)
+    X = X[:, :-1]
+    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    return X, y
 
 def read_pima_dataset():
     X = np.loadtxt("./datasets/pima.dat", delimiter=",")

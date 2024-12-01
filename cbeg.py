@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import threading
+import dataset_loader
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
 from typing import Mapping, Optional
@@ -13,13 +14,17 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
-from dataset_loader import read_german_credit_dataset, read_australian_credit_dataset, read_contraceptive_dataset, read_heart_dataset, read_hepatitis_dataset, read_pima_dataset, read_iris_dataset, read_wine_dataset, read_wdbc_dataset
 from collections import Counter
 
+# TODO fix normalization
+# TODO fuzzy cmeans
+# TODO combine silhouette and DBC
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
+#   Classificadores associados com cada grupo 
 
 # Default classifier selected for the 
 DEFAULT_CLASSIFIER = "nb"
@@ -29,6 +34,7 @@ BASE_CLASSIFIERS = {"nb": GaussianNB,
                     "knn5": KNeighborsClassifier,
                     "knn7": KNeighborsClassifier,
                     "lr": LogisticRegression,
+                    "dt": DecisionTreeClassifier
                     # "adaboost": AdaBoostClassifier
                     }
 
@@ -62,8 +68,6 @@ class CBEG:
         cluster: int
     ) -> None:
         """ Choose the best classifier according to the average AUC score""" 
-        # TODO: Remove Knn 5 or Knn 7 classifiers if the number of samples is
-        # lower than that
         possible_base_classifiers = BASE_CLASSIFIERS.copy()
 
         if len(X_cluster) // 10 < 6:
@@ -224,7 +228,7 @@ class CBEG:
             sys.exit(1)
 
         for c in range(self.cluster_module.n_clusters):
-            selected_features = self.features_module.attributes_by_cluster[c]
+            selected_features = self.features_module.features_by_cluster[c]
             X_test_cluster = X_test[:, selected_features]
 
             # Get the class for the current cluster
@@ -260,12 +264,12 @@ class CBEG:
         samples_by_cluster, labels_by_cluster = self.cluster_module.cluster_data()
 
         if self.verbose and self.min_mutual_info_percentage < 100:
-            print("Performing attribute selection...")
+            print("Performing feature selection...")
 
         self.features_module = FeatureSelectionModule(
             samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=self.min_mutual_info_percentage
         )
-        samples_by_cluster = self.features_module.select_attributes_by_cluster()
+        samples_by_cluster = self.features_module.select_features_by_cluster()
 
         if self.base_classifier_selection:
             if self.verbose:
@@ -286,11 +290,10 @@ class CBEG:
 
 
 if __name__ == "__main__":
-    # TODO fix normalization
-    X, y = read_german_credit_dataset()
+    X, y = dataset_loader.read_rectangles_dataset()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG(verbose=True, max_threads=7, n_clusters=5)
+    cbeg = CBEG(verbose=True, max_threads=7, min_mutual_info_percentage=100)
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)

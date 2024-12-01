@@ -30,26 +30,26 @@ class FeatureSelectionModule:
         # Mutual info values normalized between 0 and 1. The sum is 1.
         normalized_mutual_info = mutual_info / np.sum(mutual_info)
         
-        # Attributes sorted by mutual information.
-        sorted_attributes = mutual_info.argsort()[::-1]
+        # features sorted by mutual information.
+        sorted_features = mutual_info.argsort()[::-1]
 
         cumsum_info = normalized_mutual_info.cumsum()
 
         max_attr = np.where(cumsum_info >= min_mutual_info)[0][0]
-        selected_attrs = sorted_attributes[0 : (max_attr + 1)]
+        selected_attrs = sorted_features[0 : (max_attr + 1)]
         return selected_attrs
 
-    def select_attributes_by_cluster(self) -> dict[int, NDArray]:
-        self.attributes_by_cluster = {}
+    def select_features_by_cluster(self) -> dict[int, NDArray]:
+        self.features_by_cluster = {}
         self.new_samples_by_cluster = {}
 
         for c in self.samples_by_cluster.keys():
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
 
-            selected_attributes = self.get_attribs_by_mutual_info(X_cluster, y_cluster)
+            selected_features = self.get_attribs_by_mutual_info(X_cluster, y_cluster)
 
-            self.new_samples_by_cluster[c] = X_cluster[:, selected_attributes]
-            self.attributes_by_cluster[c] = selected_attributes
+            self.new_samples_by_cluster[c] = X_cluster[:, selected_features]
+            self.features_by_cluster[c] = selected_features
 
         return self.new_samples_by_cluster

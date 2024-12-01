@@ -10,7 +10,7 @@ from sklearn.metrics.pairwise import cosine_distances
 CLUSTERING_ALGORITHMS = {
     "kmeans": KMeans,
     "kmeans++": KMeans,
-    "spectral_clustering": SpectralClustering,
+    # "spectral_clustering": SpectralClustering,
 }
 
 
@@ -93,7 +93,7 @@ class ClusteringModule:
         clusters = self.best_clusterer.fit_predict(self.X)
 
         # Change the number of clusters to the optimal number found
-        self.n_clusters = self.best_clusterer.n_clusters
+        self.n_clusters = int(self.best_clusterer.n_clusters)
 
         # Define the centroids for the best clusterer
         # If it's Spectral Clustering, the centroids need to be calculated.
