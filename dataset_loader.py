@@ -1,22 +1,15 @@
 import sys
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MultiLabelBinarizer, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import StratifiedKFold
 
 
 def split_training_test(X, y, fold, n_runs=10):
-    # n_samples = X.shape[0]
-    # fold_size = n_samples // n_runs + int(n_samples % n_runs > 1)
+    fold -= 1
 
-    # X_test = X[fold * fold_size: (fold + 1) * fold_size]
-    # X_train = np.vstack((X[0: fold * fold_size], X[(fold + 1) * fold_size : ]))
-
-    # y_test = y[fold * fold_size: (fold + 1) * fold_size]
-    # y_train = np.concatenate((y[0: fold * fold_size], y[(fold + 1) * fold_size : ]))
-
-    skf = StratifiedKFold(n_splits=10, shuffle=False)
+    skf = StratifiedKFold(n_splits=n_runs, shuffle=False)
     splits = skf.split(X, y)
 
     idx = [split for split in splits]
@@ -233,6 +226,16 @@ def select_dataset_function(dataset):
         print("Erro ao selecionar dataset.")
         sys.exit(1)
     return read_function
+
+def normalize_data(X_train, X_test):
+    min_max_scaler = MinMaxScaler()
+
+    min_max_scaler.fit(X_train)
+
+    X_train = min_max_scaler.transform(X_train)
+
+    X_test = min_max_scaler.transform(X_test)
+    return X_train, X_test
 
 
 if __name__ == "__main__":

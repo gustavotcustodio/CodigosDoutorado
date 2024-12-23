@@ -1,14 +1,16 @@
+import os
 import sys
+import argparse
 import numpy as np
 import threading
 import dataset_loader
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
-from typing import Mapping, Optional
+from typing import Mapping
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
-from sklearn.model_selection import StratifiedKFold, KFold, cross_validate, train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -17,25 +19,34 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, Gradien
 from sklearn.tree import DecisionTreeClassifier
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
+from dataset_loader import normalize_data
 from collections import Counter
+from typing import Callable, Optional
 
-# TODO fix normalization
-# TODO fuzzy cmeans
-# TODO combine silhouette and DBC
+# TODO consolidar bases do Jesus
+
+# TODO tentar adicionar a parte com GA
+
+# TODO melhorar a revisão sistemática
+
+# TODO rodar separadamente para cada fold
+
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
 #   Classificadores associados com cada grupo 
 
-# Default classifier selected for the 
-DEFAULT_CLASSIFIER = "nb"
+N_FOLDS = 10
 
-BASE_CLASSIFIERS = {"nb": GaussianNB,
-                    "svm": SVC,
-                    "knn5": KNeighborsClassifier,
-                    "knn7": KNeighborsClassifier,
-                    "lr": LogisticRegression,
-                    "dt": DecisionTreeClassifier
-                    # "adaboost": AdaBoostClassifier
+# Default classifier selected
+DEFAULT_CLASSIFIER = 'nb'
+
+BASE_CLASSIFIERS = {'nb': GaussianNB,
+                    'svm': SVC,
+                    'knn5': KNeighborsClassifier,
+                    'knn7': KNeighborsClassifier,
+                    'lr': LogisticRegression,
+                    'dt': DecisionTreeClassifier,
+                    #'adaboost': AdaBoostClassifier,
                     }
 
 def create_classifier(classifier_name: str) -> BaseEstimator:
@@ -57,9 +68,10 @@ class CBEG:
     n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
     min_mutual_info_percentage: float  = 100.0
-    clustering_evaluation_metric: str = "dbc"
+    clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
+    weights_dbc_silhouette = (0.5, 0.5)
     combination_strategy: str = "weighted_membership"
-    max_threads: int = 7
+    max_threads: int = 4
     verbose: bool = False
     
     def choose_best_classifier(
@@ -117,7 +129,6 @@ class CBEG:
         """ Count the number of samples in the minority class.
         """
         class_count = Counter(y)
-
         return min(class_count.values())
 
     def crossval_classifiers_scores(
@@ -144,11 +155,7 @@ class CBEG:
         # Return a dict with the format classifier_name -> mean_auc 
         return auc_by_classifier
 
-    def select_base_classifiers(
-        self, samples_by_cluster: dict[int, NDArray],
-        labels_by_cluster: dict[int, NDArray], classification_metrics: list
-    ) -> list[BaseEstimator]:
-
+    def select_base_classifiers( self, classification_metrics: list) -> list[BaseEstimator]:
         """ Select base classifiers according to the results of cross-val.
         """
         n_clusters = int(self.cluster_module.n_clusters)
@@ -156,7 +163,7 @@ class CBEG:
         threads = []
 
         for c in range(n_clusters):
-            args = (samples_by_cluster[c], labels_by_cluster[c],
+            args = (self.samples_by_cluster[c], self.labels_by_cluster[c],
                     classification_metrics, selected_base_classifiers, c)
 
             # If the maximum number of threads is used, wait
@@ -180,7 +187,6 @@ class CBEG:
                         threads[idx_thread].start()
 
                     idx_thread = (idx_thread + 1) % self.max_threads
-
 
         for idx_thread in range(len(threads)):
             threads[idx_thread].join()
@@ -232,7 +238,7 @@ class CBEG:
             X_test_cluster = X_test[:, selected_features]
 
             # Get the class for the current cluster
-            y_pred_cluster = self.base_classifiers[c].predict(X_test_cluster).astype(int)
+            y_pred_cluster = self.base_classifiers[c].predict(X_test_cluster).astype(np.int32)
             y_pred_by_clusters.append(y_pred_cluster)
 
         if self.combination_strategy == "weighted_membership":
@@ -242,6 +248,35 @@ class CBEG:
         else:
             print("Invalid combination_strategy value." )
             sys.exit(1)
+
+    def save_training_data(self, filename: str, folder: str):
+        clusters = self.labels_by_cluster.keys()
+
+        # base_classifier_selection: bool = True
+        # min_mutual_info_percentage: float  = 100.0
+        # clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
+        # weights_dbc_silhouette = (0.5, 0.5)
+
+        fullpath = os.path.join(folder, filename)
+        file_output = open(fullpath)
+
+        for c in clusters:
+            selected_features = self.features_module.features_by_cluster[c]
+            base_classifier = self.base_classifiers[c]
+            labels_cluster = self.labels_by_cluster[c]
+
+            print(f"========== Cluster {c} ==========\n", file=file_output)
+
+            print(f"Base classifier: {base_classifier}\n", file=file_output)
+
+            print(f"Selected Features: {selected_features}\n", file=file_output)
+
+            print(f"Clustering Evaluation Metric: {self.clustering_evaluation_metric}\n", file=file_output)
+
+            print(f"Labels: {labels_cluster}\n", file=file_output)
+
+    def save_test_data(self):
+        pass
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
@@ -259,15 +294,18 @@ class CBEG:
         if self.verbose:
             print("Performing pre-clustering...")
 
-        self.cluster_module = ClusteringModule(X, y, n_clusters=self.n_clusters)
+        self.cluster_module = ClusteringModule(
+                X, y, n_clusters=self.n_clusters#, evaluation_metric=self.clustering_evaluation_metric
+        )
 
-        samples_by_cluster, labels_by_cluster = self.cluster_module.cluster_data()
+        self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
         if self.verbose and self.min_mutual_info_percentage < 100:
             print("Performing feature selection...")
 
         self.features_module = FeatureSelectionModule(
-            samples_by_cluster, labels_by_cluster, min_mutual_info_percentage=self.min_mutual_info_percentage
+            self.samples_by_cluster, self.labels_by_cluster,
+            min_mutual_info_percentage=self.min_mutual_info_percentage
         )
         samples_by_cluster = self.features_module.select_features_by_cluster()
 
@@ -276,34 +314,93 @@ class CBEG:
                 print("Performing classifier selection...")
 
             self.base_classifiers = self.select_base_classifiers(
-                samples_by_cluster, labels_by_cluster, classification_metrics
+                self.samples_by_cluster, self.labels_by_cluster, classification_metrics
             )
+
         else:
             # If no base classifier is selected the default is GaussianNB
             self.base_classifiers = [GaussianNB()] * int(self.cluster_module.n_clusters)
 
         # Fit the data in each different cluster to the designated classifier.
-        for c in range(int(self.cluster_module.n_clusters)):
-            X_cluster = samples_by_cluster[c]
-            y_cluster = labels_by_cluster[c]
+        for c in range(self.cluster_module.n_clusters):
+            X_cluster = self.samples_by_cluster[c]
+            y_cluster = self.labels_by_cluster[c]
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
 
+def process_args_and_add_default_values(args) -> None:
+    args.n_clusters = int(args.n_clusters) if args.n_clusters else 'compare'
+
+    if not args.min_mutual_info_percentage:
+        args.min_mutual_info_percentage = 100.0
+    else:
+        args.min_mutual_info_percentage = float(args.min_mutual_info_percentage)
+
+    if not args.clustering_evaluation_metric:
+        args.clustering_evaluation_metric = "dbc"
+
+    if not args.combination_strategy:
+        args.combination_strategy = "weighted_membership"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-d", "--dataset", help = "Dataset used.", required=True)
+    parser.add_argument("-n", "--n_clusters", help = "Number of clusters.")
+    parser.add_argument("-b", "--base_classifier_selection", action=argparse.BooleanOptionalAction, help = "")
+    parser.add_argument("-m", "--min_mutual_info_percentage", help = "")
+    parser.add_argument("-e", "--clustering_evaluation_metric", help = "")
+    parser.add_argument("-c", "--combination_strategy", help = "")
+
+    # Read arguments from command line
+    args = parser.parse_args()
+
+    process_args_and_add_default_values(args)
+
+    for fold in range(1, N_FOLDS+1):
+        X, y = dataset_loader.select_dataset_function(args.dataset)()
+        # Break dataset in training and validation
+        X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
+        X_train, X_val = normalize_data(X_train, X_val)
+
+        cbeg = CBEG(args.n_clusters, args.base_classifier_selection, args.min_mutual_info_percentage,
+                    args.clustering_evaluation_metric, args.combination_strategy,
+                    max_threads=7, verbose=True)
+        cbeg.fit(X_train, y_train)
+        # Save the data: clusters, labels, selected features, etc
+        # self.save_training_data(filename, folder)
+
+        y_pred = cbeg.predict(X_val)
+
+        print("CBEG", classification_report(y_pred, y_val, zero_division=True))
+        # print("Métrica selecionada:", cbeg.cluster_module.evaluation_function)
+        # print("Classificadores base selecionados:", cbeg.base_classifiers)
+
+
 if __name__ == "__main__":
-    X, y = dataset_loader.read_rectangles_dataset()
+    main()
+    """
+    X, y = dataset_loader.read_heart_dataset()
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    cbeg = CBEG(verbose=True, max_threads=7, min_mutual_info_percentage=100)
+    X_train, X_test = normalize_data(X_train, X_test)
+
+    cbeg = CBEG(verbose=True, max_threads=7, min_mutual_info_percentage=100,
+                clustering_evaluation_metric='DBC')
     cbeg.fit(X_train, y_train)
 
     y_pred = cbeg.predict(X_test)
 
     print("CBEG", classification_report(y_pred, y_test, zero_division=True))
+    print("Métrica selecionada:", cbeg.cluster_module.evaluation_function)
     print("Classificadores base selecionados:", cbeg.base_classifiers)
 
-    rf = RandomForestClassifier()
-    rf.fit(X_train, y_train)
-    y_pred = rf.predict(X_test)
+    baseline = RandomForestClassifier()
+    baseline.fit(X_train, y_train)
+    y_pred = baseline.predict(X_test)
 
-    print("Random Forest", classification_report(y_pred, y_test))
-
+    name_baseline = "SVM"
+    print(name_baseline, classification_report(y_pred, y_test))
+    """
