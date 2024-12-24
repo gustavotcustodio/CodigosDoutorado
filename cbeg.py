@@ -4,12 +4,13 @@ import argparse
 import numpy as np
 import threading
 import dataset_loader
+from sklearn import naive_bayes
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
 from typing import Mapping
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, f1_score
 from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -21,15 +22,18 @@ from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
-from typing import Callable, Optional
+
+# TODO opções para resolver o problema do FCM:
+    # - Diminuir para a quantidade de grupos encontrada realmente
+    # - pelo menos uma amostra em cada grupo. Usar o maior
+
+# TODO salvar score DBC etc.
 
 # TODO consolidar bases do Jesus
 
 # TODO tentar adicionar a parte com GA
 
 # TODO melhorar a revisão sistemática
-
-# TODO rodar separadamente para cada fold
 
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
@@ -61,6 +65,12 @@ def create_classifier(classifier_name: str) -> BaseEstimator:
     else:
         return BASE_CLASSIFIERS[classifier_name]()
 
+@dataclass
+class PredictionResults:
+    y_pred: NDArray
+    voting_weights: NDArray
+    y_pred_by_clusters: NDArray
+    y_val: NDArray
 
 @dataclass
 class CBEG:
@@ -155,7 +165,7 @@ class CBEG:
         # Return a dict with the format classifier_name -> mean_auc 
         return auc_by_classifier
 
-    def select_base_classifiers( self, classification_metrics: list) -> list[BaseEstimator]:
+    def select_base_classifiers(self, classification_metrics: list) -> list[BaseEstimator]:
         """ Select base classifiers according to the results of cross-val.
         """
         n_clusters = int(self.cluster_module.n_clusters)
@@ -193,23 +203,27 @@ class CBEG:
 
         return selected_base_classifiers
 
-    def majority_vote_outputs(self, y_pred_by_clusters: list[NDArray]) -> NDArray:
+    def majority_vote_outputs(self, y_pred_by_clusters: list[NDArray]
+                              ) -> tuple[NDArray, NDArray, NDArray]:
         """ Get the predicted class of each different classifier and
         combine their votes into a single prediction.
         """
         n_samples = y_pred_by_clusters[0].shape[0]
         vote_count = np.zeros(shape=(n_samples, self.n_labels)).astype(int)
+        n_clusters = len(y_pred_by_clusters)
 
         for y_pred_cluster in y_pred_by_clusters:
             # size n X 2
             vote_count[range(n_samples), y_pred_cluster] += 1
 
         # Get the majority class for each sample
-        return np.argmax(vote_count, axis=1)
+        return (np.argmax(vote_count, axis=1), # 
+                np.full((n_samples, n_clusters), 1/n_clusters), # Voting weights
+                np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
     def weighted_membership_outputs(
             self, X: NDArray, y_pred_by_clusters: list[NDArray]
-        ) -> NDArray:
+        ) -> tuple[NDArray, NDArray, NDArray]:
         """ Get the predicted classes from the classifiers and combine them
         through weighted voting. The weight is given according to the
         membership value. """
@@ -218,15 +232,15 @@ class CBEG:
 
         centroids = self.cluster_module.centroids
         # Rows correspond to the sample and columns correspond to the cluster
-        u = self.cluster_module.calc_membership_matrix(X, centroids)
+        u_membership = self.cluster_module.calc_membership_matrix(X, centroids)
 
         idx_samples = range(n_samples)
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
-            vote_sums[idx_samples, y_pred_cluster] += u[idx_samples, c]
+            vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c]
 
-        return np.argmax(vote_sums, axis=1)
+        return np.argmax(vote_sums, axis=1), u_membership, np.vstack(y_pred_by_clusters).T
 
-    def predict(self, X_test: NDArray) -> NDArray:
+    def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = []
 
         if self.cluster_module.n_clusters is None:
@@ -242,25 +256,33 @@ class CBEG:
             y_pred_by_clusters.append(y_pred_cluster)
 
         if self.combination_strategy == "weighted_membership":
-            return self.weighted_membership_outputs(X_test, y_pred_by_clusters)
+            y_pred, u_membership, y_pred_clusters = self.weighted_membership_outputs(X_test, y_pred_by_clusters)
+            return y_pred, u_membership, y_pred_clusters
+
         elif self.combination_strategy == "majority_voting":
-            return self.majority_vote_outputs(y_pred_by_clusters)
+            y_pred, u_membership, y_pred_clusters = self.majority_vote_outputs(y_pred_by_clusters)
+            return y_pred, u_membership, y_pred_clusters
+
         else:
             print("Invalid combination_strategy value." )
             sys.exit(1)
 
     def save_training_data(self, filename: str, folder: str):
+        # Possible clusters
         clusters = self.labels_by_cluster.keys()
 
-        # base_classifier_selection: bool = True
-        # min_mutual_info_percentage: float  = 100.0
-        # clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
-        # weights_dbc_silhouette = (0.5, 0.5)
-
         fullpath = os.path.join(folder, filename)
-        file_output = open(fullpath)
 
-        for c in clusters:
+        file_output = open(fullpath, "w")
+
+        print(f"Clustering algorithm selected: {self.cluster_module.clustering_algorithm}", file=file_output)
+        print(f"=====================================\n", file=file_output)
+
+        cluster_eval = self.cluster_module.best_evaluation_value # Cluster evalution values
+        print(f"Clustering evaluation metric: {self.clustering_evaluation_metric}", file=file_output)
+        print(f"Clustering evaluation value: {cluster_eval}\n", file=file_output)
+
+        for c in sorted(clusters):
             selected_features = self.features_module.features_by_cluster[c]
             base_classifier = self.base_classifiers[c]
             labels_cluster = self.labels_by_cluster[c]
@@ -271,12 +293,64 @@ class CBEG:
 
             print(f"Selected Features: {selected_features}\n", file=file_output)
 
-            print(f"Clustering Evaluation Metric: {self.clustering_evaluation_metric}\n", file=file_output)
-
             print(f"Labels: {labels_cluster}\n", file=file_output)
 
-    def save_test_data(self):
-        pass
+        file_output.close()
+
+    def save_test_data(self, prediction_results: PredictionResults, filename: str, folder: str) -> None:
+
+        y_pred = prediction_results.y_pred
+        y_val = prediction_results.y_val
+
+        n_samples = y_val.shape[0]
+        n_labels = np.unique(y_val).shape[0]
+
+        multiclass = n_labels > 2 # Used to calculate precision, recall and F1 for multiclass problems
+
+        fullpath = os.path.join(folder, filename)
+
+        file_output = open(fullpath, "w")
+
+        print(f"Clustering algorithm selected: {self.cluster_module.clustering_algorithm}", file=file_output)
+        print(f"=====================================\n", file=file_output)
+
+        print("------------------------------------\n" +
+              "------ Classification results ------\n" +
+              "------------------------------------\n", file=file_output)
+
+        for c in range(int(self.cluster_module.n_clusters)):
+            y_pred_cluster = prediction_results.y_pred_by_clusters[:, c]
+            print(f"====== Cluster {c} ======", file=file_output)
+            print(f"Base classifier: {self.base_classifiers[c]}", file=file_output)
+            self.print_classification_report(y_pred_cluster, y_val, file_output, multiclass)
+
+        print(f"====== Average ======", file=file_output)
+        self.print_classification_report(y_pred, y_val, file_output, multiclass)
+
+        cluster_eval = self.cluster_module.best_evaluation_value # Cluster evalution values
+        print(f"Clustering evaluation metric: {self.clustering_evaluation_metric}", file=file_output)
+        print(f"Clustering evaluation value: {cluster_eval}\n", file=file_output)
+
+        print('========= Predictions by sample =========\n', file=file_output)
+        for i in range(n_samples):
+            row = (
+             f"Prediction: {prediction_results.y_pred[i]}, " + 
+             f"Real label: {prediction_results.y_val[i]}, " +
+             f"Votes by cluster: {prediction_results.y_pred_by_clusters[i]}, "
+             f"Weights: {np.round(prediction_results.voting_weights[i], 2)}"
+             )
+            print(row, file=file_output)
+
+    def print_classification_report(self, y_pred: NDArray, y_val: NDArray, file_output: 'File',
+                                    multiclass: bool = False) -> None:
+        # If it is a multiclass problem, we use the weighted avg. to calculate metrics.
+        avg_type = "weighted avg" if multiclass else "1"
+
+        clf_report = classification_report(y_pred, y_val, output_dict=True, zero_division=0.0)
+        print(f"Accuracy: {clf_report['accuracy']}", file = file_output)
+        print(f"Recall: {clf_report[avg_type]['recall']}", file = file_output)
+        print(f"Precision: {clf_report[avg_type]['precision']}", file = file_output)
+        print(f"F1: {clf_report[avg_type]['f1-score']}\n", file = file_output)
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
@@ -295,7 +369,10 @@ class CBEG:
             print("Performing pre-clustering...")
 
         self.cluster_module = ClusteringModule(
-                X, y, n_clusters=self.n_clusters#, evaluation_metric=self.clustering_evaluation_metric
+                X, y,
+                n_clusters=self.n_clusters,
+                clustering_algorithm="kmeans++",
+                evaluation_metric=self.clustering_evaluation_metric,
         )
 
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
@@ -307,15 +384,13 @@ class CBEG:
             self.samples_by_cluster, self.labels_by_cluster,
             min_mutual_info_percentage=self.min_mutual_info_percentage
         )
-        samples_by_cluster = self.features_module.select_features_by_cluster()
+        self.samples_by_cluster = self.features_module.select_features_by_cluster()
 
         if self.base_classifier_selection:
             if self.verbose:
                 print("Performing classifier selection...")
 
-            self.base_classifiers = self.select_base_classifiers(
-                self.samples_by_cluster, self.labels_by_cluster, classification_metrics
-            )
+            self.base_classifiers = self.select_base_classifiers( classification_metrics )
 
         else:
             # If no base classifier is selected the default is GaussianNB
@@ -343,6 +418,38 @@ def process_args_and_add_default_values(args) -> None:
         args.combination_strategy = "weighted_membership"
 
 
+def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:
+    """ Save training and test data.
+    """
+    folder_name_suffix = 'classifier_selection_' if args.base_classifier_selection else 'naive_bayes_'
+    folder_name_suffix = (
+            folder_name_suffix +
+            f'{args.n_clusters}_clusters_' +
+            f'{args.clustering_evaluation_metric}_' +
+            f'{args.combination_strategy}_fusion'
+        )
+    folder_name_prefix = os.path.join(
+            'results', args.dataset,
+            f'mutual_info_{args.min_mutual_info_percentage}', 'cbeg'
+        )
+    filename = f'run_{fold}.txt'
+
+    folder_training = os.path.join(folder_name_prefix, folder_name_suffix, 'training_summary')
+    
+    # Save the data: clusters, labels, selected features, etc
+    os.makedirs(folder_training, exist_ok=True)
+    cbeg.save_training_data(filename, folder_training)
+
+    print('Training data saved successfully.')
+
+    # TODO save test data
+    folder_test = os.path.join(folder_name_prefix, folder_name_suffix, 'test_summary')
+    os.makedirs(folder_test, exist_ok=True)
+    cbeg.save_test_data(prediction_results, filename, folder_test)
+    
+    print('Test data saved successfully.')
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -368,22 +475,24 @@ def main():
                     args.clustering_evaluation_metric, args.combination_strategy,
                     max_threads=7, verbose=True)
         cbeg.fit(X_train, y_train)
-        # Save the data: clusters, labels, selected features, etc
-        # self.save_training_data(filename, folder)
 
-        y_pred = cbeg.predict(X_val)
+        y_pred, voting_weights, y_pred_by_clusters = cbeg.predict(X_val)
+        prediction_results = PredictionResults(y_pred, voting_weights, y_pred_by_clusters, y_val)
 
         print("CBEG", classification_report(y_pred, y_val, zero_division=True))
-        # print("Métrica selecionada:", cbeg.cluster_module.evaluation_function)
-        # print("Classificadores base selecionados:", cbeg.base_classifiers)
+        print("Selected Base Classifiers:", cbeg.base_classifiers)
+        print("Selected clustering_algorithm:", cbeg.cluster_module.clustering_algorithm)
+
+        save_data(args, cbeg, prediction_results, fold)
 
 
 if __name__ == "__main__":
     main()
+
     """
     X, y = dataset_loader.read_heart_dataset()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_val = train_test_split(X, y, test_size=0.2)
 
     X_train, X_test = normalize_data(X_train, X_test)
 
@@ -393,7 +502,7 @@ if __name__ == "__main__":
 
     y_pred = cbeg.predict(X_test)
 
-    print("CBEG", classification_report(y_pred, y_test, zero_division=True))
+    print("CBEG", classification_report(y_pred, y_val, zero_division=True))
     print("Métrica selecionada:", cbeg.cluster_module.evaluation_function)
     print("Classificadores base selecionados:", cbeg.base_classifiers)
 
@@ -402,5 +511,5 @@ if __name__ == "__main__":
     y_pred = baseline.predict(X_test)
 
     name_baseline = "SVM"
-    print(name_baseline, classification_report(y_pred, y_test))
+    print(name_baseline, classification_report(y_pred, y_val))
     """

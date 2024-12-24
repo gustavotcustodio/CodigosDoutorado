@@ -8,10 +8,6 @@ from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
 
-# TODO opções para resolver o problema do FCM:
-    # - Diminuir para a quantidade de grupos encontrada realmente
-    # - pelo menos uma amostra em cada grupo. Usar o maior
-                        
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
@@ -26,9 +22,8 @@ class ClusteringModule:
     y: NDArray
     n_clusters: str | int = "compare"
     clustering_algorithm: str = "kmeans++"
-    evaluation_metric = "dbc_ss"  # Possible values: DBC, silhouette, DBC_ss
-    # This attribute weights each part of the metric when using DBC combined with the silhoutte score
-    weights_dbc_silhouette = (0.5, 0.5)
+    evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss
+    weights_dbc_silhouette = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
 
     def create_clusterer(self, algorithm: str, n_clusters: int
                          ) -> KMeans | SpectralClustering:
@@ -78,6 +73,7 @@ class ClusteringModule:
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
+        self.best_evaluation_value = evaluation_values[idx_best_clusterer]
 
         # TODO apagar
         # combinacao_teste = zip([cl for cl, _ in possible_clusterers], evaluation_values)

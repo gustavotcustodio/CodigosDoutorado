@@ -223,7 +223,7 @@ def select_dataset_function(dataset):
         read_function = read_iris_dataset
 
     else:
-        print("Erro ao selecionar dataset.")
+        print("Error: invalid dataset name.")
         sys.exit(1)
     return read_function
 
