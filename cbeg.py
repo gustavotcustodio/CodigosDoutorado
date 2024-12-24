@@ -50,6 +50,8 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
+                    'rf': RandomForestClassifier,
+                    'gb': GradientBoostingClassifier,
                     #'adaboost': AdaBoostClassifier,
                     }
 
