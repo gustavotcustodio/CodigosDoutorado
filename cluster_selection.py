@@ -75,13 +75,11 @@ class ClusteringModule:
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
         self.best_evaluation_value = evaluation_values[idx_best_clusterer]
 
-        # TODO apagar
         # combinacao_teste = zip([cl for cl, _ in possible_clusterers], evaluation_values)
         # print([(cl,valor) for cl, valor in combinacao_teste])
 
         # clusterer = possible_clusterers[idx_best_clusterer][1]
 
-        # TODO no fuzzy c means manda printar os clusters
         # print("===============================")
         # teste_c = clusterer.fit_predict(self.X)
         # print(np.unique(teste_c))
@@ -105,15 +103,18 @@ class ClusteringModule:
         # Select the clustering evaluation function
         self.evaluation_function = self.select_evaluation_function()
 
-        # If the number of clusters is None, select the optimal
-        # number of clusters and the best clsutering algorithm
+        # If the number of clusters is 'compare', select the optimal
+        # number of clusters and the best clustering algorithm
         if self.n_clusters == "compare":
             self.best_clusterer = self.compare_clusterers_and_select()
+
+            clusters = self.best_clusterer.fit_predict(self.X)
         else:
             self.best_clusterer = self.create_clusterer(
                 self.clustering_algorithm, self.n_clusters)
 
-        clusters = self.best_clusterer.fit_predict(self.X)
+            clusters = self.best_clusterer.fit_predict(self.X)
+            self.best_evaluation_value = self.evaluation_function(clusters, self.best_clusterer.n_clusters)
 
         # Change the number of clusters to the optimal number found
         self.n_clusters = int(self.best_clusterer.n_clusters)
@@ -138,7 +139,7 @@ class ClusteringModule:
         return samples_by_cluster, labels_by_cluster
 
     def get_silhoutte(self) -> Callable[[NDArray, int], float]:
-        def wrapper(clusters: NDArray[np.int32], n_clusters: Optional[int]) -> float:
+        def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
             return silhouette_score(self.X, clusters)
         return wrapper
 

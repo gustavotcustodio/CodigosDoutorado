@@ -23,11 +23,11 @@ from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
 
+# TODO consertar divisão por zero naive bayes
+
 # TODO opções para resolver o problema do FCM:
     # - Diminuir para a quantidade de grupos encontrada realmente
     # - pelo menos uma amostra em cada grupo. Usar o maior
-
-# TODO salvar score DBC etc.
 
 # TODO consolidar bases do Jesus
 
@@ -395,8 +395,13 @@ class CBEG:
             self.base_classifiers = self.select_base_classifiers( classification_metrics )
 
         else:
+            n_clusters = int(self.cluster_module.n_clusters)
+
             # If no base classifier is selected the default is GaussianNB
-            self.base_classifiers = [GaussianNB()] * int(self.cluster_module.n_clusters)
+            # If only a sample is present in cluster, the default is the DummyClassifier
+            self.base_classifiers = [GaussianNB() if len(self.samples_by_cluster[c]) > 1
+                                     else DummyClassifier(strategy="most_frequent")
+                                     for c in range(n_clusters) ]
 
         # Fit the data in each different cluster to the designated classifier.
         for c in range(self.cluster_module.n_clusters):
@@ -406,7 +411,7 @@ class CBEG:
 
 
 def process_args_and_add_default_values(args) -> None:
-    args.n_clusters = int(args.n_clusters) if args.n_clusters else 'compare'
+    args.n_clusters = int(args.n_clusters) if args.n_clusters and args.n_clusters != 'compare' else 'compare'
 
     if not args.min_mutual_info_percentage:
         args.min_mutual_info_percentage = 100.0
@@ -444,12 +449,12 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
 
     print('Training data saved successfully.')
 
-    # TODO save test data
     folder_test = os.path.join(folder_name_prefix, folder_name_suffix, 'test_summary')
     os.makedirs(folder_test, exist_ok=True)
     cbeg.save_test_data(prediction_results, filename, folder_test)
     
     print('Test data saved successfully.')
+    print(50 * '-',"\n")
 
 
 def main():
@@ -481,7 +486,7 @@ def main():
         y_pred, voting_weights, y_pred_by_clusters = cbeg.predict(X_val)
         prediction_results = PredictionResults(y_pred, voting_weights, y_pred_by_clusters, y_val)
 
-        print("CBEG", classification_report(y_pred, y_val, zero_division=True))
+        print("CBEG", classification_report(y_pred, y_val, zero_division=0.0))
         print("Selected Base Classifiers:", cbeg.base_classifiers)
         print("Selected clustering_algorithm:", cbeg.cluster_module.clustering_algorithm)
 

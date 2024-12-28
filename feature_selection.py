@@ -9,10 +9,12 @@ class FeatureSelectionModule:
     labels_by_cluster: dict[int, NDArray]
     min_mutual_info_percentage: float = 100.0
         
-    def get_attribs_by_mutual_info(self, X_cluster, y_cluster):
-        # Check
+    def get_attribs_by_mutual_info(self, X_cluster, y_cluster) -> NDArray:
+        n_features = X_cluster.shape[1]
+
+        # Check if there is no need to select attributes
         if self.min_mutual_info_percentage >= 100 or len(X_cluster) == 1:
-            return [i for i in range(X_cluster.shape[1])]
+            return np.arange(n_features)
 
         diff_y_values = np.diff(sorted(y_cluster)) == 0
 
@@ -20,12 +22,12 @@ class FeatureSelectionModule:
         if np.any(diff_y_values):
             mutual_info = mutual_info_classif(X_cluster, y_cluster)
         else:
-            return [i for i in range(X_cluster.shape[1])]
+            return np.arange(n_features)
 
         min_mutual_info = self.min_mutual_info_percentage / 100
 
         if np.all(mutual_info == 0):
-            return [i for i in range(X_cluster.shape[1])]
+            return np.arange(n_features)
 
         # Mutual info values normalized between 0 and 1. The sum is 1.
         normalized_mutual_info = mutual_info / np.sum(mutual_info)
