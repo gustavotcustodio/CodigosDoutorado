@@ -1,25 +1,27 @@
 #!/bin/bash
 
 DATASETS="australian_credit contraceptive german_credit heart iris pima wdbc wine"
-EVALUATION_METRIC="dbc silhouette dbc_ss"
+EVALUATION_METRIC="silhouette dbc dbc_ss"
 COMBINATION_METHODS="weighted_membership majority_voting"
-POSSIBLE_N_CLUSTERS="compare 2 3"
+POSSIBLE_N_CLUSTERS="2 3"
 
 for dataset in $DATASETS; do
 
     for mutual_info in 100 75 50; do
 
-        for n_clusters in $POSSIBLE_N_CLUSTERS; do
+        for combination_method in $COMBINATION_METHODS; do
 
             for eval_metric in $EVALUATION_METRIC; do
 
-                for combination_method in $COMBINATION_METHODS; do
+                python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b
+                python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method"
+            done
 
-                    time python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -e "$eval_metric" -c "$combination_method"
-                    time python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b
 
-                done
-
+            for n_clusters in $POSSIBLE_N_CLUSTERS; do
+                # Run only once for fixed number of clusters 
+                python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method"
+                python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method" -b
             done
 
         done

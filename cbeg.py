@@ -23,8 +23,6 @@ from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
 
-# TODO consertar divisão por zero naive bayes
-
 # TODO opções para resolver o problema do FCM:
     # - Diminuir para a quantidade de grupos encontrada realmente
     # - pelo menos uma amostra em cada grupo. Usar o maior
@@ -37,7 +35,6 @@ from collections import Counter
 
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
-#   Classificadores associados com cada grupo 
 
 N_FOLDS = 10
 
@@ -326,7 +323,7 @@ class CBEG:
             print(f"Base classifier: {self.base_classifiers[c]}", file=file_output)
             self.print_classification_report(y_pred_cluster, y_val, file_output, multiclass)
 
-        print(f"====== Average ======", file=file_output)
+        print(f"====== Total ======", file=file_output)
         self.print_classification_report(y_pred, y_val, file_output, multiclass)
 
         cluster_eval = self.cluster_module.best_evaluation_value # Cluster evalution values
@@ -429,12 +426,13 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
     """ Save training and test data.
     """
     folder_name_suffix = 'classifier_selection_' if args.base_classifier_selection else 'naive_bayes_'
-    folder_name_suffix = (
-            folder_name_suffix +
-            f'{args.n_clusters}_clusters_' +
-            f'{args.clustering_evaluation_metric}_' +
-            f'{args.combination_strategy}_fusion'
-        )
+    folder_name_suffix += f'{args.n_clusters}_clusters_'
+
+    if args.n_clusters == "compare":
+        folder_name_suffix += f'{args.clustering_evaluation_metric}_'
+
+    folder_name_suffix += f'{args.combination_strategy}_fusion'
+
     folder_name_prefix = os.path.join(
             'results', args.dataset,
             f'mutual_info_{args.min_mutual_info_percentage}', 'cbeg'

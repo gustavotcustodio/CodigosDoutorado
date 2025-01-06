@@ -1,0 +1,36 @@
+
+            \documentclass[12pt,a4paper]{standalone}
+            \usepackage{booktabs}
+            \usepackage{caption}
+
+            \begin{document}
+            \begin{tabular}{lllllll}
+                \toprule
+                \textbf{Method} & \textbf{Accuracy} & \textbf{Recall}  & \textbf{Precision} & \textbf{F1-Score} & \textbf{Clusters} & \textbf{Mutual Information} \\ \midrule
+
+                Naive Bayes 2 Clusters Silhouette Majority Voting Fusion & $0.333 \pm 0.0$ & $0.333 \pm 0.0$ & $1.0 \pm 0.0$ & $0.5 \pm 0.0$ & $2.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes 3 Clusters Silhouette Majority Voting Fusion & $0.647 \pm 0.099$ & $0.647 \pm 0.099$ & $0.909 \pm 0.045$ & $0.711 \pm 0.075$ & $3.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes Compare Clusters Silhouette Majority Voting Fusion & $0.56 \pm 0.127$ & $0.56 \pm 0.127$ & $0.939 \pm 0.098$ & $0.678 \pm 0.112$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes Compare Clusters Dbc Majority Voting Fusion & $0.56 \pm 0.127$ & $0.56 \pm 0.127$ & $0.939 \pm 0.098$ & $0.678 \pm 0.112$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes Compare Clusters Dbc Ss Majority Voting Fusion & $0.56 \pm 0.127$ & $0.56 \pm 0.127$ & $0.939 \pm 0.098$ & $0.678 \pm 0.112$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Silhouette Majority Voting Fusion & $0.533 \pm 0.137$ & $0.533 \pm 0.137$ & $0.917 \pm 0.132$ & $0.646 \pm 0.13$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Majority Voting Fusion & $0.54 \pm 0.141$ & $0.54 \pm 0.141$ & $0.929 \pm 0.134$ & $0.653 \pm 0.135$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Ss Majority Voting Fusion & $0.54 \pm 0.141$ & $0.54 \pm 0.141$ & $0.929 \pm 0.134$ & $0.653 \pm 0.135$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes 2 Clusters Silhouette Majority Voting Fusion & $0.333 \pm 0.0$ & $0.333 \pm 0.0$ & $1.0 \pm 0.0$ & $0.5 \pm 0.0$ & $2.0 \pm 0.0$ & $75.0$ \\ \midrule
+Naive Bayes 3 Clusters Silhouette Majority Voting Fusion & $0.647 \pm 0.099$ & $0.647 \pm 0.099$ & $0.909 \pm 0.045$ & $0.711 \pm 0.075$ & $3.0 \pm 0.0$ & $75.0$ \\ \midrule
+Naive Bayes 2 Clusters Silhouette Majority Voting Fusion & $0.333 \pm 0.0$ & $0.333 \pm 0.0$ & $1.0 \pm 0.0$ & $0.5 \pm 0.0$ & $2.0 \pm 0.0$ & $50.0$ \\ \midrule
+Naive Bayes 3 Clusters Silhouette Majority Voting Fusion & $0.667 \pm 0.103$ & $0.667 \pm 0.103$ & $0.915 \pm 0.043$ & $0.726 \pm 0.078$ & $3.0 \pm 0.0$ & $50.0$ \\ \midrule
+Naive Bayes 2 Clusters Silhouette Weighted Membership Fusion & $0.953 \pm 0.06$ & $0.953 \pm 0.06$ & $0.96 \pm 0.055$ & $0.954 \pm 0.059$ & $2.0 \pm 0.0$ & $100.0$ \\ \midrule
+Naive Bayes 3 Clusters Silhouette Weighted Membership Fusion & $0.947 \pm 0.083$ & $0.947 \pm 0.083$ & $0.955 \pm 0.079$ & $0.947 \pm 0.083$ & $3.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Ss Weighted Membership Fusion & $0.933 \pm 0.079$ & $0.933 \pm 0.079$ & $0.944 \pm 0.076$ & $0.934 \pm 0.078$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Weighted Membership Fusion & $0.933 \pm 0.079$ & $0.933 \pm 0.079$ & $0.944 \pm 0.076$ & $0.934 \pm 0.078$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Silhouette Weighted Membership Fusion & $0.933 \pm 0.079$ & $0.933 \pm 0.079$ & $0.944 \pm 0.076$ & $0.934 \pm 0.078$ & $4.0 \pm 0.0$ & $100.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Ss Weighted Membership Fusion & $0.96 \pm 0.044$ & $0.96 \pm 0.044$ & $0.971 \pm 0.03$ & $0.961 \pm 0.043$ & $4.0 \pm 0.0$ & $75.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Weighted Membership Fusion & $0.953 \pm 0.052$ & $0.953 \pm 0.052$ & $0.968 \pm 0.033$ & $0.955 \pm 0.05$ & $4.0 \pm 0.0$ & $75.0$ \\ \midrule
+Classifier Selection Compare Clusters Silhouette Weighted Membership Fusion & $0.953 \pm 0.052$ & $0.953 \pm 0.052$ & $0.968 \pm 0.033$ & $0.955 \pm 0.05$ & $4.0 \pm 0.0$ & $75.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Ss Weighted Membership Fusion & $0.953 \pm 0.079$ & $0.953 \pm 0.079$ & $0.957 \pm 0.078$ & $0.954 \pm 0.079$ & $4.0 \pm 0.0$ & $50.0$ \\ \midrule
+Classifier Selection Compare Clusters Dbc Weighted Membership Fusion & $0.947 \pm 0.078$ & $0.947 \pm 0.078$ & $0.952 \pm 0.077$ & $0.947 \pm 0.078$ & $4.0 \pm 0.0$ & $50.0$ \\ \midrule
+Classifier Selection Compare Clusters Silhouette Weighted Membership Fusion & $0.953 \pm 0.079$ & $0.953 \pm 0.079$ & $0.957 \pm 0.078$ & $0.954 \pm 0.079$ & $4.0 \pm 0.0$ & $50.0$ \\ \midrule
+
+            \end{tabular}
+            \end{document}
