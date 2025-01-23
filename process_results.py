@@ -2,17 +2,16 @@ import os
 import re
 import pandas as pd
 import numpy as np
-from sklearn.metrics import confusion_matrix#, plot_confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay#, plot_confusion_matrix
 from cbeg import N_FOLDS
 from dataclasses import dataclass
+import matplotlib.pyplot as plt
 
 # results/iris/mutual_info_100.0/cbeg/naive_bayes_2_clusters_dbc_weighted_membership_fusion/test_summary/run_1.txt
 
 BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}"
 
 CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
-
-# TODO criar a matriz de confusão por label e a matriz de confusão total
 
 class ResultsRow:
 
@@ -176,24 +175,42 @@ def get_labels_and_predictions(text_file: str) -> tuple[list[int], list[int]]:
     return predicted_labels, true_labels
 
 
-def create_cofusion_matrices(text_file_folds: list[str]):
+def save_confusion_matrix(y_true, y_pred, filename, show=False):
+    # Save the confusion matrix for the fold
+    cm = confusion_matrix(y_true, y_pred)
+    cm_disp = ConfusionMatrixDisplay(
+        confusion_matrix=cm, display_labels=np.unique(y_true)
+    )
+
+    cm_disp.plot(cmap=plt.cm.Blues)
+    if show:
+        plt.show()
+
+    plt.savefig(filename)
+    plt.clf()
+    print(filename, "salvo com sucesso.")
+
+
+def create_confusion_matrices(text_file_folds: list[str], experiment_result_folder: str):
+    # Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.5 0.5]
 
     all_folds_ypred = []
     all_folds_ytrue = []
 
     # Create a confusion matrix for each fold and a general one
-    for text_file in text_file_folds:
-        y_pred, y_true = get_labels_and_predictions(text_file)
+    for fold, text_file in enumerate(text_file_folds):
+        y_pred_fold, y_true_fold = get_labels_and_predictions(text_file)
 
-        all_folds_ypred += y_pred
-        all_folds_ytrue += y_true
+        all_folds_ypred += y_pred_fold
+        all_folds_ytrue += y_true_fold
 
-        # Save the confusion matrix for the fold
-
-        confusion_matrix(y_true, y_pred)
+        filename = os.path.join(experiment_result_folder, f"cm_fold_{fold+1}.png")
+        save_confusion_matrix(y_true_fold, y_pred_fold, filename)
     
+    # TODO mudar para plotar e salvar e colocar um mapa de cores melhor
     # Save the general confusion matrix
-    confusion_matrix(all_folds_ytrue, all_folds_ypred)
+    filename = os.path.join(experiment_result_folder, "cm_all_folds.png")
+    save_confusion_matrix(all_folds_ytrue, all_folds_ypred, filename)
     
 
 def generate_row_results(text_file_folds: list[str], experiment_variation: int,
@@ -272,7 +289,6 @@ def main():
                 algorithm=algorithm,
                 experiment_folder=experiment_folder,
             ) 
-            os.makedirs(f"{experiment_result_folder}/confusion_matrix", exist_ok=True)  # Confusion matrix folder
 
             text_file_folds = read_files_test_results(experiment_result_folder)
 
@@ -283,7 +299,8 @@ def main():
 
             print(row_table)
 
-            create_cofusion_matrices(text_file_folds)
+            os.makedirs(f"{experiment_result_folder}/confusion_matrix", exist_ok=True)  # Confusion matrix folder
+            create_confusion_matrices(text_file_folds, f"{experiment_result_folder}/confusion_matrix")
 
         results_folder = f"./results/{dataset}"
         # TODO create results table here
