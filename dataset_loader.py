@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import pandas as pd
+from scipy.sparse import data
 from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import StratifiedKFold
@@ -188,44 +189,28 @@ def read_vehicle_dataset():
     return X, y
 
 
+DATASETS_INFO = {
+    "wine": {"function": read_wine_dataset, "nlabels": 3},
+    "german_credit": {"function": read_german_credit_dataset, "nlabels": 2},
+    "wdbc": {"function": read_wdbc_dataset, "nlabels": 2},
+    "water": {"function": read_potability_dataset, "nlabels": 2},
+    "contraceptive": {"function": read_contraceptive_dataset, "nlabels": 3},
+    "hepatitis": {"function": read_hepatitis_dataset, "nlabels": 2},
+    "vehicle": {"function": read_vehicle_dataset, "nlabels": 3},
+    "australian_credit": {"function": read_australian_credit_dataset, "nlabels": 2},
+    "pima": {"function": read_pima_dataset, "nlabels": 2},
+    "heart": {"function": read_heart_dataset, "nlabels": 2},
+    "iris": {"function": read_iris_dataset, "nlabels": 3},
+}
+
+
 def select_dataset_function(dataset):
-    if dataset == "wine":
-        read_function = read_wine_dataset
-
-    elif dataset == "german_credit":
-        read_function = read_german_credit_dataset
-
-    elif dataset == "wdbc":
-        read_function = read_wdbc_dataset
-
-    elif dataset == "water":
-        read_function = read_potability_dataset
-
-    elif dataset == "contraceptive":
-        read_function = read_contraceptive_dataset
-
-    elif dataset == "hepatitis":
-        read_function = read_hepatitis_dataset
-
-    elif dataset == "vehicle":
-        read_function = read_vehicle_dataset
-
-    elif dataset == "australian_credit":
-        read_function = read_australian_credit_dataset
-
-    elif dataset == "pima":
-        read_function = read_pima_dataset
-
-    elif dataset == "heart":
-        read_function = read_heart_dataset
-
-    elif dataset == "iris":
-        read_function = read_iris_dataset
-
+    if dataset in DATASETS_INFO:
+        return DATASETS_INFO[dataset]["function"]
     else:
         print("Error: invalid dataset name.")
         sys.exit(1)
-    return read_function
+
 
 def normalize_data(X_train, X_test):
     min_max_scaler = MinMaxScaler()
