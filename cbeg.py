@@ -4,14 +4,13 @@ import argparse
 import numpy as np
 import threading
 import dataset_loader
-from sklearn import naive_bayes
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
 from typing import Mapping
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, f1_score
-from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
+from sklearn.metrics import classification_report
+from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -396,7 +395,7 @@ class CBEG:
 
             # If no base classifier is selected the default is GaussianNB
             # If only a sample is present in cluster, the default is the DummyClassifier
-            self.base_classifiers = [GaussianNB() if len(self.samples_by_cluster[c]) > 1
+            self.base_classifiers = [create_classifier(DEFAULT_CLASSIFIER) if len(self.samples_by_cluster[c]) > 1
                                      else DummyClassifier(strategy="most_frequent")
                                      for c in range(n_clusters) ]
 
@@ -404,6 +403,7 @@ class CBEG:
         for c in range(self.cluster_module.n_clusters):
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
+            # TODO o problema está aqui, colocar todas as instâncias melhorou bastante o resultado
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
 

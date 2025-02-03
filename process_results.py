@@ -292,7 +292,7 @@ class ClassificationResultsTable:
 
         print(f"{csv_filename} saved successfully.")
 
-    def valid_ablation(self, experiment_params: str, cluster_selection_type: str) -> bool:
+    def experiment_is_part_of_ablation(self, experiment_params: str, cluster_selection_type: str) -> bool:
         # get the correct number of labels
         n_labels = int(DATASETS_INFO[self.dataset]["nlabels"])
 
@@ -309,28 +309,42 @@ class ClassificationResultsTable:
     def create_heatmap_ablation_study(self):
         """ Save the confusion matrix for the ablation study.
         """
-        cluster_selection_type = "dbc"
+        cluster_selection_variations = ["dbc", "dbc_ss", "silhouette"]
 
-        valid_ablation_rows = [
-            row for row in self.rows_table
-            if self.valid_ablation(row.experiment_params, cluster_selection_type)
-        ]
+        for cluster_selection_metric in cluster_selection_variations:
 
-        data = np.vstack((
-            [row.mean_accuracy for row in valid_ablation_rows],
-            [row.mean_recall for row in valid_ablation_rows],
-            [row.mean_precision for row in valid_ablation_rows],
-            [row.mean_f1 for row in valid_ablation_rows],
-        )).T
+            heatmaps_folder = f"{self.folder_experiments}/ablation_results"
+            os.makedirs(heatmaps_folder, exist_ok=True)
+            filename = os.path.join(heatmaps_folder, f"heatmap_ablation_{cluster_selection_metric}.png")
 
-        indexes = [row.experiment_variation for row in valid_ablation_rows]
+            valid_ablation_rows = [
+                row for row in self.rows_table
+                if self.experiment_is_part_of_ablation(row.experiment_params, cluster_selection_metric)
+            ]
+            # Shows the experiment variation and the percentage of mutual information
+            present_info = lambda r: f"{r.experiment_variation} ({r.mutual_info_percentage} %)" \
+                    if r.mutual_info_percentage < 100 else r.experiment_variation
 
-        sns.heatmap(data, annot=True, cmap='Blues',
-                    xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes)
+            data = np.vstack((
+                [row.mean_accuracy for row in valid_ablation_rows],
+                [row.mean_recall for row in valid_ablation_rows],
+                [row.mean_precision for row in valid_ablation_rows],
+                [row.mean_f1 for row in valid_ablation_rows],
+            )).T
+            
+            indexes = [present_info(row) for row in valid_ablation_rows]
 
-        plt.tight_layout()
-        plt.show()
-        # Get the 
+            sns.heatmap(data, annot=True, cmap='Blues',
+                        xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes)
+
+            plt.xlabel("Classification Metric", fontdict={'weight': 'bold'})
+            plt.ylabel("Experiment variation", fontdict={'weight': 'bold'})
+            # Save the heat map
+            plt.tight_layout()
+            plt.savefig(filename)
+            plt.clf()
+            plt.close()
+            print(filename, "salvo com sucesso.")
 
 
 def get_all_classification_metrics(text_file: str) -> dict[str, list[float]]:
