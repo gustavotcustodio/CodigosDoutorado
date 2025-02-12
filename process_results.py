@@ -8,6 +8,10 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay#, plot_conf
 from cbeg import N_FOLDS
 from dataclasses import dataclass
 from dataset_loader import DATASETS_INFO
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 # results/iris/mutual_info_100.0/cbeg/naive_bayes_2_clusters_dbc_weighted_membership_fusion/test_summary/run_1.txt
 
@@ -15,7 +19,11 @@ BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algo
 
 CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
 
-class FoldData:
+BASE_CLASSIFIERS = ['nb', 'svm', 'lr', 'dt', 'rf', 'gb', 'xb']
+
+RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
+
+class CbegFoldData:
     def __init__(self, content_fold_training: str, content_fold_test: str,
                  experiment_folder: str, fold: int
                  ):
@@ -113,7 +121,7 @@ class FoldData:
         return f"y_pred: {self.y_pred}\n"
 
 
-class ExperimentData:
+class CbegExperimentData:
 
     def __init__(self, content_file_folds_training: list[str],
                  content_file_folds_test: list[str], experiment_folder: str
@@ -134,7 +142,7 @@ class ExperimentData:
             content_fold_test = content_file_folds_test[fold]
 
             self.experiments_folds.append(
-                FoldData(content_fold_training, content_fold_test, experiment_folder, fold+1)
+                CbegFoldData(content_fold_training, content_fold_test, experiment_folder, fold+1)
             )
 
     def get_labels_and_predictions_folds(self) -> tuple[list[int], list[int]]:
@@ -195,8 +203,10 @@ class ClassificationRow:
                                  for fold in range(N_FOLDS)]
         self.f1_values = [self.classification_results_fold[fold]["F1"][-1]
                           for fold in range(N_FOLDS)]
-        self.n_clusters = [self.classification_results_fold[fold]["Number clusters"]
-                          for fold in range(N_FOLDS)]
+
+        if "Number clusters" in self.classification_results_fold[1]:
+            self.n_clusters = [self.classification_results_fold[fold]["Number clusters"]
+                              for fold in range(N_FOLDS)]
 
     def calc_mean_and_std_deviation(self):
         self.get_classification_values()
@@ -205,13 +215,15 @@ class ClassificationRow:
         self.mean_recall = round(np.mean(self.recall_values), 3)
         self.mean_precision = round(np.mean(self.precision_values), 3)
         self.mean_f1 = round(np.mean(self.f1_values), 3)
-        self.mean_n_clusters = round(np.mean(self.n_clusters), 3)
 
         self.std_accuracy = round(np.std(self.accuracy_values), 3)
         self.std_recall = round(np.std(self.recall_values), 3)
         self.std_precision = round(np.std(self.precision_values), 3)
         self.std_f1 = round(np.std(self.f1_values), 3)
-        self.std_n_clusters = round(np.std(self.n_clusters), 3)
+
+        if hasattr(self, 'n_clusters'):
+            self.mean_n_clusters = round(np.mean(self.n_clusters), 3)
+            self.std_n_clusters = round(np.std(self.n_clusters), 3)
 
     def row_to_latex(self):
         return (f"{self.experiment_params.replace("_", " ").title()}" +
@@ -224,13 +236,19 @@ class ClassificationRow:
                 )
 
     def __str__(self):
-        return f"""
+        classification_row = f"""
             Accuracy: {self.mean_accuracy} +- {self.std_accuracy}
             Recall: {self.mean_recall} +- {self.std_recall}
             Precision: {self.mean_precision} +- {self.std_precision}
             F1 Score: {self.mean_f1} +- {self.std_f1}
-            Number clusters: {self.mean_n_clusters} +- {self.std_n_clusters}
         """
+
+        if hasattr(self, 'mean_n_clusters'):
+            classification_row += f"""
+            Number clusters: {self.mean_n_clusters} +- {self.std_n_clusters}"""
+
+        return classification_row
+
 
 @dataclass
 class ClassificationResultsTable:
@@ -281,13 +299,17 @@ class ClassificationResultsTable:
         table_results["Recall"] = [f"{row.mean_recall} +- {row.std_recall}" for row in self.rows_table]
         table_results["Precision"] = [f"{row.mean_precision} +- {row.std_precision}" for row in self.rows_table]
         table_results["F1"] = [f"{row.mean_f1} +- {row.std_f1}" for row in self.rows_table]
-        table_results["Clusters"] = [f"{row.mean_n_clusters} +- {row.std_n_clusters}" for row in self.rows_table]
+
+        if hasattr(self.rows_table[0], "mean_n_clusters"):
+            table_results["Clusters"] = [f"{row.mean_n_clusters} +- {row.std_n_clusters}" for row in self.rows_table]
+            csv_filename = f"{csv_folder}/{RESULTS_FILENAMES['cbeg']}"
+        else:
+            table_results["Clusters"] = [f"-" for _ in self.rows_table]
+            csv_filename = f"{csv_folder}/{RESULTS_FILENAMES['baseline']}"
+
         table_results["Mutual information"] = [f"{row.mutual_info_percentage}" for row in self.rows_table]
 
-        csv_filename = f"{csv_folder}/results.csv"
-
         df_results = pd.DataFrame.from_dict(table_results)
-
         df_results.to_csv(csv_filename, index=False)
 
         print(f"{csv_filename} saved successfully.")
@@ -359,10 +381,11 @@ def get_all_classification_metrics(text_file: str) -> dict[str, list[float]]:
         # Average value of the metric
         # dict_classification_metrics[f"Total {metric}"] = float(found_metric_patterns[-1].split(": ")[1])
 
-    pattern_n_clusters = re.findall(r"Cluster [0-9]", text_file)[-1]
-    n_clusters = int(pattern_n_clusters.split(" ")[1]) + 1
+    if "Cluster" in text_file:
+        pattern_n_clusters = re.findall(r"Cluster [0-9]", text_file)[-1]
+        n_clusters = int(pattern_n_clusters.split(" ")[1]) + 1
 
-    dict_classification_results["Number clusters"] = n_clusters
+        dict_classification_results["Number clusters"] = n_clusters
 
     return dict_classification_results
 
@@ -403,7 +426,7 @@ def save_confusion_matrix(y_true, y_pred, filename, show=False):
     print(filename, "salvo com sucesso.")
 
 
-def create_confusion_matrices(experiments_results: ExperimentData) -> None:
+def create_confusion_matrices(experiments_results: CbegExperimentData) -> None:
     # Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.5 0.5]
     cm_folder = os.path.join(experiments_results.experiment_folder, "confusion_matrix")
     os.makedirs(cm_folder, exist_ok=True)  # Confusion matrix folder
@@ -444,8 +467,9 @@ def generate_row_results(text_file_folds: list[str], experiment_variation: int,
 
     list_classification_results = [get_all_classification_metrics(text_file)
                                    for text_file in text_file_folds]
-    return ClassificationRow(experiment_variation, experiment_params,
-                      mutual_info_percentage, list_classification_results)
+    return ClassificationRow(
+        experiment_variation, experiment_params, mutual_info_percentage, list_classification_results
+    )
 
 
 def read_files_results(experiment_result_folder: str, stage: str = "test") -> list[str]:
@@ -462,11 +486,92 @@ def read_files_results(experiment_result_folder: str, stage: str = "test") -> li
     return text_file_folds
 
 
+def compile_results(algorithm, datasets, experiments_parameters, ablation=False, latex=False):
+    for dataset in datasets:
+
+        rows_table_results = []
+
+        print(f"\n========== {dataset} dataset ==========\n".title())
+
+        for parameters in experiments_parameters:
+            mutual_info_percentage = parameters["mutual_info"]
+            experiment_folder = parameters["folder"]
+            experiment_variation = parameters["variation"]
+
+            print(f"Analyzing experiment mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}...")
+
+            # Create the folders for saving the output of experiments
+            experiment_result_folder = BASE_PATH_FOLDER.format(
+                dataset=dataset,
+                mutual_info_percentage=mutual_info_percentage,
+                algorithm=algorithm,
+                experiment_folder=experiment_folder,
+            ) 
+
+            content_file_folds_test = read_files_results(experiment_result_folder, "test")
+            # content_file_folds_training = read_files_results(experiment_result_folder, "training")
+
+            #experiment_data = CbegExperimentData(
+            #    content_file_folds_training, content_file_folds_test, experiment_result_folder
+            #)
+            #
+            # create_confusion_matrices(experiment_data)
+
+            row_table = generate_row_results(
+                content_file_folds_test, experiment_variation, experiment_folder, mutual_info_percentage
+            )
+            rows_table_results.append( row_table )
+
+            print(row_table)
+
+            # Plot clusters, labels and base classifiers in a catplot
+        results_folder = f"./results/{dataset}"
+        results_table = ClassificationResultsTable(rows_table_results, results_folder, dataset)
+
+        results_table.save_results_table_in_csv()
+        if ablation:
+            results_table.create_heatmap_ablation_study()
+        if latex:
+            results_table.save_results_table_in_latex()
+
+def combine_best_cbeg_baselines(dataset: str):
+    combination_results = []
+
+    folder_results = f"results/{dataset}/table_csv"
+    output_path = f"{folder_results}/combination_results.csv" 
+
+    for algorithm, filename in RESULTS_FILENAMES.items():
+        input_files_path = f"{folder_results}/{filename}"
+
+        df_results = pd.read_csv(input_files_path)
+
+        if algorithm == "cbeg":
+            max_accuracy = df_results["Accuracy"].max()
+            idx_best = np.where(max_accuracy == df_results["Accuracy"])
+
+            combination_results.append(df_results.iloc[idx_best])
+        else:
+            combination_results.append(df_results)             
+
+    df_combination = pd.concat(combination_results)
+    df_combination.to_csv(output_path, index=False)
+    print(f"{output_path} saved successfully.")
+
 def main():
 
     datasets = ["australian_credit", "contraceptive", "german_credit", "heart", "iris", "pima", "wdbc", "wine"]
 
-    experiments_parameters = [
+    baseline_experiments_parameters = []
+
+    for clf in BASE_CLASSIFIERS:
+        for mutual_info in [100.0, 75.0, 50.0]:
+            baseline_experiments_parameters.append(
+                {"mutual_info": mutual_info, "folder": clf, "variation": 0},
+            )
+        
+        # compile_results("baselines", datasets, baseline_experiments_parameters)
+
+    cbeg_experiments_parameters = [
         {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_silhouette_majority_voting_fusion", "variation": 0},
         {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_silhouette_majority_voting_fusion", "variation": 0},
         {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_silhouette_majority_voting_fusion", "variation": 1},
@@ -491,62 +596,10 @@ def main():
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
     ]
-
-    algorithm = "cbeg"
-
+    # compile_results("cbeg", datasets, cbeg_experiments_parameters, ablation=True, latex=True)
+    
     for dataset in datasets:
-
-        rows_table_results = []
-
-        print(f"\n========== {dataset} dataset ==========\n".title())
-
-        for parameters in experiments_parameters:
-            mutual_info_percentage = parameters["mutual_info"]
-            experiment_folder = parameters["folder"]
-            experiment_variation = parameters["variation"]
-
-            print(f"Analyzing experiment mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}...")
-
-            # Create the folders for saving the output of experiments
-            experiment_result_folder = BASE_PATH_FOLDER.format(
-                dataset=dataset,
-                mutual_info_percentage=mutual_info_percentage,
-                algorithm=algorithm,
-                experiment_folder=experiment_folder,
-            ) 
-
-            content_file_folds_test = read_files_results(experiment_result_folder, "test")
-            content_file_folds_training = read_files_results(experiment_result_folder, "training")
-
-            #experiment_data = ExperimentData(
-            #    content_file_folds_training, content_file_folds_test, experiment_result_folder
-            #)
-            #
-            # create_confusion_matrices(experiment_data)
-
-            row_table = generate_row_results(
-                content_file_folds_test, experiment_variation, experiment_folder, mutual_info_percentage
-            )
-            rows_table_results.append( row_table )
-
-            print(row_table)
-
-            # Plot clusters, labels and base classifiers in a catplot
-        results_folder = f"./results/{dataset}"
-        # TODO create results table here
-        results_table = ClassificationResultsTable(rows_table_results, results_folder, dataset)
-
-        results_table.create_heatmap_ablation_study()
-        results_table.save_results_table_in_latex()
-        results_table.save_results_table_in_csv()
-
+        combine_best_cbeg_baselines(dataset)
 
 if __name__ == "__main__":
     main()
-
-"""
-Cada linha
-
-     
-----------------------
-"""

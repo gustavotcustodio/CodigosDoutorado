@@ -22,6 +22,8 @@ from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
 
+# TODO ponderar pela quantidade de amostras vistas no treinamento (plotar um gráfico disos também)
+
 # TODO opções para resolver o problema do FCM:
     # - Diminuir para a quantidade de grupos encontrada realmente
     # - pelo menos uma amostra em cada grupo. Usar o maior
@@ -77,7 +79,7 @@ class CBEG:
     base_classifier_selection: bool = True
     min_mutual_info_percentage: float  = 100.0
     clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
-    weights_dbc_silhouette = (0.5, 0.5)
+    weights_dbc_silhouette = (0.5, 0.5) # ver isso depois TODO
     combination_strategy: str = "weighted_membership"
     max_threads: int = 4
     verbose: bool = False

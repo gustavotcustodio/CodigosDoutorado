@@ -1,3 +1,5 @@
+import os
+import numpy as np
 import argparse
 from sklearn.base import BaseEstimator
 from sklearn.metrics import classification_report
@@ -13,16 +15,48 @@ from sklearn.tree import DecisionTreeClassifier
 from feature_selection import FeatureSelectionModule
 
 N_FOLDS = 10
+RESULTS_FOLDER = "results"
 
 CLASSIFIERS = {'nb': GaussianNB,
                'svm': SVC,
                'lr': LogisticRegression,
+               'knn5': KNeighborsClassifier,
+               'knn7': KNeighborsClassifier,
                'dt': DecisionTreeClassifier,
                'rf': RandomForestClassifier,
                'gb': GradientBoostingClassifier,
                'xb': XGBClassifier,
                #'adaboost': AdaBoostClassifier,
                }
+
+def save_results_fold(y_pred, y_true, args, fold):
+    """ Save the results """
+    
+    n_labels = np.unique(y_true).shape[0]
+    multiclass = n_labels > 2
+
+    folder_name = os.path.join(
+        RESULTS_FOLDER, args.dataset, f'mutual_info_{args.min_mutual_info_percentage}',
+        "baselines", args.classifier, "test_summary"
+    )
+    os.makedirs(folder_name, exist_ok=True)
+
+    fullpath = os.path.join(folder_name, f"run_{fold}.txt")
+    file_output = open(fullpath, "w")
+
+    # If it is a multiclass problem, we use the weighted avg. to calculate metrics.
+    avg_type = "weighted avg" if multiclass else "1"
+
+    clf_report = classification_report(y_pred, y_true, output_dict=True, zero_division=0.0)
+    print(f"Accuracy: {clf_report['accuracy']}", file = file_output)
+    print(f"Recall: {clf_report[avg_type]['recall']}", file = file_output)
+    print(f"Precision: {clf_report[avg_type]['precision']}", file = file_output)
+    print(f"F1: {clf_report[avg_type]['f1-score']}\n", file = file_output)
+
+    file_output.close()
+
+    print(fullpath, "saved successfully.")
+
 
 def select_classifier(name_classifier: str) -> "Classifier":
     base_classifier = CLASSIFIERS[name_classifier]()
@@ -73,9 +107,9 @@ def main():
         y_pred = clf.predict(X_val)
         # prediction_results = PredictionResults(y_pred, voting_weights, y_pred_by_clusters, y_val)
 
-        print(f"{args.classifier.capitalize()}", classification_report(y_pred, y_val, zero_division=0.0))
+        # print(f"{args.classifier.capitalize()}", classification_report(y_pred, y_val, zero_division=0.0))
 
-        # save_data(args, cbeg, prediction_results, fold)
+        save_results_fold(y_pred, y_val, args, fold)
 
 
 if __name__ == "__main__":
