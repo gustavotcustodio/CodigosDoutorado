@@ -495,28 +495,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    """
-    X, y = dataset_loader.read_heart_dataset()
-
-    X_train, X_test, y_train, y_val = train_test_split(X, y, test_size=0.2)
-
-    X_train, X_test = normalize_data(X_train, X_test)
-
-    cbeg = CBEG(verbose=True, max_threads=7, min_mutual_info_percentage=100,
-                clustering_evaluation_metric='DBC')
-    cbeg.fit(X_train, y_train)
-
-    y_pred = cbeg.predict(X_test)
-
-    print("CBEG", classification_report(y_pred, y_val, zero_division=True))
-    print("Métrica selecionada:", cbeg.cluster_module.evaluation_function)
-    print("Classificadores base selecionados:", cbeg.base_classifiers)
-
-    baseline = RandomForestClassifier()
-    baseline.fit(X_train, y_train)
-    y_pred = baseline.predict(X_test)
-
-    name_baseline = "SVM"
-    print(name_baseline, classification_report(y_pred, y_val))
-    """

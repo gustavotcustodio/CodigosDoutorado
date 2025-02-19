@@ -13,6 +13,7 @@ from dataset_loader import normalize_data
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from feature_selection import FeatureSelectionModule
+from sklearn.dummy import DummyClassifier
 
 N_FOLDS = 10
 RESULTS_FOLDER = "results"
@@ -107,7 +108,7 @@ def main():
         y_pred = clf.predict(X_val)
         # prediction_results = PredictionResults(y_pred, voting_weights, y_pred_by_clusters, y_val)
 
-        # print(f"{args.classifier.capitalize()}", classification_report(y_pred, y_val, zero_division=0.0))
+        print(f"{args.classifier.capitalize()}", classification_report(y_pred, y_val, zero_division=0.0))
 
         save_results_fold(y_pred, y_val, args, fold)
 

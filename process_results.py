@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import Counter
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay#, plot_confusion_matrix
 from cbeg import N_FOLDS
 from dataclasses import dataclass
@@ -23,178 +24,78 @@ BASE_CLASSIFIERS = ['nb', 'svm', 'lr', 'dt', 'rf', 'gb', 'xb']
 
 RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
-class CbegFoldData:
-    def __init__(self, content_fold_training: str, content_fold_test: str,
-                 experiment_folder: str, fold: int
-                 ):
-        self.content_fold_test = content_fold_test
-        self.content_fold_training = content_fold_training
-        self.experiment_folder = experiment_folder
-        self.fold = fold
-        self.y_true, self.y_pred = [], []
 
-        self.n_clusters = self.get_n_clusters()
-        self.labels_by_cluster = self.get_labels_by_cluster_training()
-        self.base_classifiers_by_cluster = self.get_base_classifiers_by_cluster()
-        # self.plot_clusters_and_labels(fold)
+class TrainingInformation:
+    def __init__(self, text_training_result):
+        self.text_training_result = text_training_result
+        self.labels_by_cluster = self._get_labels_by_cluster()
 
-    def get_n_clusters(self) -> int:
-        clusters_pattern = re.findall(r"Cluster [0-9]", self.content_fold_test)[-1]
-
-        n_clusters = int(clusters_pattern.split(" ")[1]) + 1
-         
-        return n_clusters
-
-    def get_labels_by_cluster_training(self) -> dict[int, list[int]]:
+    def _get_labels_by_cluster(self) -> dict[int, list[int]]:
         # Labels: [0 0 0  0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0
         #  0 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0]
-        found_strings = re.findall(r"Labels:\s\[[0-9\s\n]+\]", self.content_fold_training)
+        found_strings = re.findall(r"Labels:\s\[[0-9\s\n]+\]", self.text_training_result)
         labels_by_clusters = {}
 
-        for c in range(self.n_clusters):
+        n_clusters = len(found_strings)
+
+        for c in range(n_clusters):
             str_labels = found_strings[c].replace("Labels: [", "").replace("]", "")
             labels = re.split(r"[\n\s]+", str_labels)
             labels_by_clusters[c] = [int(lbl) for lbl in labels]
         return labels_by_clusters            
 
-    def get_base_classifiers_by_cluster(self) -> dict[int, str]:
-        found_strings = re.findall(r"Base classifier:\s.+\n", self.content_fold_training)
 
-        base_classifiers_by_cluster = {}
-        for c in range(self.n_clusters):
-            base_classifiers_by_cluster[c] = found_strings[c].split(": ")[1].strip()
+class ClustersClassificationResults:
 
-        return base_classifiers_by_cluster
+    def __init__(self, classification_by_cluster: dict[str, list[float]]):
+        # cluster number starts at zero
+        self.n_clusters = len(classification_by_cluster["Accuracy"])
+        self.extract_classification_results_by_cluster(classification_by_cluster)
 
-    def plot_clusters_and_labels(self, fold: int) -> None:
-        clusters = [] 
-        labels = []
-        base_classifiers = []
+    def extract_classification_results_by_cluster(self, classification_by_cluster):
+        # Extract information from 
+        self._classification_results = []
 
-        os.makedirs(f"{self.experiment_folder}/catplot", exist_ok=True)
+        for cluster in range(self.n_clusters):
+            self._classification_results.append( {} )
 
-        for c in range(self.n_clusters):
+            for metric in CLASSIFICATION_METRICS:
+                self._classification_results[cluster][metric] = classification_by_cluster[metric][cluster]
 
-            clusters += [c+1] * len(self.labels_by_cluster[c])
-            labels += self.labels_by_cluster[c] 
-            base_classifiers += [self.base_classifiers_by_cluster[c]] * len(self.labels_by_cluster[c])
-        
-        data_clusters_labels = {
-            "Cluster": np.array(clusters, dtype="str"),
-            "Label": labels,
-            "Base Classifier": base_classifiers,
-        }
-        # Variáveis hue=label y=cluster, x=base classifier
-        df_clusters_labels = pd.DataFrame(data_clusters_labels) 
-        fig_catplot = sns.catplot(data=df_clusters_labels, x="Base Classifier", y="Cluster",
-                                  hue="Label", kind="swarm", s=20)
-
-        fig_catplot.figure.savefig(f"{self.experiment_folder}/catplot/catplot_{fold}.png")
-
-    def get_labels_and_predictions(self) -> tuple[list[int], list[int]]:
-        # Extract the true labels and predicted labels
-
-        if self.y_true and self.y_pred:
-            return self.y_pred, self.y_true
-
-        pattern_prediction = r"Prediction: [0-9], Real label: [0-9]"
-
-        predicted_labels = []
-        true_labels = []
-        
-        label_prediction_patterns = re.findall(pattern_prediction, self.content_fold_test)
-
-        for found_predictions in label_prediction_patterns:
-            predicted_label_str, true_label_str = found_predictions.split(", ")
-            y_pred = int(predicted_label_str.split(": ")[1])
-            y_true = int(true_label_str.split(": ")[1])
-
-            predicted_labels.append(y_pred)
-            true_labels.append(y_true)
-
-        self.y_pred = predicted_labels
-        self.y_true = true_labels
-
-        return self.y_pred, self.y_true
+    def __getitem__(self, cluster: int):
+        return self._classification_results[cluster]
 
     def __str__(self):
-        return f"y_pred: {self.y_pred}\n"
+        metrics_info = ""
+
+        for cluster in range(self.n_clusters):
+            metrics_info += f"""
+            Cluster {cluster+1}:
+                Accuracy: {self._classification_results[cluster]['Accuracy']}
+                Recall: {self._classification_results[cluster]['Recall']}
+                Precision: {self._classification_results[cluster]['Precision']}
+                F1 Score: {self._classification_results[cluster]['F1']}
+            """
+        return metrics_info
 
 
-class CbegExperimentData:
-
-    def __init__(self, content_file_folds_training: list[str],
-                 content_file_folds_test: list[str], experiment_folder: str
-                 ):
-        self.content_file_folds_training = content_file_folds_training
-        self.content_file_folds_test = content_file_folds_test
-        self.experiment_folder = experiment_folder
-
-        self.idx = 0
-
-        self.experiments_folds = []
-
-        self.y_true = []
-        self.y_pred = []
-
-        for fold in range(len(content_file_folds_test)):
-            content_fold_training = content_file_folds_training[fold]
-            content_fold_test = content_file_folds_test[fold]
-
-            self.experiments_folds.append(
-                CbegFoldData(content_fold_training, content_fold_test, experiment_folder, fold+1)
-            )
-
-    def get_labels_and_predictions_folds(self) -> tuple[list[int], list[int]]:
-        # Create a confusion matrix for each fold and a general one
-        if self.y_true  and self.y_pred:
-            return self.y_pred, self.y_true
-
-        for _, experiment_fold in enumerate(self.experiments_folds):
-            y_pred_fold, y_true_fold = experiment_fold.get_labels_and_predictions()
-
-            self.y_pred += y_pred_fold
-            self.y_true += y_true_fold
-
-        return self.y_pred, self.y_true
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.idx >= len(self.experiments_folds):
-            raise StopIteration
-        idx = self.idx
-        self.idx += 1
-        return self.experiments_folds[idx]
-
-    def __str__(self) -> str:
-        str_content = ""
-
-        for fold, data_fold in enumerate(self.experiments_folds):
-
-            str_content += f"Fold {fold+1}: \n {data_fold.__str__()}"
-
-        return str_content
-
-
-class ClassificationRow:
-
+class CbegClassificationRow:
     def __init__(self, experiment_variation: int,
                  experiment_params: str,
                  mutual_info_percentage: float,
-                 classification_results_fold: list[dict]):
-        # A different dict containing the classification results for each fold.
+                 classification_results_folds: list[dict],
+                 training_information_folds: list[TrainingInformation]
+                 ):
 
         self.experiment_variation = experiment_variation
         self.experiment_params = experiment_params
         self.mutual_info_percentage = mutual_info_percentage
-        self.classification_results_fold = classification_results_fold
+        self.classification_results_fold = classification_results_folds
+        self.training_information_folds = training_information_folds
 
         self.calc_mean_and_std_deviation()
 
-    def get_classification_values(self):
-        
+    def set_classification_values_by_fold(self):
         self.accuracy_values = [self.classification_results_fold[fold]["Accuracy"][-1]
                                 for fold in range(N_FOLDS)]
         self.recall_values = [self.classification_results_fold[fold]["Recall"][-1]
@@ -206,10 +107,24 @@ class ClassificationRow:
 
         if "Number clusters" in self.classification_results_fold[1]:
             self.n_clusters = [self.classification_results_fold[fold]["Number clusters"]
-                              for fold in range(N_FOLDS)]
+                               for fold in range(N_FOLDS)]
+
+    def set_classification_results_clusters(self):
+        classification_by_cluster = {}
+
+        self.clusters_results_folds = []
+
+        for fold in range(N_FOLDS):
+            for metric in CLASSIFICATION_METRICS:
+                classification_by_cluster[metric] = self.classification_results_fold[fold][metric][0:-1]
+
+            self.clusters_results_folds.append(
+                ClustersClassificationResults(classification_by_cluster)
+            )
 
     def calc_mean_and_std_deviation(self):
-        self.get_classification_values()
+        if not(hasattr(self, 'accuracy_values')):
+            self.set_classification_values_by_fold()
 
         self.mean_accuracy = round(np.mean(self.accuracy_values), 3)
         self.mean_recall = round(np.mean(self.recall_values), 3)
@@ -224,6 +139,54 @@ class ClassificationRow:
         if hasattr(self, 'n_clusters'):
             self.mean_n_clusters = round(np.mean(self.n_clusters), 3)
             self.std_n_clusters = round(np.std(self.n_clusters), 3)
+
+    def plot_accuracy_by_clusters(self, dataset: str):
+        # Check if self.clusters_results_folds is set
+        if not(hasattr(self, "clusters_results_folds")):
+            self.set_classification_results_clusters()
+
+        x_values, y_values = [], []
+        hue_values = []
+
+        # Get all cluster accuracy values and label distribution
+        for fold in range(N_FOLDS):
+            labels_by_cluster = self.training_information_folds[fold].labels_by_cluster
+
+            for c, cluster_labels in labels_by_cluster.items():
+                # Count the number of labels by cluster
+                label_count = Counter(cluster_labels)
+                
+                count_lbls = [(count, lbl) for lbl, count in label_count.items()]
+                n_majority, lbl_majority = max(count_lbls)
+                n_minority, lbl_minority = min(count_lbls)
+
+                accuracy = self.clusters_results_folds[fold][c]["Accuracy"]
+
+                # x axis: number of majority class X minority class
+                # y axis: accuracy
+                x_values.append(n_majority / n_minority)
+                y_values.append(accuracy)
+                hue_values.append(lbl_majority)
+
+        data = pd.DataFrame({"Majority Class / Minority Class": x_values,
+                             "Accuracy": y_values, "Majority Class": hue_values})
+
+        _, ax = plt.subplots(figsize=(6, 6))
+        sns.scatterplot(data=data, x="Majority Class / Minority Class",
+                        y="Accuracy", hue="Majority Class", palette="deep")
+        plt.title(dataset)
+        ax.set_ylim(0, 1)
+        ax.grid()
+
+        folder_scatter = f"results/{dataset}/accuracy_by_clusters"
+        figname = f"mi_{self.mutual_info_percentage}_{self.experiment_params}.png"
+        os.makedirs(folder_scatter, exist_ok=True)
+        full_filename = os.path.join(folder_scatter, figname)
+
+        plt.savefig(full_filename)
+        print(full_filename, "salvo com sucesso.")
+        plt.clf()
+        plt.close()
 
     def row_to_latex(self):
         return (f"{self.experiment_params.replace("_", " ").title()}" +
@@ -251,8 +214,8 @@ class ClassificationRow:
 
 
 @dataclass
-class ClassificationResultsTable:
-    rows_table: list[ClassificationRow]
+class CbegClassificationResultsTable:
+    rows_table: list[CbegClassificationRow]
     folder_experiments: str
     dataset: str
 
@@ -369,20 +332,20 @@ class ClassificationResultsTable:
             print(filename, "salvo com sucesso.")
 
 
-def get_all_classification_metrics(text_file: str) -> dict[str, list[float]]:
+def get_all_classification_metrics(text_experiment_data: str) -> dict[str, list[float]]:
 
     # Dictionary where the values of accuracy, recall, precision and F1 are stored
     dict_classification_results = {}
 
     for metric in CLASSIFICATION_METRICS:
         # All patterns found in text corresponding to the searched metric
-        found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", text_file)
+        found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", text_experiment_data)
         dict_classification_results[metric] = [float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
         # Average value of the metric
         # dict_classification_metrics[f"Total {metric}"] = float(found_metric_patterns[-1].split(": ")[1])
 
-    if "Cluster" in text_file:
-        pattern_n_clusters = re.findall(r"Cluster [0-9]", text_file)[-1]
+    if "Cluster" in text_experiment_data:
+        pattern_n_clusters = re.findall(r"Cluster [0-9]", text_experiment_data)[-1]
         n_clusters = int(pattern_n_clusters.split(" ")[1]) + 1
 
         dict_classification_results["Number clusters"] = n_clusters
@@ -410,65 +373,16 @@ def get_labels_and_predictions(text_file: str) -> tuple[list[int], list[int]]:
     return predicted_labels, true_labels
 
 
-def save_confusion_matrix(y_true, y_pred, filename, show=False):
-    # Save the confusion matrix for the fold
-    cm = confusion_matrix(y_true, y_pred)
-    cm_disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm, display_labels=np.unique(y_true)
-    )
+def generate_row_test_results(results_files_contents: list[str], experiment_variation: int,
+                              experiment_params: str, mutual_info_percentage: float,
+                              training_information_folds: list[TrainingInformation]):
 
-    cm_disp.plot(cmap=plt.cm.Blues)
-    if show:
-        plt.show()
-    plt.savefig(filename)
-    plt.clf()
-    plt.close()
-    print(filename, "salvo com sucesso.")
-
-
-def create_confusion_matrices(experiments_results: CbegExperimentData) -> None:
-    # Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.5 0.5]
-    cm_folder = os.path.join(experiments_results.experiment_folder, "confusion_matrix")
-    os.makedirs(cm_folder, exist_ok=True)  # Confusion matrix folder
-
-    all_y_pred, all_y_true = experiments_results.get_labels_and_predictions_folds()
-
-    # Create a confusion matrix for each fold and a general one
-    for fold, fold_data in enumerate(experiments_results):
-        filename = os.path.join(cm_folder, f"cm_fold_{fold+1}.png")
-        save_confusion_matrix(fold_data.y_true, fold_data.y_pred, filename)
-
-    # Save the general confusion matrix
-    filename = os.path.join(cm_folder, "cm_all_folds.png")
-    save_confusion_matrix( all_y_pred, all_y_true, filename)
-
-    
-# def plot_clusters_and_labels(text_file_folds: list[str], experiment_result_folder: str):
-# 
-#     for fold, text_file in enumerate(text_file_folds):
-# 
-#         clusters = get_clusters_predictions()
-#         base_classifiers = get_base_classifiers()
-# 
-#         data_clusters_labels = {
-#             "cluster": clusters,
-#             "label": y_pred,
-#             "base_classifier": base_classifiers,
-#         }
-#         # Variáveis hue=label y=cluster, x=base classifier
-#         df_clusters_labels = pd.DataFrame(data_clusters_labels) 
-# 
-#         sns.catplot(data=df_clusters_labels, x="base_classifier", y="cluster", hue="label", kind="swarm")
-#         plt.show()
-
-
-def generate_row_results(text_file_folds: list[str], experiment_variation: int,
-                         experiment_params: str, mutual_info_percentage: float):
-
-    list_classification_results = [get_all_classification_metrics(text_file)
-                                   for text_file in text_file_folds]
-    return ClassificationRow(
-        experiment_variation, experiment_params, mutual_info_percentage, list_classification_results
+    classification_results_folds = [get_all_classification_metrics(text_experiment_data)
+                                    for text_experiment_data in results_files_contents]
+    # Cluster classification results
+    return CbegClassificationRow(
+        experiment_variation, experiment_params, mutual_info_percentage,
+        classification_results_folds, training_information_folds
     )
 
 
@@ -508,31 +422,34 @@ def compile_results(algorithm, datasets, experiments_parameters, ablation=False,
                 experiment_folder=experiment_folder,
             ) 
 
-            content_file_folds_test = read_files_results(experiment_result_folder, "test")
-            # content_file_folds_training = read_files_results(experiment_result_folder, "training")
+            filecontent_folds_test = read_files_results(experiment_result_folder, "test")
+            filecontent_folds_training = read_files_results(experiment_result_folder, "training")
 
-            #experiment_data = CbegExperimentData(
-            #    content_file_folds_training, content_file_folds_test, experiment_result_folder
-            #)
-            #
-            # create_confusion_matrices(experiment_data)
-
-            row_table = generate_row_results(
-                content_file_folds_test, experiment_variation, experiment_folder, mutual_info_percentage
+            training_information_by_fold = [TrainingInformation(fold_content)
+                                            for fold_content in filecontent_folds_training]
+            row_test_table = generate_row_test_results(
+                filecontent_folds_test, experiment_variation, experiment_folder,
+                mutual_info_percentage, training_information_by_fold
             )
-            rows_table_results.append( row_table )
+            rows_table_results.append( row_test_table )
 
-            print(row_table)
+            print(row_test_table)
 
-            # Plot clusters, labels and base classifiers in a catplot
         results_folder = f"./results/{dataset}"
-        results_table = ClassificationResultsTable(rows_table_results, results_folder, dataset)
+        results_table = CbegClassificationResultsTable(rows_table_results, results_folder, dataset)
 
         results_table.save_results_table_in_csv()
+
+        if algorithm == "cbeg":
+            for row in results_table.rows_table:
+                row.plot_accuracy_by_clusters(dataset)
+
         if ablation:
             results_table.create_heatmap_ablation_study()
+
         if latex:
             results_table.save_results_table_in_latex()
+
 
 def combine_best_cbeg_baselines(dataset: str):
     combination_results = []
@@ -596,7 +513,7 @@ def main():
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
     ]
-    # compile_results("cbeg", datasets, cbeg_experiments_parameters, ablation=True, latex=True)
+    compile_results("cbeg", datasets, cbeg_experiments_parameters, ablation=True, latex=True)
     
     for dataset in datasets:
         combine_best_cbeg_baselines(dataset)

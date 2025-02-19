@@ -44,6 +44,8 @@ class ClusteringModule:
         elif self.evaluation_metric == "silhouette":
             return self.get_silhoutte()
 
+        #TODO elif self.evaluation_metric == "entropy":
+        #   return self.get_entropy()
         else: # DBC combined with silhouette
             return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhoutte())
 
@@ -66,25 +68,20 @@ class ClusteringModule:
                 # We need to pass n_clusters as a param instead of c, because the number
                 # of clusters might change for Fuzzy C-means.
                 evaluation_value = self.evaluation_function(clusters, clusterer.n_clusters)
+                # print(clustering_algorithm, clusterer, c, evaluation_value)
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
 
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
+
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
         self.best_evaluation_value = evaluation_values[idx_best_clusterer]
 
-        # combinacao_teste = zip([cl for cl, _ in possible_clusterers], evaluation_values)
-        # print([(cl,valor) for cl, valor in combinacao_teste])
+        clusterer = possible_clusterers[idx_best_clusterer][1]
 
-        # clusterer = possible_clusterers[idx_best_clusterer][1]
-
-        # print("===============================")
-        # teste_c = clusterer.fit_predict(self.X)
-        # print(np.unique(teste_c))
-        # print("===============================")
-        
+        print("Melhor:", possible_clusterers[idx_best_clusterer])
         return clusterer
 
     def cluster_data(self):
