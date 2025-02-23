@@ -240,6 +240,30 @@ class CBEG:
 
         return np.argmax(vote_sums, axis=1), u_membership, np.vstack(y_pred_by_clusters).T
 
+    def calc_training_entropy(self, ypred_cluster: NDArray):
+        # Number of samples by each label in cluster
+        n_samples_by_label = [(ypred_cluster == lbl).sum()
+                              for lbl in range(self.n_labels)]
+        n_samples_by_label = np.array(n_samples_by_label)
+        pk = (n_samples_by_label + 1e-10) / sum(n_samples_by_label)
+
+        return -np.sum(pk * np.log(pk)) / np.log(self.n_labels)
+
+    def entropy_outputs(self, y_pred_by_clusters: list[NDArray]):
+        n_samples = y_pred_by_clusters[0].shape[0]
+        vote_sums = np.zeros(shape=(n_samples, self.n_labels))
+
+        idx_samples = range(n_samples)
+
+        for c, y_pred_cluster in enumerate(y_pred_by_clusters):
+            # self.samples_by_cluster[c]
+            vote_sums[idx_samples,
+                      y_pred_cluster] += self.calc_training_entropy(self.samples_by_cluster[c])
+
+        return (np.argmax(vote_sums, axis=1), # Get the majority class for each sample
+                vote_sums, # Voting weights
+                np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
+
     def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = []
 
@@ -256,12 +280,16 @@ class CBEG:
             y_pred_by_clusters.append(y_pred_cluster)
 
         if self.combination_strategy == "weighted_membership":
-            y_pred, u_membership, y_pred_clusters = self.weighted_membership_outputs(X_test, y_pred_by_clusters)
-            return y_pred, u_membership, y_pred_clusters
+            y_pred, membership, y_pred_clusters = self.weighted_membership_outputs(X_test, y_pred_by_clusters)
+            return y_pred, membership, y_pred_clusters
 
         elif self.combination_strategy == "majority_voting":
             y_pred, u_membership, y_pred_clusters = self.majority_vote_outputs(y_pred_by_clusters)
             return y_pred, u_membership, y_pred_clusters
+
+        elif self.combination_strategy == "entropy_membership":
+            y_pred, entropy_weights, y_pred_clusters = self.entropy_outputs(y_pred_by_clusters)
+            return y_pred, entropy_weights, y_pred_clusters
 
         else:
             print("Invalid combination_strategy value." )

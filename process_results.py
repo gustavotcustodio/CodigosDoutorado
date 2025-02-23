@@ -147,6 +147,7 @@ class CbegClassificationRow:
 
         x_values, y_values = [], []
         hue_values = []
+        n_samples_clusters = []
 
         # Get all cluster accuracy values and label distribution
         for fold in range(N_FOLDS):
@@ -167,16 +168,27 @@ class CbegClassificationRow:
                 x_values.append(n_majority / n_minority)
                 y_values.append(accuracy)
                 hue_values.append(lbl_majority)
+                n_samples_clusters.append(len(cluster_labels))
 
-        data = pd.DataFrame({"Majority Class / Minority Class": x_values,
-                             "Accuracy": y_values, "Majority Class": hue_values})
+        cols_names = {"imbalance": "Cluster Imbalance (# Majority Class / # Minority Class)",
+                      "accuracy": "Test Accuracy",
+                      "majority": "Label of Majority Class",
+                      "n_samples": "# of Samples in Cluster"
+                      }
 
-        _, ax = plt.subplots(figsize=(6, 6))
-        sns.scatterplot(data=data, x="Majority Class / Minority Class",
-                        y="Accuracy", hue="Majority Class", palette="deep")
-        plt.title(dataset)
+        data = pd.DataFrame({cols_names["imbalance"]: x_values,
+                             cols_names["accuracy"]: y_values,
+                             cols_names["majority"]: hue_values,
+                             cols_names["n_samples"]: n_samples_clusters})
+
+        _, ax = plt.subplots(figsize=(9, 6))
+        sp = sns.scatterplot(data=data, x=cols_names["imbalance"], y=cols_names["accuracy"],
+                             hue=cols_names["majority"], size=cols_names["n_samples"], palette="deep",)
+        sp.legend(loc="upper left", bbox_to_anchor=(1, 1))
         ax.set_ylim(0, 1)
         ax.grid()
+        plt.title(dataset)
+        plt.tight_layout()
 
         folder_scatter = f"results/{dataset}/accuracy_by_clusters"
         figname = f"mi_{self.mutual_info_percentage}_{self.experiment_params}.png"

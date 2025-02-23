@@ -17,7 +17,6 @@ for dataset in $DATASETS; do
                 python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method"
             done
 
-
             for n_clusters in $POSSIBLE_N_CLUSTERS; do
                 # Run only once for fixed number of clusters 
                 python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method"

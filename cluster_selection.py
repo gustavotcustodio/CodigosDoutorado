@@ -73,6 +73,7 @@ class ClusteringModule:
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
 
+
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
 
@@ -81,7 +82,7 @@ class ClusteringModule:
 
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
-        print("Melhor:", possible_clusterers[idx_best_clusterer])
+        print("Best clusterer:", possible_clusterers[idx_best_clusterer])
         return clusterer
 
     def cluster_data(self):
