@@ -289,16 +289,19 @@ class CbegClassificationResultsTable:
 
         print(f"{csv_filename} saved successfully.")
 
-    def experiment_is_part_of_ablation(self, experiment_params: str, cluster_selection_type: str) -> bool:
+    def experiment_is_part_of_ablation(self, experiment_params: str, cluster_selection_type: str,
+                                       voting_variation="weighted_membership") -> bool:
         # get the correct number of labels
         n_labels = int(DATASETS_INFO[self.dataset]["nlabels"])
 
         if str(n_labels) in experiment_params:
-            return True
+            if voting_variation in experiment_params or "majority_voting" in experiment_params:
+                return True
 
         if ("compare" in experiment_params and
-            (f"{cluster_selection_type}_weighted" in experiment_params or
-             f"{cluster_selection_type}_majority" in experiment_params)):
+            (f"{cluster_selection_type}_{voting_variation}" in experiment_params or
+             f"{cluster_selection_type}_majority_voting" in experiment_params)):
+                # and voting_variation in experiment_params):
             return True
 
         return False
@@ -307,41 +310,48 @@ class CbegClassificationResultsTable:
         """ Save the confusion matrix for the ablation study.
         """
         cluster_selection_variations = ["dbc", "dbc_ss", "silhouette"]
+        voting_variations = ["cluster_density", "entropy_voting", "weighted_membership"]
 
         for cluster_selection_metric in cluster_selection_variations:
+            for voting_variation in voting_variations:
+                heatmaps_folder = f"{self.folder_experiments}/ablation_results"
+                os.makedirs(heatmaps_folder, exist_ok=True)
+                filename = os.path.join(
+                    heatmaps_folder, f"heatmap_ablation_{cluster_selection_metric}_{voting_variation}.png"
+                )
 
-            heatmaps_folder = f"{self.folder_experiments}/ablation_results"
-            os.makedirs(heatmaps_folder, exist_ok=True)
-            filename = os.path.join(heatmaps_folder, f"heatmap_ablation_{cluster_selection_metric}.png")
+                valid_ablation_rows = [
+                    row for row in self.rows_table
+                    if self.experiment_is_part_of_ablation(
+                        row.experiment_params, cluster_selection_metric, voting_variation)
+                ]
+                # for row in valid_ablation_rows:
+                #     print("->",row.mutual_info_percentage, row.experiment_params, row.experiment_variation)
 
-            valid_ablation_rows = [
-                row for row in self.rows_table
-                if self.experiment_is_part_of_ablation(row.experiment_params, cluster_selection_metric)
-            ]
-            # Shows the experiment variation and the percentage of mutual information
-            present_info = lambda r: f"{r.experiment_variation} ({r.mutual_info_percentage} %)" \
-                    if r.mutual_info_percentage < 100 else r.experiment_variation
+                # Shows the experiment variation and the percentage of mutual information
+                present_info = lambda r: f"{r.experiment_variation} ({r.mutual_info_percentage} %)" \
+                        if r.mutual_info_percentage < 100 else r.experiment_variation
 
-            data = np.vstack((
-                [row.mean_accuracy for row in valid_ablation_rows],
-                [row.mean_recall for row in valid_ablation_rows],
-                [row.mean_precision for row in valid_ablation_rows],
-                [row.mean_f1 for row in valid_ablation_rows],
-            )).T
-            
-            indexes = [present_info(row) for row in valid_ablation_rows]
+                data = np.vstack((
+                    [row.mean_accuracy for row in valid_ablation_rows],
+                    [row.mean_recall for row in valid_ablation_rows],
+                    [row.mean_precision for row in valid_ablation_rows],
+                    [row.mean_f1 for row in valid_ablation_rows],
+                )).T
+                
+                indexes = [present_info(row) for row in valid_ablation_rows]
 
-            sns.heatmap(data, annot=True, cmap='Blues',
-                        xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes)
+                sns.heatmap(data, annot=True, cmap='Blues',
+                            xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes)
 
-            plt.xlabel("Classification Metric", fontdict={'weight': 'bold'})
-            plt.ylabel("Experiment variation", fontdict={'weight': 'bold'})
-            # Save the heat map
-            plt.tight_layout()
-            plt.savefig(filename)
-            plt.clf()
-            plt.close()
-            print(filename, "salvo com sucesso.")
+                plt.xlabel("Classification Metric", fontdict={'weight': 'bold'})
+                plt.ylabel("Experiment variation", fontdict={'weight': 'bold'})
+                # Save the heat map
+                plt.tight_layout()
+                plt.savefig(filename)
+                plt.clf()
+                plt.close()
+                print(filename, "salvo com sucesso.")
 
 
 def get_all_classification_metrics(text_experiment_data: str) -> dict[str, list[float]]:
@@ -501,20 +511,24 @@ def main():
         # compile_results("baselines", datasets, baseline_experiments_parameters)
 
     cbeg_experiments_parameters = [
-        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_silhouette_majority_voting_fusion", "variation": 0},
-        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_silhouette_majority_voting_fusion", "variation": 0},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 0},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 0},
         {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_silhouette_majority_voting_fusion", "variation": 1},
         {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_dbc_majority_voting_fusion", "variation": 1},
         {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_dbc_ss_majority_voting_fusion", "variation": 1},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_majority_voting_fusion", "variation": 2},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_majority_voting_fusion", "variation": 2},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_majority_voting_fusion", "variation": 2},
-        {"mutual_info": 75.0, "folder": "naive_bayes_2_clusters_silhouette_majority_voting_fusion", "variation": 3},
-        {"mutual_info": 75.0, "folder": "naive_bayes_3_clusters_silhouette_majority_voting_fusion", "variation": 3},
-        {"mutual_info": 50.0, "folder": "naive_bayes_2_clusters_silhouette_majority_voting_fusion", "variation": 3},
-        {"mutual_info": 50.0, "folder": "naive_bayes_3_clusters_silhouette_majority_voting_fusion", "variation": 3},
-        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_silhouette_weighted_membership_fusion", "variation": 4},
-        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_silhouette_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 75.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 75.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 50.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 50.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_cluster_density_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_cluster_density_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_entropy_voting_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_entropy_voting_fusion", "variation": 4},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 124},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 124},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 124},
@@ -524,6 +538,24 @@ def main():
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 1234},
     ]
     compile_results("cbeg", datasets, cbeg_experiments_parameters, ablation=True, latex=True)
     

@@ -259,7 +259,21 @@ class CBEG:
             # self.samples_by_cluster[c]
             vote_sums[idx_samples,
                       y_pred_cluster] += self.calc_training_entropy(self.samples_by_cluster[c])
+        vote_sums = vote_sums / vote_sums.sum(axis=1)[..., None]
+        return (np.argmax(vote_sums, axis=1), # Get the majority class for each sample
+                vote_sums, # Voting weights
+                np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
+    def cluster_density_output(self, y_pred_by_clusters: list[NDArray]):
+        n_samples = y_pred_by_clusters[0].shape[0]
+        vote_sums = np.zeros(shape=(n_samples, self.n_labels))
+
+        idx_samples = range(n_samples)
+        n_training_samples = sum([len(labels) for labels in self.labels_by_cluster.values()])
+
+        for c, y_pred_cluster in enumerate(y_pred_by_clusters):
+            vote_sums[idx_samples,
+                      y_pred_cluster] += len(self.labels_by_cluster[c]) / n_training_samples
         return (np.argmax(vote_sums, axis=1), # Get the majority class for each sample
                 vote_sums, # Voting weights
                 np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
@@ -287,8 +301,12 @@ class CBEG:
             y_pred, u_membership, y_pred_clusters = self.majority_vote_outputs(y_pred_by_clusters)
             return y_pred, u_membership, y_pred_clusters
 
-        elif self.combination_strategy == "entropy_membership":
+        elif self.combination_strategy == "entropy_voting":
             y_pred, entropy_weights, y_pred_clusters = self.entropy_outputs(y_pred_by_clusters)
+            return y_pred, entropy_weights, y_pred_clusters
+
+        elif self.combination_strategy == "cluster_density":
+            y_pred, entropy_weights, y_pred_clusters = self.cluster_density_output(y_pred_by_clusters)
             return y_pred, entropy_weights, y_pred_clusters
 
         else:

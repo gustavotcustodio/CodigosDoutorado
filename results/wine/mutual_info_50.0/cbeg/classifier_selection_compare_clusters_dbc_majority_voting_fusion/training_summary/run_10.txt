@@ -2,32 +2,33 @@ Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.5600039903793244
+Clustering evaluation value: 0.5615374422203459
 
 ========== Cluster 0 ==========
 
-Base classifier: SVC(probability=True)
+Base classifier: LogisticRegression()
 
-Selected Features: [ 5  4  9  6 11  1]
+Selected Features: [ 4  9 12  0 10  3  8 11  7  5]
 
-Labels: [1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1]
 
 ========== Cluster 1 ==========
 
-Base classifier: GaussianNB()
+Base classifier: LogisticRegression()
 
-Selected Features: [ 5  0 12  1  9  7]
+Selected Features: [ 6  2  9  0 12  3 10]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1]
+Labels: [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2]
 
 ========== Cluster 2 ==========
 
-Base classifier: GaussianNB()
+Base classifier: DummyClassifier(strategy='most_frequent')
 
 Selected Features: [12 11 10  9  8  7  6]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 3 ==========
 
@@ -36,12 +37,4 @@ Base classifier: DummyClassifier(strategy='most_frequent')
 Selected Features: [12 11 10  9  8  7  6]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 4 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Selected Features: [12 11 10  9  8  7  6]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
