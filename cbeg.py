@@ -6,7 +6,7 @@ import threading
 import dataset_loader
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
-from typing import Mapping
+from typing import Mapping, Optional, Callable
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
@@ -222,7 +222,8 @@ class CBEG:
                 np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
     def weighted_membership_outputs(
-            self, X: NDArray, y_pred_by_clusters: list[NDArray]
+            self, X: NDArray, y_pred_by_clusters: list[NDArray],
+            function_to_combine: Optional[Callable]=None
         ) -> tuple[NDArray, NDArray, NDArray]:
         """ Get the predicted classes from the classifiers and combine them
         through weighted voting. The weight is given according to the
@@ -235,9 +236,13 @@ class CBEG:
         u_membership = self.cluster_module.calc_membership_matrix(X, centroids)
 
         idx_samples = range(n_samples)
-        for c, y_pred_cluster in enumerate(y_pred_by_clusters):
-            vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c]
 
+        for c, y_pred_cluster in enumerate(y_pred_by_clusters):
+            if function_to_combine is not None and function_to_combine == self.calc_training_entropy:
+                entropy_cluster = function_to_combine(self.samples_by_cluster[c]) 
+                vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c] + entropy_cluster
+            else:
+                vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c]
         return np.argmax(vote_sums, axis=1), u_membership, np.vstack(y_pred_by_clusters).T
 
     def calc_training_entropy(self, ypred_cluster: NDArray):
@@ -303,6 +308,11 @@ class CBEG:
 
         elif self.combination_strategy == "entropy_voting":
             y_pred, entropy_weights, y_pred_clusters = self.entropy_outputs(y_pred_by_clusters)
+            return y_pred, entropy_weights, y_pred_clusters
+
+        elif self.combination_strategy == "weighted_membership_entropy":
+            y_pred, entropy_weights, y_pred_clusters = self.weighted_membership_outputs(
+                    X_test, y_pred_by_clusters, self.calc_training_entropy)
             return y_pred, entropy_weights, y_pred_clusters
 
         elif self.combination_strategy == "cluster_density":
@@ -455,19 +465,19 @@ class CBEG:
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
 
-def process_args_and_add_default_values(args) -> None:
-    args.n_clusters = int(args.n_clusters) if args.n_clusters and args.n_clusters != 'compare' else 'compare'
-
-    if not args.min_mutual_info_percentage:
-        args.min_mutual_info_percentage = 100.0
-    else:
-        args.min_mutual_info_percentage = float(args.min_mutual_info_percentage)
-
-    if not args.clustering_evaluation_metric:
-        args.clustering_evaluation_metric = "dbc"
-
-    if not args.combination_strategy:
-        args.combination_strategy = "weighted_membership"
+# def process_args_and_add_default_values(args) -> None:
+#     args.n_clusters = int(args.n_clusters) if args.n_clusters and args.n_clusters != 'compare' else 'compare'
+# 
+#     if not args.min_mutual_info_percentage:
+#         args.min_mutual_info_percentage = 100.0
+#     else:
+#         args.min_mutual_info_percentage = float(args.min_mutual_info_percentage)
+# 
+#     if not args.clustering_evaluation_metric:
+#         args.clustering_evaluation_metric = "dbc"
+# 
+#     if not args.combination_strategy:
+#         args.combination_strategy = "weighted_membership"
 
 
 def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:
@@ -506,17 +516,20 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--dataset", help = "Dataset used.", required=True)
-    parser.add_argument("-n", "--n_clusters", help = "Number of clusters.")
-    parser.add_argument("-b", "--base_classifier_selection", action=argparse.BooleanOptionalAction, help = "")
-    parser.add_argument("-m", "--min_mutual_info_percentage", help = "")
-    parser.add_argument("-e", "--clustering_evaluation_metric", help = "")
-    parser.add_argument("-c", "--combination_strategy", help = "")
+    parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
+    parser.add_argument("-n", "--n_clusters", default="compare", help = "Number of clusters.")
+    parser.add_argument("-b", "--base_classifier_selection", type=bool, default=False,
+                        action=argparse.BooleanOptionalAction, help = "")
+    parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "")
+    parser.add_argument("-e", "--clustering_evaluation_metric", default="dbc", help = "")
+    parser.add_argument("-c", "--combination_strategy", default="majority_voting", help = "")
 
     # Read arguments from command line
     args = parser.parse_args()
 
-    process_args_and_add_default_values(args)
+    args.n_clusters = int(args.n_clusters) if args.n_clusters != "compare" else "compare"
+
+    # process_args_and_add_default_values(args)
 
     for fold in range(1, N_FOLDS+1):
         X, y = dataset_loader.select_dataset_function(args.dataset)()

@@ -25,6 +25,36 @@ BASE_CLASSIFIERS = ['nb', 'svm', 'lr', 'dt', 'rf', 'gb', 'xb']
 RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
 
+class BaseClassifiersResults:
+    def __init__(self, dataset):
+        self.dataset = dataset 
+        self.base_folder = f"results/{dataset}/mutual_info_percentage/baselines"
+        self.classification_results = {}
+
+        self.load_base_classifiers_results()
+
+    def load_results_classifier(self, base_classifier, mutual_info):
+        results_folder = self.base_folder.replace("percentage", mutual_info)
+        results_folder = f"{results_folder}/{base_classifier}"
+
+        # = read_files_results(results_folder, "test")
+        #load_metrics_from
+        pass
+
+    def load_base_classifiers_results(self):
+        # For each base classifier, load the results
+        # self.classification_results[f'{base_classifier} {mutual_info}'] = self.load_results_classifier(base_classifier, mutual_info)
+        pass
+
+    def plot_confusion_matrix(self):
+        """
+        Plot the confusion matrix containing results from all base
+        classifiers for the current dataset.
+        """
+        # Each row is a different base classifier
+        pass
+
+
 class TrainingInformation:
     def __init__(self, text_training_result):
         self.text_training_result = text_training_result
@@ -295,22 +325,25 @@ class CbegClassificationResultsTable:
         n_labels = int(DATASETS_INFO[self.dataset]["nlabels"])
 
         if str(n_labels) in experiment_params:
-            if voting_variation in experiment_params or "majority_voting" in experiment_params:
+            if f"{voting_variation}_fusion" in experiment_params or "majority_voting" in experiment_params:
                 return True
 
         if ("compare" in experiment_params and
-            (f"{cluster_selection_type}_{voting_variation}" in experiment_params or
+            (f"{cluster_selection_type}_{voting_variation}_fusion" in experiment_params or
              f"{cluster_selection_type}_majority_voting" in experiment_params)):
                 # and voting_variation in experiment_params):
             return True
 
         return False
 
+    def create_heatmap_base_classifiers(self):
+        pass
+
     def create_heatmap_ablation_study(self):
         """ Save the confusion matrix for the ablation study.
         """
         cluster_selection_variations = ["dbc", "dbc_ss", "silhouette"]
-        voting_variations = ["cluster_density", "entropy_voting", "weighted_membership"]
+        voting_variations = ["cluster_density", "entropy_voting", "weighted_membership", "weighted_membership_entropy"]
 
         for cluster_selection_metric in cluster_selection_variations:
             for voting_variation in voting_variations:
@@ -395,9 +428,10 @@ def get_labels_and_predictions(text_file: str) -> tuple[list[int], list[int]]:
     return predicted_labels, true_labels
 
 
-def generate_row_test_results(results_files_contents: list[str], experiment_variation: int,
-                              experiment_params: str, mutual_info_percentage: float,
-                              training_information_folds: list[TrainingInformation]):
+def generate_cbeg_row_test_results(
+    results_files_contents: list[str], experiment_variation: int, experiment_params: str,
+    mutual_info_percentage: float, training_information_folds: list[TrainingInformation]
+):
 
     classification_results_folds = [get_all_classification_metrics(text_experiment_data)
                                     for text_experiment_data in results_files_contents]
@@ -406,6 +440,10 @@ def generate_row_test_results(results_files_contents: list[str], experiment_vari
         experiment_variation, experiment_params, mutual_info_percentage,
         classification_results_folds, training_information_folds
     )
+
+def generate_baseline_results():
+    """TODO: Docstring for generate_baseline_results."""
+    pass
 
 
 def read_files_results(experiment_result_folder: str, stage: str = "test") -> list[str]:
@@ -422,7 +460,7 @@ def read_files_results(experiment_result_folder: str, stage: str = "test") -> li
     return text_file_folds
 
 
-def compile_results(algorithm, datasets, experiments_parameters, ablation=False, latex=False):
+def compile_cbeg_results(datasets, experiments_parameters, ablation=False, latex=False):
     for dataset in datasets:
 
         rows_table_results = []
@@ -434,13 +472,13 @@ def compile_results(algorithm, datasets, experiments_parameters, ablation=False,
             experiment_folder = parameters["folder"]
             experiment_variation = parameters["variation"]
 
-            print(f"Analyzing experiment mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}...")
+            print(f"Analyzing experiment mutual_info_{mutual_info_percentage}/cbeg/{experiment_folder}...")
 
             # Create the folders for saving the output of experiments
             experiment_result_folder = BASE_PATH_FOLDER.format(
                 dataset=dataset,
                 mutual_info_percentage=mutual_info_percentage,
-                algorithm=algorithm,
+                algorithm="cbeg",
                 experiment_folder=experiment_folder,
             ) 
 
@@ -449,7 +487,7 @@ def compile_results(algorithm, datasets, experiments_parameters, ablation=False,
 
             training_information_by_fold = [TrainingInformation(fold_content)
                                             for fold_content in filecontent_folds_training]
-            row_test_table = generate_row_test_results(
+            row_test_table = generate_cbeg_row_test_results(
                 filecontent_folds_test, experiment_variation, experiment_folder,
                 mutual_info_percentage, training_information_by_fold
             )
@@ -462,9 +500,8 @@ def compile_results(algorithm, datasets, experiments_parameters, ablation=False,
 
         results_table.save_results_table_in_csv()
 
-        if algorithm == "cbeg":
-            for row in results_table.rows_table:
-                row.plot_accuracy_by_clusters(dataset)
+        for row in results_table.rows_table:
+            row.plot_accuracy_by_clusters(dataset)
 
         if ablation:
             results_table.create_heatmap_ablation_study()
@@ -507,8 +544,7 @@ def main():
             baseline_experiments_parameters.append(
                 {"mutual_info": mutual_info, "folder": clf, "variation": 0},
             )
-        
-        # compile_results("baselines", datasets, baseline_experiments_parameters)
+        # compile_baselines_results("baselines", datasets, baseline_experiments_parameters)
 
     cbeg_experiments_parameters = [
         {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 0},
@@ -525,6 +561,8 @@ def main():
         {"mutual_info": 50.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 3},
         {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_weighted_membership_fusion", "variation": 4},
         {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_weighted_membership_entropy_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_weighted_membership_entropy_fusion", "variation": 4},
         {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_cluster_density_fusion", "variation": 4},
         {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_cluster_density_fusion", "variation": 4},
         {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_entropy_voting_fusion", "variation": 4},
@@ -538,6 +576,15 @@ def main():
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 1234},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 124},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 124},
         {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 124},
@@ -557,7 +604,7 @@ def main():
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 1234},
         {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 1234},
     ]
-    compile_results("cbeg", datasets, cbeg_experiments_parameters, ablation=True, latex=True)
+    compile_cbeg_results(datasets, cbeg_experiments_parameters, ablation=True, latex=True)
     
     for dataset in datasets:
         combine_best_cbeg_baselines(dataset)

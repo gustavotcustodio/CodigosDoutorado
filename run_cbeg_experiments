@@ -2,8 +2,8 @@
 
 DATASETS="australian_credit contraceptive german_credit heart iris pima wdbc wine"
 EVALUATION_METRIC="silhouette dbc dbc_ss"
-# COMBINATION_METHODS="weighted_membership majority_voting"
-COMBINATION_METHODS="cluster_density entropy_voting"
+# COMBINATION_METHODS="weighted_membership majority_voting cluster_density entropy_voting"
+COMBINATION_METHODS="weighted_membership_entropy"
 POSSIBLE_N_CLUSTERS="2 3"
 
 for dataset in $DATASETS; do

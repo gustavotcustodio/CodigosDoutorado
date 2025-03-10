@@ -83,15 +83,10 @@ def main():
 
     parser.add_argument("-d", "--dataset", help = "Dataset used.", required=True)
     parser.add_argument("-c", "--classifier", help = "Selected classifier.", required=True)
-    parser.add_argument("-m", "--min_mutual_info_percentage", help = "")
+    parser.add_argument("-m", "--min_mutual_info_percentage", default=100.0, help = "")
 
     # Read arguments from command line
     args = parser.parse_args()
-
-    if not args.min_mutual_info_percentage:
-        args.min_mutual_info_percentage = 100.0
-    else:
-        args.min_mutual_info_percentage = float(args.min_mutual_info_percentage)
 
     for fold in range(1, N_FOLDS+1):
         X, y = dataset_loader.select_dataset_function(args.dataset)()
