@@ -22,6 +22,10 @@ from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
 
+# A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
+
+# TODO implementar CIEL
+
 # TODO ponderar pela quantidade de amostras vistas no treinamento (plotar um gráfico disos também)
 
 # TODO opções para resolver o problema do FCM:
@@ -155,7 +159,6 @@ class CBEG:
 
             cv_results = cross_validate(classifier, X_train, y_train, cv=cv,
                                         scoring=classification_metrics)
-
             # Get the mean AUC of the classifier
             if 'test_roc_auc_ovo' in cv_results:
                 auc_by_classifier[clf_name] = cv_results['test_roc_auc_ovo'].mean()
@@ -461,23 +464,7 @@ class CBEG:
         for c in range(self.cluster_module.n_clusters):
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
-            # TODO o problema está aqui, colocar todas as instâncias melhorou bastante o resultado
             self.base_classifiers[c].fit(X_cluster, y_cluster)
-
-
-# def process_args_and_add_default_values(args) -> None:
-#     args.n_clusters = int(args.n_clusters) if args.n_clusters and args.n_clusters != 'compare' else 'compare'
-# 
-#     if not args.min_mutual_info_percentage:
-#         args.min_mutual_info_percentage = 100.0
-#     else:
-#         args.min_mutual_info_percentage = float(args.min_mutual_info_percentage)
-# 
-#     if not args.clustering_evaluation_metric:
-#         args.clustering_evaluation_metric = "dbc"
-# 
-#     if not args.combination_strategy:
-#         args.combination_strategy = "weighted_membership"
 
 
 def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:

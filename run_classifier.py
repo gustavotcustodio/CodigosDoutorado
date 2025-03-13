@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import argparse
-from sklearn.base import BaseEstimator
 from sklearn.metrics import classification_report
 import dataset_loader
 from xgboost import XGBClassifier
@@ -13,7 +12,6 @@ from dataset_loader import normalize_data
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from feature_selection import FeatureSelectionModule
-from sklearn.dummy import DummyClassifier
 
 N_FOLDS = 10
 RESULTS_FOLDER = "results"
