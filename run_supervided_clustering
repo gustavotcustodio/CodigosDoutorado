@@ -1,0 +1,12 @@
+#!/bin/bash
+
+DATASETS="australian_credit contraceptive german_credit heart iris pima wdbc wine"
+BASE_CLASSIFIERS="svm dt lr"
+
+for dataset in $DATASETS; do
+    for classifier in $BASE_CLASSIFIERS; do
+
+        python supervised_clustering.py -d "$dataset" -b "$classifier"
+
+    done
+done
