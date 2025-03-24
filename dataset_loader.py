@@ -232,7 +232,7 @@ if __name__ == "__main__":
     for dataset in datasets:
         func = select_dataset_function(dataset)
         print(f"--------- {dataset} ----------")
-        for run in range(4, 10):
+        for run in range( 10):
             print(f"Fold {run}")
             X, y = func()
             X_train, X_test, y_train, y_test = split_training_test(X, y, run, n_runs=10)

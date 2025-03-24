@@ -1,231 +1,613 @@
+import os
+import re
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import Counter
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay#, plot_confusion_matrix
+from cbeg import N_FOLDS
+from dataclasses import dataclass
+from dataset_loader import DATASETS_INFO
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
 
-"""
+# results/iris/mutual_info_100.0/cbeg/naive_bayes_2_clusters_dbc_weighted_membership_fusion/test_summary/run_1.txt
 
-def save_confusion_matrix(y_true, y_pred, filename, show=False):
-    # Save the confusion matrix for the fold
-    cm = confusion_matrix(y_true, y_pred)
-    cm_disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm, display_labels=np.unique(y_true)
-    )
+BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}"
 
-    cm_disp.plot(cmap=plt.cm.Blues)
-    if show:
-        plt.show()
-    plt.savefig(filename)
-    plt.clf()
-    plt.close()
-    print(filename, "salvo com sucesso.")
+CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
 
+BASE_CLASSIFIERS = ['nb', 'svm', 'lr', 'dt', 'rf', 'gb', 'xb']
 
-def create_confusion_matrices(experiments_results: CbegExperimentData) -> None:
-    # Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.5 0.5]
-    cm_folder = os.path.join(experiments_results.experiment_folder, "confusion_matrix")
-    os.makedirs(cm_folder, exist_ok=True)  # Confusion matrix folder
-
-    all_y_pred, all_y_true = experiments_results.get_labels_and_predictions_folds()
-
-    # Create a confusion matrix for each fold and a general one
-    for fold, fold_data in enumerate(experiments_results):
-        filename = os.path.join(cm_folder, f"cm_fold_{fold+1}.png")
-        save_confusion_matrix(fold_data.y_true, fold_data.y_pred, filename)
-
-    # Save the general confusion matrix
-    filename = os.path.join(cm_folder, "cm_all_folds.png")
-    save_confusion_matrix( all_y_pred, all_y_true, filename)
-    
-def plot_clusters_and_labels(text_file_folds: list[str], experiment_result_folder: str):
-
-    for fold, text_file in enumerate(text_file_folds):
-
-        clusters = get_clusters_predictions()
-        base_classifiers = get_base_classifiers()
-
-        data_clusters_labels = {
-            "cluster": clusters,
-            "label": y_pred,
-            "base_classifier": base_classifiers,
-        }
-        # Variáveis hue=label y=cluster, x=base classifier
-        df_clusters_labels = pd.DataFrame(data_clusters_labels) 
-
-        sns.catplot(data=df_clusters_labels, x="base_classifier", y="cluster", hue="label", kind="swarm")
-        plt.show()
-"""
+RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
 
-class CbegExperimentData:
+class BaseClassifiersResults:
+    def __init__(self, dataset):
+        self.dataset = dataset 
+        self.base_folder = f"results/{dataset}/mutual_info_percentage/baselines"
+        self.classification_results = {}
 
-    def __init__(self, content_file_folds_training: list[str],
-                 content_file_folds_test: list[str], experiment_folder: str
-                 ):
-        self.content_file_folds_training = content_file_folds_training
-        self.content_file_folds_test = content_file_folds_test
-        self.experiment_folder = experiment_folder
+        self.load_base_classifiers_results()
 
-        self.idx = 0
+    def load_results_classifier(self, base_classifier, mutual_info):
+        results_folder = self.base_folder.replace("percentage", mutual_info)
+        results_folder = f"{results_folder}/{base_classifier}"
 
-        self.experiments_folds = []
+        # = read_files_results(results_folder, "test")
+        #load_metrics_from
+        pass
 
-        self.y_true = []
-        self.y_pred = []
+    def load_base_classifiers_results(self):
+        # For each base classifier, load the results
+        # self.classification_results[f'{base_classifier} {mutual_info}'] = self.load_results_classifier(base_classifier, mutual_info)
+        pass
 
-        for fold in range(len(content_file_folds_test)):
-            content_fold_training = content_file_folds_training[fold]
-            content_fold_test = content_file_folds_test[fold]
-
-            self.experiments_folds.append(
-                CbegFoldData(content_fold_training, content_fold_test, experiment_folder, fold+1)
-            )
-
-    def plot_instance_distribution_and_accuracy_clusters(self):
-        """ Plot the distribution of training instances per cluster and the
-            validation accuracy per cluster.
+    def plot_confusion_matrix(self):
         """
-        from collections import Counter
-
-        for exp_fold in self.experiments_folds:
-            for c, cluster_labels in enumerate(exp_fold.labels_by_cluster):
-                # Count the number of labels by cluster
-                label_count = Counter(cluster_labels)
-
-                n_majority = max(label_count)
-                n_minority = min(label_count)
-
-                # x axis: number of majority class X minority class
-                # y axis: accuracy
-                f"{n_majority}/{n_minority}"
+        Plot the confusion matrix containing results from all base
+        classifiers for the current dataset.
+        """
+        # Each row is a different base classifier
+        pass
 
 
-    def get_labels_and_predictions_folds(self) -> tuple[list[int], list[int]]:
-        # Create a confusion matrix for each fold and a general one
-        if self.y_true  and self.y_pred:
-            return self.y_pred, self.y_true
+class TrainingInformation:
+    def __init__(self, text_training_result):
+        self.text_training_result = text_training_result
+        self.labels_by_cluster = self._get_labels_by_cluster()
 
-        for _, experiment_fold in enumerate(self.experiments_folds):
-            y_pred_fold, y_true_fold = experiment_fold.get_labels_and_predictions()
-
-            self.y_pred += y_pred_fold
-            self.y_true += y_true_fold
-
-        return self.y_pred, self.y_true
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.idx >= len(self.experiments_folds):
-            raise StopIteration
-        idx = self.idx
-        self.idx += 1
-        return self.experiments_folds[idx]
-
-    def __str__(self) -> str:
-        str_content = ""
-
-        for fold, data_fold in enumerate(self.experiments_folds):
-
-            str_content += f"Fold {fold+1}: \n {data_fold.__str__()}"
-
-        return str_content
-
-
-
-class CbegFoldData:
-    def __init__(self, content_fold_training: str, content_fold_test: str,
-                 experiment_folder: str, fold: int
-                 ):
-        self.content_fold_test = content_fold_test
-        self.content_fold_training = content_fold_training
-        self.experiment_folder = experiment_folder
-        self.fold = fold
-        self.y_true, self.y_pred = [], []
-
-        self.n_clusters = self.get_n_clusters()
-        self.labels_by_cluster = self.get_labels_by_cluster_training()
-        self.base_classifiers_by_cluster = self.get_base_classifiers_by_cluster()
-        # self.plot_clusters_and_labels(fold)
-
-    def get_n_clusters(self) -> int:
-        clusters_pattern = re.findall(r"Cluster [0-9]", self.content_fold_test)[-1]
-
-        n_clusters = int(clusters_pattern.split(" ")[1]) + 1
-         
-        return n_clusters
-
-    def get_labels_by_cluster_training(self) -> dict[int, list[int]]:
+    def _get_labels_by_cluster(self) -> dict[int, list[int]]:
         # Labels: [0 0 0  0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0
         #  0 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0]
-        found_strings = re.findall(r"Labels:\s\[[0-9\s\n]+\]", self.content_fold_training)
+        found_strings = re.findall(r"Labels:\s\[[0-9\s\n]+\]", self.text_training_result)
         labels_by_clusters = {}
 
-        for c in range(self.n_clusters):
+        n_clusters = len(found_strings)
+
+        for c in range(n_clusters):
             str_labels = found_strings[c].replace("Labels: [", "").replace("]", "")
             labels = re.split(r"[\n\s]+", str_labels)
             labels_by_clusters[c] = [int(lbl) for lbl in labels]
         return labels_by_clusters            
 
 
-    def get_base_classifiers_by_cluster(self) -> dict[int, str]:
-        found_strings = re.findall(r"Base classifier:\s.+\n", self.content_fold_training)
+class ClustersClassificationResults:
 
-        base_classifiers_by_cluster = {}
-        for c in range(self.n_clusters):
-            base_classifiers_by_cluster[c] = found_strings[c].split(": ")[1].strip()
+    def __init__(self, classification_by_cluster: dict[str, list[float]]):
+        # cluster number starts at zero
+        self.n_clusters = len(classification_by_cluster["Accuracy"])
+        self.extract_classification_results_by_cluster(classification_by_cluster)
 
-        return base_classifiers_by_cluster
+    def extract_classification_results_by_cluster(self, classification_by_cluster):
+        # Extract information from 
+        self._classification_results = []
 
-    def plot_clusters_and_labels(self, fold: int) -> None:
-        clusters = [] 
-        labels = []
-        base_classifiers = []
+        for cluster in range(self.n_clusters):
+            self._classification_results.append( {} )
 
-        os.makedirs(f"{self.experiment_folder}/catplot", exist_ok=True)
+            for metric in CLASSIFICATION_METRICS:
+                self._classification_results[cluster][metric] = classification_by_cluster[metric][cluster]
 
-        for c in range(self.n_clusters):
-
-            clusters += [c+1] * len(self.labels_by_cluster[c])
-            labels += self.labels_by_cluster[c] 
-            base_classifiers += [self.base_classifiers_by_cluster[c]] * len(self.labels_by_cluster[c])
-        
-        data_clusters_labels = {
-            "Cluster": np.array(clusters, dtype="str"),
-            "Label": labels,
-            "Base Classifier": base_classifiers,
-        }
-        # Variáveis hue=label y=cluster, x=base classifier
-        df_clusters_labels = pd.DataFrame(data_clusters_labels) 
-        fig_catplot = sns.catplot(data=df_clusters_labels, x="Base Classifier", y="Cluster",
-                                  hue="Label", kind="swarm", s=20)
-
-        fig_catplot.figure.savefig(f"{self.experiment_folder}/catplot/catplot_{fold}.png")
-
-    def get_labels_and_predictions(self) -> tuple[list[int], list[int]]:
-        # Extract the true labels and predicted labels
-
-        if self.y_true and self.y_pred:
-            return self.y_pred, self.y_true
-
-        pattern_prediction = r"Prediction: [0-9], Real label: [0-9]"
-
-        predicted_labels = []
-        true_labels = []
-        
-        label_prediction_patterns = re.findall(pattern_prediction, self.content_fold_test)
-
-        for found_predictions in label_prediction_patterns:
-            predicted_label_str, true_label_str = found_predictions.split(", ")
-            y_pred = int(predicted_label_str.split(": ")[1])
-            y_true = int(true_label_str.split(": ")[1])
-
-            predicted_labels.append(y_pred)
-            true_labels.append(y_true)
-
-        self.y_pred = predicted_labels
-        self.y_true = true_labels
-
-        return self.y_pred, self.y_true
+    def __getitem__(self, cluster: int):
+        return self._classification_results[cluster]
 
     def __str__(self):
-        return f"y_pred: {self.y_pred}\n"
+        metrics_info = ""
+
+        for cluster in range(self.n_clusters):
+            metrics_info += f"""
+            Cluster {cluster+1}:
+                Accuracy: {self._classification_results[cluster]['Accuracy']}
+                Recall: {self._classification_results[cluster]['Recall']}
+                Precision: {self._classification_results[cluster]['Precision']}
+                F1 Score: {self._classification_results[cluster]['F1']}
+            """
+        return metrics_info
 
 
+class CbegClassificationRow:
+    def __init__(self, experiment_variation: int,
+                 experiment_params: str,
+                 mutual_info_percentage: float,
+                 classification_results_folds: list[dict],
+                 training_information_folds: list[TrainingInformation]
+                 ):
+
+        self.experiment_variation = experiment_variation
+        self.experiment_params = experiment_params
+        self.mutual_info_percentage = mutual_info_percentage
+        self.classification_results_fold = classification_results_folds
+        self.training_information_folds = training_information_folds
+
+        self.calc_mean_and_std_deviation()
+
+    def set_classification_values_by_fold(self):
+        self.accuracy_values = [self.classification_results_fold[fold]["Accuracy"][-1]
+                                for fold in range(N_FOLDS)]
+        self.recall_values = [self.classification_results_fold[fold]["Recall"][-1]
+                              for fold in range(N_FOLDS)]
+        self.precision_values = [self.classification_results_fold[fold]["Precision"][-1]
+                                 for fold in range(N_FOLDS)]
+        self.f1_values = [self.classification_results_fold[fold]["F1"][-1]
+                          for fold in range(N_FOLDS)]
+
+        if "Number clusters" in self.classification_results_fold[1]:
+            self.n_clusters = [self.classification_results_fold[fold]["Number clusters"]
+                               for fold in range(N_FOLDS)]
+
+    def set_classification_results_clusters(self):
+        classification_by_cluster = {}
+
+        self.clusters_results_folds = []
+
+        for fold in range(N_FOLDS):
+            for metric in CLASSIFICATION_METRICS:
+                classification_by_cluster[metric] = self.classification_results_fold[fold][metric][0:-1]
+
+            self.clusters_results_folds.append(
+                ClustersClassificationResults(classification_by_cluster)
+            )
+
+    def calc_mean_and_std_deviation(self):
+        if not(hasattr(self, 'accuracy_values')):
+            self.set_classification_values_by_fold()
+
+        self.mean_accuracy = round(np.mean(self.accuracy_values), 3)
+        self.mean_recall = round(np.mean(self.recall_values), 3)
+        self.mean_precision = round(np.mean(self.precision_values), 3)
+        self.mean_f1 = round(np.mean(self.f1_values), 3)
+
+        self.std_accuracy = round(np.std(self.accuracy_values), 3)
+        self.std_recall = round(np.std(self.recall_values), 3)
+        self.std_precision = round(np.std(self.precision_values), 3)
+        self.std_f1 = round(np.std(self.f1_values), 3)
+
+        if hasattr(self, 'n_clusters'):
+            self.mean_n_clusters = round(np.mean(self.n_clusters), 3)
+            self.std_n_clusters = round(np.std(self.n_clusters), 3)
+
+    def plot_accuracy_by_clusters(self, dataset: str):
+        # Check if self.clusters_results_folds is set
+        if not(hasattr(self, "clusters_results_folds")):
+            self.set_classification_results_clusters()
+
+        x_values, y_values = [], []
+        hue_values = []
+        n_samples_clusters = []
+
+        # Get all cluster accuracy values and label distribution
+        for fold in range(N_FOLDS):
+            labels_by_cluster = self.training_information_folds[fold].labels_by_cluster
+
+            for c, cluster_labels in labels_by_cluster.items():
+                # Count the number of labels by cluster
+                label_count = Counter(cluster_labels)
+                
+                count_lbls = [(count, lbl) for lbl, count in label_count.items()]
+                n_majority, lbl_majority = max(count_lbls)
+                n_minority, lbl_minority = min(count_lbls)
+
+                accuracy = self.clusters_results_folds[fold][c]["Accuracy"]
+
+                # x axis: number of majority class X minority class
+                # y axis: accuracy
+                x_values.append(n_majority / n_minority)
+                y_values.append(accuracy)
+                hue_values.append(lbl_majority)
+                n_samples_clusters.append(len(cluster_labels))
+
+        cols_names = {"imbalance": "Cluster Imbalance (# Majority Class / # Minority Class)",
+                      "accuracy": "Test Accuracy",
+                      "majority": "Label of Majority Class",
+                      "n_samples": "# of Samples in Cluster"
+                      }
+
+        data = pd.DataFrame({cols_names["imbalance"]: x_values,
+                             cols_names["accuracy"]: y_values,
+                             cols_names["majority"]: hue_values,
+                             cols_names["n_samples"]: n_samples_clusters})
+
+        _, ax = plt.subplots(figsize=(9, 6))
+        sp = sns.scatterplot(data=data, x=cols_names["imbalance"], y=cols_names["accuracy"],
+                             hue=cols_names["majority"], size=cols_names["n_samples"], palette="deep",)
+        sp.legend(loc="upper left", bbox_to_anchor=(1, 1))
+        ax.set_ylim(0, 1)
+        ax.grid()
+        plt.title(dataset)
+        plt.tight_layout()
+
+        folder_scatter = f"results/{dataset}/accuracy_by_clusters"
+        figname = f"mi_{self.mutual_info_percentage}_{self.experiment_params}.png"
+        os.makedirs(folder_scatter, exist_ok=True)
+        full_filename = os.path.join(folder_scatter, figname)
+
+        plt.savefig(full_filename)
+        print(full_filename, "salvo com sucesso.")
+        plt.clf()
+        plt.close()
+
+    def row_to_latex(self):
+        return (f"{self.experiment_params.replace("_", " ").title()}" +
+                f" & ${self.mean_accuracy} \\pm {self.std_accuracy}$" +
+                f" & ${self.mean_recall} \\pm {self.std_recall}$" +
+                f" & ${self.mean_precision} \\pm {self.std_precision}$" +
+                f" & ${self.mean_f1} \\pm {self.std_f1}$" +
+                f" & ${self.mean_n_clusters} \\pm {self.std_n_clusters}$" +
+                f" & ${self.mutual_info_percentage}$ \\\\ \\midrule\n"
+                )
+
+    def __str__(self):
+        classification_row = f"""
+            Accuracy: {self.mean_accuracy} +- {self.std_accuracy}
+            Recall: {self.mean_recall} +- {self.std_recall}
+            Precision: {self.mean_precision} +- {self.std_precision}
+            F1 Score: {self.mean_f1} +- {self.std_f1}
+        """
+
+        if hasattr(self, 'mean_n_clusters'):
+            classification_row += f"""
+            Number clusters: {self.mean_n_clusters} +- {self.std_n_clusters}"""
+
+        return classification_row
+
+
+@dataclass
+class CbegClassificationResultsTable:
+    rows_table: list[CbegClassificationRow]
+    folder_experiments: str
+    dataset: str
+
+    def save_results_table_in_latex(self):
+        latex_folder = f"{self.folder_experiments}/table_latex"
+
+        os.makedirs(latex_folder, exist_ok=True)
+
+        content = """
+            \\documentclass[12pt,a4paper]{standalone}
+            \\usepackage{booktabs}
+            \\usepackage{caption}
+
+            \\begin{document}
+            \\begin{tabular}{lllllll}
+                \\toprule
+                \\textbf{Method} & \\textbf{Accuracy} & \\textbf{Recall}  & \\textbf{Precision} & \\textbf{F1-Score} & \\textbf{Clusters} & \\textbf{Mutual Information} \\\\ \\midrule\n
+                """
+        for row in self.rows_table:
+            content += row.row_to_latex()
+
+        content += """
+            \\end{tabular}
+            \\end{document}"""
+
+        latex_filename = f"{latex_folder}/results.tex"
+
+        with open(latex_filename, "w") as file_output:
+            print(content, file=file_output)
+            print(latex_filename, "saved successfully.")
+
+
+    def save_results_table_in_csv(self):
+        csv_folder = f"{self.folder_experiments}/table_csv"
+
+        os.makedirs(csv_folder, exist_ok=True)
+
+        table_results = {}
+
+        # Create the table to be converted to csv
+        table_results["Experiment Params"] = [row.experiment_params for row in self.rows_table]
+        table_results["Variation"] = [row.experiment_variation for row in self.rows_table]
+        table_results["Accuracy"] = [f"{row.mean_accuracy} +- {row.std_accuracy}" for row in self.rows_table]
+        table_results["Recall"] = [f"{row.mean_recall} +- {row.std_recall}" for row in self.rows_table]
+        table_results["Precision"] = [f"{row.mean_precision} +- {row.std_precision}" for row in self.rows_table]
+        table_results["F1"] = [f"{row.mean_f1} +- {row.std_f1}" for row in self.rows_table]
+
+        if hasattr(self.rows_table[0], "mean_n_clusters"):
+            table_results["Clusters"] = [f"{row.mean_n_clusters} +- {row.std_n_clusters}" for row in self.rows_table]
+            csv_filename = f"{csv_folder}/{RESULTS_FILENAMES['cbeg']}"
+        else:
+            table_results["Clusters"] = [f"-" for _ in self.rows_table]
+            csv_filename = f"{csv_folder}/{RESULTS_FILENAMES['baseline']}"
+
+        table_results["Mutual information"] = [f"{row.mutual_info_percentage}" for row in self.rows_table]
+
+        df_results = pd.DataFrame.from_dict(table_results)
+        df_results.to_csv(csv_filename, index=False)
+
+        print(f"{csv_filename} saved successfully.")
+
+    def experiment_is_part_of_ablation(self, experiment_params: str, cluster_selection_type: str,
+                                       voting_variation="weighted_membership") -> bool:
+        # get the correct number of labels
+        n_labels = int(DATASETS_INFO[self.dataset]["nlabels"])
+
+        if str(n_labels) in experiment_params:
+            if f"{voting_variation}_fusion" in experiment_params or "majority_voting" in experiment_params:
+                return True
+
+        if ("compare" in experiment_params and
+            (f"{cluster_selection_type}_{voting_variation}_fusion" in experiment_params or
+             f"{cluster_selection_type}_majority_voting" in experiment_params)):
+                # and voting_variation in experiment_params):
+            return True
+
+        return False
+
+    def create_heatmap_base_classifiers(self):
+        pass
+
+    def create_heatmap_ablation_study(self):
+        """ Save the confusion matrix for the ablation study.
+        """
+        cluster_selection_variations = ["dbc", "dbc_ss", "silhouette"]
+        voting_variations = ["cluster_density", "entropy_voting", "weighted_membership", "weighted_membership_entropy"]
+
+        for cluster_selection_metric in cluster_selection_variations:
+            for voting_variation in voting_variations:
+                heatmaps_folder = f"{self.folder_experiments}/ablation_results"
+                os.makedirs(heatmaps_folder, exist_ok=True)
+                filename = os.path.join(
+                    heatmaps_folder, f"heatmap_ablation_{cluster_selection_metric}_{voting_variation}.png"
+                )
+
+                valid_ablation_rows = [
+                    row for row in self.rows_table
+                    if self.experiment_is_part_of_ablation(
+                        row.experiment_params, cluster_selection_metric, voting_variation)
+                ]
+                # for row in valid_ablation_rows:
+                #     print("->",row.mutual_info_percentage, row.experiment_params, row.experiment_variation)
+
+                # Shows the experiment variation and the percentage of mutual information
+                present_info = lambda r: f"{r.experiment_variation} ({r.mutual_info_percentage} %)" \
+                        if r.mutual_info_percentage < 100 else r.experiment_variation
+
+                data = np.vstack((
+                    [row.mean_accuracy for row in valid_ablation_rows],
+                    [row.mean_recall for row in valid_ablation_rows],
+                    [row.mean_precision for row in valid_ablation_rows],
+                    [row.mean_f1 for row in valid_ablation_rows],
+                )).T
+                
+                indexes = [present_info(row) for row in valid_ablation_rows]
+
+                sns.heatmap(data, annot=True, cmap='Blues',
+                            xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes)
+
+                plt.xlabel("Classification Metric", fontdict={'weight': 'bold'})
+                plt.ylabel("Experiment variation", fontdict={'weight': 'bold'})
+                # Save the heat map
+                plt.tight_layout()
+                plt.savefig(filename)
+                plt.clf()
+                plt.close()
+                print(filename, "salvo com sucesso.")
+
+
+def get_all_classification_metrics(text_experiment_data: str) -> dict[str, list[float]]:
+
+    # Dictionary where the values of accuracy, recall, precision and F1 are stored
+    dict_classification_results = {}
+
+    for metric in CLASSIFICATION_METRICS:
+        # All patterns found in text corresponding to the searched metric
+        found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", text_experiment_data)
+        dict_classification_results[metric] = [float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
+        # Average value of the metric
+        # dict_classification_metrics[f"Total {metric}"] = float(found_metric_patterns[-1].split(": ")[1])
+
+    if "Cluster" in text_experiment_data:
+        pattern_n_clusters = re.findall(r"Cluster [0-9]", text_experiment_data)[-1]
+        n_clusters = int(pattern_n_clusters.split(" ")[1]) + 1
+
+        dict_classification_results["Number clusters"] = n_clusters
+
+    return dict_classification_results
+
+
+def get_labels_and_predictions(text_file: str) -> tuple[list[int], list[int]]:
+    # Extract the true labels and predicted labels
+    pattern_prediction = r"Prediction: [0-9], Real label: [0-9]"
+
+    predicted_labels = []
+    true_labels = []
+    
+    label_prediction_patterns = re.findall(pattern_prediction, text_file)
+
+    for found_predictions in label_prediction_patterns:
+        predicted_label_str, true_label_str = found_predictions.split(", ")
+        y_pred = int(predicted_label_str.split(": ")[1])
+        y_true = int(true_label_str.split(": ")[1])
+
+        predicted_labels.append(y_pred)
+        true_labels.append(y_true)
+
+    return predicted_labels, true_labels
+
+
+def generate_cbeg_row_test_results(
+    results_files_contents: list[str], experiment_variation: int, experiment_params: str,
+    mutual_info_percentage: float, training_information_folds: list[TrainingInformation]
+):
+
+    classification_results_folds = [get_all_classification_metrics(text_experiment_data)
+                                    for text_experiment_data in results_files_contents]
+    # Cluster classification results
+    return CbegClassificationRow(
+        experiment_variation, experiment_params, mutual_info_percentage,
+        classification_results_folds, training_information_folds
+    )
+
+def generate_baseline_results():
+    """TODO: Docstring for generate_baseline_results."""
+    pass
+
+
+def read_files_results(experiment_result_folder: str, stage: str = "test") -> list[str]:
+
+    text_file_folds = []
+
+    for fold in range(1, N_FOLDS+1):
+
+        full_filename = f"{experiment_result_folder}/{stage}_summary/run_{fold}.txt"
+        text_file = open(full_filename).read()
+
+        text_file_folds.append(text_file)
+
+    return text_file_folds
+
+
+def compile_cbeg_results(datasets, experiments_parameters, ablation=False, latex=False):
+    for dataset in datasets:
+
+        rows_table_results = []
+
+        print(f"\n========== {dataset} dataset ==========\n".title())
+
+        for parameters in experiments_parameters:
+            mutual_info_percentage = parameters["mutual_info"]
+            experiment_folder = parameters["folder"]
+            experiment_variation = parameters["variation"]
+
+            print(f"Analyzing experiment mutual_info_{mutual_info_percentage}/cbeg/{experiment_folder}...")
+
+            # Create the folders for saving the output of experiments
+            experiment_result_folder = BASE_PATH_FOLDER.format(
+                dataset=dataset,
+                mutual_info_percentage=mutual_info_percentage,
+                algorithm="cbeg",
+                experiment_folder=experiment_folder,
+            ) 
+
+            filecontent_folds_test = read_files_results(experiment_result_folder, "test")
+            filecontent_folds_training = read_files_results(experiment_result_folder, "training")
+
+            training_information_by_fold = [TrainingInformation(fold_content)
+                                            for fold_content in filecontent_folds_training]
+            row_test_table = generate_cbeg_row_test_results(
+                filecontent_folds_test, experiment_variation, experiment_folder,
+                mutual_info_percentage, training_information_by_fold
+            )
+            rows_table_results.append( row_test_table )
+
+            print(row_test_table)
+
+        results_folder = f"./results/{dataset}"
+        results_table = CbegClassificationResultsTable(rows_table_results, results_folder, dataset)
+
+        results_table.save_results_table_in_csv()
+
+        for row in results_table.rows_table:
+            row.plot_accuracy_by_clusters(dataset)
+
+        if ablation:
+            results_table.create_heatmap_ablation_study()
+
+        if latex:
+            results_table.save_results_table_in_latex()
+
+
+def combine_best_cbeg_baselines(dataset: str):
+    combination_results = []
+
+    folder_results = f"results/{dataset}/table_csv"
+    output_path = f"{folder_results}/combination_results.csv" 
+
+    for algorithm, filename in RESULTS_FILENAMES.items():
+        input_files_path = f"{folder_results}/{filename}"
+
+        df_results = pd.read_csv(input_files_path)
+
+        if algorithm == "cbeg":
+            max_accuracy = df_results["Accuracy"].max()
+            idx_best = np.where(max_accuracy == df_results["Accuracy"])
+
+            combination_results.append(df_results.iloc[idx_best])
+        else:
+            combination_results.append(df_results)             
+
+    df_combination = pd.concat(combination_results)
+    df_combination.to_csv(output_path, index=False)
+    print(f"{output_path} saved successfully.")
+
+def main():
+
+    datasets = ["australian_credit", "contraceptive", "german_credit", "heart", "iris", "pima", "wdbc", "wine"]
+
+    baseline_experiments_parameters = []
+
+    for clf in BASE_CLASSIFIERS:
+        for mutual_info in [100.0, 75.0, 50.0]:
+            baseline_experiments_parameters.append(
+                {"mutual_info": mutual_info, "folder": clf, "variation": 0},
+            )
+        # compile_baselines_results("baselines", datasets, baseline_experiments_parameters)
+
+    cbeg_experiments_parameters = [
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 0},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 0},
+        {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_silhouette_majority_voting_fusion", "variation": 1},
+        {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_dbc_majority_voting_fusion", "variation": 1},
+        {"mutual_info": 100.0, "folder": "naive_bayes_compare_clusters_dbc_ss_majority_voting_fusion", "variation": 1},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_majority_voting_fusion", "variation": 2},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_majority_voting_fusion", "variation": 2},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_majority_voting_fusion", "variation": 2},
+        {"mutual_info": 75.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 75.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 50.0, "folder": "naive_bayes_2_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 50.0, "folder": "naive_bayes_3_clusters_majority_voting_fusion", "variation": 3},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_weighted_membership_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_weighted_membership_entropy_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_weighted_membership_entropy_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_cluster_density_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_cluster_density_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_2_clusters_entropy_voting_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "naive_bayes_3_clusters_entropy_voting_fusion", "variation": 4},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_weighted_membership_entropy_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_cluster_density_fusion", "variation": 1234},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 100.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 124},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 75.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_ss_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_dbc_entropy_voting_fusion", "variation": 1234},
+        {"mutual_info": 50.0, "folder": "classifier_selection_compare_clusters_silhouette_entropy_voting_fusion", "variation": 1234},
+    ]
+    compile_cbeg_results(datasets, cbeg_experiments_parameters, ablation=True, latex=True)
+    
+    for dataset in datasets:
+        combine_best_cbeg_baselines(dataset)
+
+if __name__ == "__main__":
+    main()
