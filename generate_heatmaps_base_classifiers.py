@@ -65,7 +65,7 @@ for dataset in DATASETS:
     ).T
 
     sns.heatmap(
-        data, annot=True, cmap='Blues',
+        data, annot=True, cmap='Blues', vmin=0, vmax=1,
         xticklabels=["Accuracy", "Recall", "Precision", "F1"], yticklabels=indexes
     )
 

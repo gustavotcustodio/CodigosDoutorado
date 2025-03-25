@@ -1,3 +1,4 @@
+from multiprocessing import process
 import os
 import re
 import pandas as pd
@@ -15,6 +16,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
 from process_results import DATASETS_INFO
 
 # results/iris/mutual_info_100.0/cbeg/naive_bayes_2_clusters_dbc_weighted_membership_fusion/test_summary/run_1.txt
@@ -23,19 +26,28 @@ BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algo
 
 CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
 
-BASE_CLASSIFIERS = ['nb', 'svm', 'lr', 'dt', 'rf', 'gb', 'xb']
+BASE_CLASSIFIERS = {'nb': GaussianNB,
+                    'svm': SVC,
+                    'lr': LogisticRegression,
+                    'dt': DecisionTreeClassifier,
+                    'rf': RandomForestClassifier,
+                    'gb': GradientBoostingClassifier,
+                    'xb': XGBClassifier
+                    }
 
 RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
 @dataclass
 class DataReader:
     path: str 
+    training: bool = True
 
     def read_data(self):
         self.data = {}
 
-        self.data["training"] = self.read_training_or_test_data("training")
         self.data["test"] = self.read_training_or_test_data("test")
+        if self.training:
+            self.data["training"] = self.read_training_or_test_data("training")
 
     def read_training_or_test_data(self, stage: str) -> list[str]:
         text_folds = []
@@ -46,10 +58,93 @@ class DataReader:
 
         return text_folds
 
-class SingleCbegResult:
+class BaseClassifierResult:
+    def __init__(self, test_info_folds: list[str], classifier_name: str,
+                 mutual_info_percentage: float=100.0):
+
+        self.classifier_name = classifier_name
+        self.mutual_info_percentage = mutual_info_percentage
+
+        self.classification_results_folds = []
+
+        for content_test in test_info_folds:
+            classification_results_fold = self.get_classification_metrics(content_test)
+
+            self.classification_results_folds.append(
+                self.get_general_classification_results(classification_results_fold)
+            )
+        self.calc_mean_and_std_metrics()
+
+    def get_general_classification_results(
+            self, classification_results: dict[str, list[float]]
+        ) -> dict[str, float]:
+
+        classification_metrics = {}
+
+        for metric in CLASSIFICATION_METRICS:
+            classification_metrics[metric] = classification_results[metric][-1]
+
+        return classification_metrics
+
+    def calc_mean_and_std_metrics(self):
+        self.mean_accuracy  = np.mean([metrics["Accuracy"] for metrics in self.classification_results_folds])
+        self.mean_recall    = np.mean([metrics["Recall"] for metrics in self.classification_results_folds])
+        self.mean_precision = np.mean([metrics["Precision"] for metrics in self.classification_results_folds])
+        self.mean_f1        = np.mean([metrics["F1"] for metrics in self.classification_results_folds])
+
+        self.std_accuracy   = np.std([metrics["Accuracy"] for metrics in self.classification_results_folds])
+        self.std_recall     = np.std([metrics["Recall"] for metrics in self.classification_results_folds])
+        self.std_precision  = np.std([metrics["Precision"] for metrics in self.classification_results_folds])
+        self.std_f1         = np.std([metrics["F1"] for metrics in self.classification_results_folds])
+
+    def get_classification_metrics(self, content_test: str):
+        # Dictionary where the values of accuracy, recall, precision and F1 are stored
+        dict_classification_results = {}
+
+        for metric in CLASSIFICATION_METRICS:
+            # All patterns found in text corresponding to the searched metric
+            found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", content_test)
+            dict_classification_results[metric] = [
+                float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
+
+        return dict_classification_results
+
+    def __str__(self):
+        return f"""
+            Accuracy: {self.mean_accuracy} +- {self.std_accuracy}
+            Recall: {self.mean_recall} +- {self.std_recall}
+            Precision: {self.mean_precision} +- {self.std_precision}
+            F1 Score: {self.mean_f1} +- {self.std_f1}
+        """
+
+@dataclass
+class BaseClassifiersCompiler:
+
+    baseline_results: list[BaseClassifierResult]
+    dataset: str
+
+    def create_heatmap_ablation_study(self):
+        """ Save the confusion matrix for the ablation study.
+        """
+        heatmaps_folder = f"results/{self.dataset}/ablation_results"
+        os.makedirs(heatmaps_folder, exist_ok=True)
+
+        mutual_info_columns = {100.0: 0, 75.0: 1, 50.0: 2}
+        classifiers_rows = {
+            name_classifier: row
+            for row, name_classifier in enumerate(list(BASE_CLASSIFIERS.values()))}
+
+        print(mutual_info_columns)
+        print(classifiers_rows)
+        # for metric in CLASSIFICATION_METRICS:
+        #     filename = os.path.join( heatmaps_folder, f"{metric}_baselines.png")
+
+
+class SingleCbegResult(BaseClassifierResult):
 
     def __init__(self, training_info_folds: list[str], test_info_folds: list[str],
-                 folder_name: str, experiment_variation: int, mutual_info_percentage: float):
+                 folder_name: str, experiment_variation: int,
+                 mutual_info_percentage: float=100.0):
         self.n_folds = len(test_info_folds)
         self.experiment_variation = experiment_variation
         self.mutual_info_percentage = mutual_info_percentage
@@ -64,7 +159,7 @@ class SingleCbegResult:
             self.extract_training_information(training_info_folds[fold], fold)
             self.extract_test_information(test_info_folds[fold], fold)
 
-        self._calc_mean_and_std_metrics()
+        self.calc_mean_and_std_metrics()
 
     def _get_experiments_params(self, folder_name):
 
@@ -109,26 +204,14 @@ class SingleCbegResult:
         return labels_by_cluster
 
     def extract_test_information(self, content_test, fold):
-        classification_results_fold = self._get_classification_metrics(content_test)
+        classification_results_fold = self.get_classification_metrics(content_test)
 
         self.cluster_classification_folds.append(
             self._get_classification_results_by_cluster(classification_results_fold)
         )
         self.classification_results_folds.append(
-            self._get_general_classification_results(classification_results_fold)
+            self.get_general_classification_results(classification_results_fold)
         )
-        # self.classification_results_fold[fold] = self._get_classification_metrics(content_test)
-
-    def _get_general_classification_results(
-            self, classification_results: dict[str, list[float]]
-        ) -> dict[str, float]:
-
-        classification_metrics = {}
-
-        for metric in CLASSIFICATION_METRICS:
-            classification_metrics[metric] = classification_results[metric][-1]
-
-        return classification_metrics
 
     def _get_classification_results_by_cluster(
             self, classification_results: dict[str, list[float]]
@@ -141,7 +224,7 @@ class SingleCbegResult:
 
         return classification_by_cluster
 
-    def _get_classification_metrics(self, content_test: str):
+    def get_classification_metrics(self, content_test: str):
         # Dictionary where the values of accuracy, recall, precision and F1 are stored
         dict_classification_results = {}
 
@@ -160,25 +243,11 @@ class SingleCbegResult:
 
         return dict_classification_results
 
-    def _calc_mean_and_std_metrics(self):
-        self.mean_accuracy  = np.mean([metrics["Accuracy"] for metrics in self.classification_results_folds])
-        self.mean_recall    = np.mean([metrics["Recall"] for metrics in self.classification_results_folds])
-        self.mean_precision = np.mean([metrics["Precision"] for metrics in self.classification_results_folds])
-        self.mean_f1        = np.mean([metrics["F1"] for metrics in self.classification_results_folds])
+@dataclass
+class CbegResultsCompiler:
 
-        self.std_accuracy   = np.std([metrics["Accuracy"] for metrics in self.classification_results_folds])
-        self.std_recall     = np.std([metrics["Recall"] for metrics in self.classification_results_folds])
-        self.std_precision  = np.std([metrics["Precision"] for metrics in self.classification_results_folds])
-        self.std_f1         = np.std([metrics["F1"] for metrics in self.classification_results_folds])
-
-class CbegResultsCompilation:
-
-    def __init__(self, cbeg_results: list[SingleCbegResult], dataset: str):
-        self.cbeg_results = cbeg_results
-        self.dataset = dataset
-
-        #self.cbeg_results = sorted(self.cbeg_results,
-        #                           key=lambda x: (x.experiment_variation, x.cluster_selection_strategy))
+    cbeg_results: list[SingleCbegResult]
+    dataset: str
 
     def _get_metric_value(self, row_cbeg, metric):
         if metric == "Accuracy":
@@ -193,7 +262,7 @@ class CbegResultsCompilation:
         else: # F1
             return row_cbeg.mean_f1
 
-    def _get_label_experiment(self, row_cbeg):
+    def _get_experiment_params(self, row_cbeg):
         variation = row_cbeg.experiment_variation
         selection_strategy = row_cbeg.cluster_selection_strategy
         mutual_info = row_cbeg.mutual_info_percentage
@@ -209,7 +278,7 @@ class CbegResultsCompilation:
     def create_heatmap_ablation_study(self):
         """ Save the confusion matrix for the ablation study.
         """
-        heatmaps_folder = f"{self.dataset}/ablation_results"
+        heatmaps_folder = f"results/{self.dataset}/ablation_results"
         os.makedirs(heatmaps_folder, exist_ok=True)
 
         # All possible methods for
@@ -244,18 +313,18 @@ class CbegResultsCompilation:
         # Save the heat map
         plt.xticks(rotation=10)
         plt.tight_layout()
-        # plt.savefig(filename)
-        plt.show()
-        breakpoint()
+        plt.savefig(filename)
         plt.clf()
         plt.close()
+
+        print(f"{filename} saved successfully.")
 
     def _fill_heatmap_dict(self, metric, vote_fusion_strategies):
         results_dict_heatmap = {}
 
         for row_cbeg in self.cbeg_results:
             clf_metric_value = self._get_metric_value(row_cbeg, metric)
-            experiment_label = self._get_label_experiment(row_cbeg)
+            experiment_label = self._get_experiment_params(row_cbeg)
             fusion_strategy = row_cbeg.fusion_strategy
 
             if experiment_label not in results_dict_heatmap:
@@ -326,12 +395,7 @@ def filter_cbeg_experiments_configs(experiment_variation: str,mutual_info_percen
     else:
         return {}
 
-
-def main():
-    datasets = ["australian_credit", "contraceptive", "german_credit", "heart", "iris", "pima", "wdbc", "wine"]
-
-    mutual_info_percentages = [100.0, 75.0, 50.0]
-
+def process_cbeg_results(datasets, mutual_info_percentages):
     for dataset in datasets:
         experiments_configs = []
         # The number of classes in the dataset is the default number of clusters
@@ -346,27 +410,48 @@ def main():
             ]
 
         experiments_configs = [config for config in experiments_configs if config]
-
         experiments_configs = sorted(
             experiments_configs, key=lambda x: (x['variation'], x['folder'], x["mutual_info"])
         )
-
         cbeg_results = []
 
         for config in experiments_configs:
             path = f"./results/{dataset}/mutual_info_{config['mutual_info']}/cbeg/{config['folder']}"
-            loader = DataReader(path)
+            loader = DataReader(path, training=True)
             loader.read_data()
-            
+
             cbeg_single_result = SingleCbegResult(
                 loader.data["training"], loader.data["test"], config['folder'],
                 config["variation"], config['mutual_info']
             )
             cbeg_results.append( cbeg_single_result )
 
-        cbeg_compilation = CbegResultsCompilation(cbeg_results, dataset)
+        cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
         cbeg_compilation.create_heatmap_ablation_study()
 
+
+def process_base_results(datasets: list[str], mutual_info_percentages: list[float]):
+
+    for dataset in datasets:
+        for mutual_info in mutual_info_percentages:
+            for abbrev_classifier, classifier_name in BASE_CLASSIFIERS.items():
+
+                path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
+
+                loader = DataReader(path, training=False)
+                loader.read_data()
+                classifier = BaseClassifierResult(loader.data["test"], classifier_name, mutual_info)
+                print(classifier)
+
+def main():
+    datasets = ["australian_credit", "contraceptive", "german_credit", "heart", "iris", "pima", "wdbc", "wine"]
+
+    mutual_info_percentages = [100.0, 75.0, 50.0]
+
+    # process_cbeg_results(datasets, mutual_info_percentages)
+
+    process_base_results(datasets, mutual_info_percentages) 
+    # BaseClassifierResult(test_info_folds, classifier_name, mutual_info_percentage)
 
     # for clf in BASE_CLASSIFIERS:
     #     for mutual_info in [100.0, 75.0, 50.0]:
