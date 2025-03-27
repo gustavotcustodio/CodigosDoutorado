@@ -21,6 +21,7 @@ from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data
 from collections import Counter
+from imblearn.over_sampling import SMOTE
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
@@ -438,6 +439,18 @@ class CBEG:
 
         if self.verbose and self.min_mutual_info_percentage < 100:
             print("Performing feature selection...")
+
+        ############ SMOTE ###############
+        for c, X_cluster in self.samples_by_cluster.items():
+            y_cluster = self.labels_by_cluster[c]
+
+            if len(np.unique(y_cluster) > 1):
+                oversample = SMOTE()
+                X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
+            
+                self.samples_by_cluster[c] = X_cluster
+                self.labels_by_cluster[c] = y_cluster
+        ###################################
 
         self.features_module = FeatureSelectionModule(
             self.samples_by_cluster, self.labels_by_cluster,

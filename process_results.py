@@ -4,36 +4,20 @@ import re
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.sparse import data
 import seaborn as sns
-from operator import itemgetter
-from collections import Counter
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay#, plot_confusion_matrix
+# from collections import Counter
+# from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from cbeg import N_FOLDS
 from dataclasses import dataclass
 from dataset_loader import DATASETS_INFO
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
-from process_results import DATASETS_INFO
-
-# results/iris/mutual_info_100.0/cbeg/naive_bayes_2_clusters_dbc_weighted_membership_fusion/test_summary/run_1.txt
 
 BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}"
 
 CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
 
-BASE_CLASSIFIERS = {'nb': GaussianNB,
-                    'svm': SVC,
-                    'lr': LogisticRegression,
-                    'dt': DecisionTreeClassifier,
-                    'rf': RandomForestClassifier,
-                    'gb': GradientBoostingClassifier,
-                    'xb': XGBClassifier
-                    }
+CLASSIFIERS_FULLNAMES = {
+    'nb': "Naive Bayes", 'svm': "SVM", 'lr': "Logistic Reg", 'dt': "Decision Tree",
+    'rf': "Random Forest", 'gb': "Grad. Boosting", 'xb': "XGBoost" }
 
 RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
@@ -61,7 +45,6 @@ class DataReader:
 class BaseClassifierResult:
     def __init__(self, test_info_folds: list[str], classifier_name: str,
                  mutual_info_percentage: float=100.0):
-
         self.classifier_name = classifier_name
         self.mutual_info_percentage = mutual_info_percentage
 
@@ -85,6 +68,19 @@ class BaseClassifierResult:
             classification_metrics[metric] = classification_results[metric][-1]
 
         return classification_metrics
+
+    def get_metric_value(self, metric):
+        if metric == "Accuracy":
+            return self.mean_accuracy
+
+        elif metric == "Recall":
+            return self.mean_recall
+
+        elif metric == "Precision":
+            return self.mean_precision
+
+        else: # F1
+            return self.mean_f1
 
     def calc_mean_and_std_metrics(self):
         self.mean_accuracy  = np.mean([metrics["Accuracy"] for metrics in self.classification_results_folds])
@@ -123,22 +119,54 @@ class BaseClassifiersCompiler:
     baseline_results: list[BaseClassifierResult]
     dataset: str
 
-    def create_heatmap_ablation_study(self):
+    def plot_classification_heatmap(self):
         """ Save the confusion matrix for the ablation study.
         """
         heatmaps_folder = f"results/{self.dataset}/ablation_results"
+
         os.makedirs(heatmaps_folder, exist_ok=True)
 
         mutual_info_columns = {100.0: 0, 75.0: 1, 50.0: 2}
+            
         classifiers_rows = {
             name_classifier: row
-            for row, name_classifier in enumerate(list(BASE_CLASSIFIERS.values()))}
+            for row, name_classifier in enumerate(list(CLASSIFIERS_FULLNAMES.values()))
+        }
+        num_rows = len(CLASSIFIERS_FULLNAMES.keys())
+        num_cols = len(mutual_info_columns.keys())
 
-        print(mutual_info_columns)
-        print(classifiers_rows)
-        # for metric in CLASSIFICATION_METRICS:
-        #     filename = os.path.join( heatmaps_folder, f"{metric}_baselines.png")
+        for metric in CLASSIFICATION_METRICS:
+            data_matrix = np.zeros((num_rows, num_cols), dtype=np.float32)
 
+            for baseline_result in self.baseline_results:
+                mutual_info = baseline_result.mutual_info_percentage
+                base_classifier = baseline_result.classifier_name
+
+                row = classifiers_rows[base_classifier]
+                col = mutual_info_columns[mutual_info]
+
+                data_matrix[row, col] = baseline_result.get_metric_value(metric)
+            
+            indexes = [classifier for classifier in classifiers_rows]
+            columns = [f"{mutual_info} %" for mutual_info in mutual_info_columns]
+
+            filename = os.path.join( heatmaps_folder, f"{metric}_heatmap_baselines.png")
+            self.save_heatmap(data_matrix, columns, indexes, filename)
+
+
+    def save_heatmap(self, data, columns, indexes, filename):
+        sns.heatmap(data, annot=True, cmap='Blues',
+                    xticklabels=columns, yticklabels=indexes, vmin=0, vmax=1)
+
+        plt.xlabel("Mutual Information Percentage", fontdict={'weight': 'bold'})
+        plt.ylabel("Base Classifier", fontdict={'weight': 'bold'})
+        # Save the heat map
+        plt.tight_layout()
+        plt.savefig(filename)
+        plt.clf()
+        plt.close()
+
+        print(f"{filename} saved successfully.")
 
 class SingleCbegResult(BaseClassifierResult):
 
@@ -232,8 +260,6 @@ class SingleCbegResult(BaseClassifierResult):
             # All patterns found in text corresponding to the searched metric
             found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", content_test)
             dict_classification_results[metric] = [float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
-            # Average value of the metric
-            # dict_classification_metrics[f"Total {metric}"] = float(found_metric_patterns[-1].split(": ")[1])
 
         if "Cluster" in content_test:
             pattern_n_clusters = re.findall(r"Cluster [0-9]", content_test)[-1]
@@ -249,19 +275,6 @@ class CbegResultsCompiler:
     cbeg_results: list[SingleCbegResult]
     dataset: str
 
-    def _get_metric_value(self, row_cbeg, metric):
-        if metric == "Accuracy":
-            return row_cbeg.mean_accuracy
-
-        elif metric == "Recall":
-            return row_cbeg.mean_recall
-
-        elif metric == "Precision":
-            return row_cbeg.mean_precision
-
-        else: # F1
-            return row_cbeg.mean_f1
-
     def _get_experiment_params(self, row_cbeg):
         variation = row_cbeg.experiment_variation
         selection_strategy = row_cbeg.cluster_selection_strategy
@@ -275,7 +288,7 @@ class CbegResultsCompiler:
             output += f" ({mutual_info} %)"
         return output
 
-    def create_heatmap_ablation_study(self):
+    def plot_classification_heatmap(self):
         """ Save the confusion matrix for the ablation study.
         """
         heatmaps_folder = f"results/{self.dataset}/ablation_results"
@@ -289,7 +302,7 @@ class CbegResultsCompiler:
                 key=lambda x: (x.experiment_variation, x.cluster_selection_strategy))
 
         for metric in CLASSIFICATION_METRICS:
-            filename = os.path.join( heatmaps_folder, f"{metric}_heatmap_ablation.png")
+            filename = os.path.join( heatmaps_folder, f"{metric}_heatmap_ablation_cbeg.png")
             dict_results = self._fill_heatmap_dict(metric, vote_fusion_strategies)
             data = []
             # Convert dict of dictionaries to 2D matrix
@@ -302,9 +315,9 @@ class CbegResultsCompiler:
             indexes = list(dict_results.keys())
             columns = vote_fusion_strategies
             
-            self._save_heatmap(data, columns, indexes, filename)
+            self.save_heatmap(data, columns, indexes, filename)
 
-    def _save_heatmap(self, data, columns, indexes, filename):
+    def save_heatmap(self, data, columns, indexes, filename):
         sns.heatmap(data, annot=True, cmap='Blues',
                     xticklabels=columns, yticklabels=indexes, vmin=0, vmax=1)
 
@@ -323,7 +336,7 @@ class CbegResultsCompiler:
         results_dict_heatmap = {}
 
         for row_cbeg in self.cbeg_results:
-            clf_metric_value = self._get_metric_value(row_cbeg, metric)
+            clf_metric_value = row_cbeg.get_metric_value(metric)
             experiment_label = self._get_experiment_params(row_cbeg)
             fusion_strategy = row_cbeg.fusion_strategy
 
@@ -425,44 +438,50 @@ def process_cbeg_results(datasets, mutual_info_percentages):
                 config["variation"], config['mutual_info']
             )
             cbeg_results.append( cbeg_single_result )
+        breakpoint()
 
         cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
-        cbeg_compilation.create_heatmap_ablation_study()
+        cbeg_compilation.plot_classification_heatmap()
 
 
 def process_base_results(datasets: list[str], mutual_info_percentages: list[float]):
 
     for dataset in datasets:
-        for mutual_info in mutual_info_percentages:
-            for abbrev_classifier, classifier_name in BASE_CLASSIFIERS.items():
+        classifiers_results = []
 
+        for mutual_info in mutual_info_percentages:
+
+            for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
                 path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
 
                 loader = DataReader(path, training=False)
                 loader.read_data()
                 classifier = BaseClassifierResult(loader.data["test"], classifier_name, mutual_info)
-                print(classifier)
+
+                classifiers_results.append(classifier)
+
+        # Plot the heatmap with classification metrics from base classifiers
+        classifier_compiler = BaseClassifiersCompiler(classifiers_results, dataset)
+
+        classifier_compiler.plot_classification_heatmap()
+
+def filter_no_exper_datasets(datasets: list[str]) -> list[str]:
+    valid_datasets = []
+    results_list = os.listdir("./results")
+
+    for dataset in datasets:
+        if dataset in results_list:
+            valid_datasets.append(dataset)
+    return valid_datasets
 
 def main():
     datasets = ["australian_credit", "contraceptive", "german_credit", "heart", "iris", "pima", "wdbc", "wine"]
+    datasets = filter_no_exper_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]
 
-    # process_cbeg_results(datasets, mutual_info_percentages)
-
-    process_base_results(datasets, mutual_info_percentages) 
-    # BaseClassifierResult(test_info_folds, classifier_name, mutual_info_percentage)
-
-    # for clf in BASE_CLASSIFIERS:
-    #     for mutual_info in [100.0, 75.0, 50.0]:
-    #         baseline_experiments_parameters.append(
-    #             {"mutual_info": mutual_info, "folder": clf, "variation": 0},
-    #         )
-    #     compile_baselines_results("baselines", datasets, baseline_experiments_parameters)
-    # compile_cbeg_results(datasets, cbeg_experiments_parameters, ablation=True, latex=True)
-    # 
-    # for dataset in datasets:
-    #     combine_best_cbeg_baselines(dataset)
+    process_cbeg_results(datasets, mutual_info_percentages)
+    # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
     main()
