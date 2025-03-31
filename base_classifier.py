@@ -79,9 +79,9 @@ def perform_feature_selection(X_train, y_train, X_val, min_mutual_info_percentag
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--dataset", help = "Dataset used.", required=True)
-    parser.add_argument("-c", "--classifier", help = "Selected classifier.", required=True)
-    parser.add_argument("-m", "--min_mutual_info_percentage", default=100.0, help = "")
+    parser.add_argument("-d", "--dataset", type=str, help = "Dataset used.", required=True)
+    parser.add_argument("-c", "--classifier", type=str, help = "Selected classifier.", required=True)
+    parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "")
 
     # Read arguments from command line
     args = parser.parse_args()

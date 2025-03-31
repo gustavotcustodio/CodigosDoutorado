@@ -1,15 +1,14 @@
 import numpy as np
-from dataclasses import dataclass
 from skfuzzy.cluster import cmeans
 
 
-@dataclass
 class FuzzyCMeans:
-    n_clusters: int
+    def __init__(self, n_clusters: int):
+        self.n_clusters = n_clusters
 
     def fit_predict(self, X):
         centroids, u_membership, _, _, _, _, _ = cmeans(X.T, c=self.n_clusters, m=2, maxiter=1000, error=1e-6)
-        #clusters = np.argmax(u_membership, axis=0)
+        # clusters = np.argmax(u_membership, axis=0)
 
         selected_random_values = np.random.random(len(X))
 
@@ -32,3 +31,6 @@ class FuzzyCMeans:
         for c in possible_clusters:
             clusters[clusters == c] = clusters_numbers_dict[c]
         return clusters
+
+    def __repr__(self):
+        return f"FuzzyCMeans(n_clusters={self.n_clusters})"

@@ -19,7 +19,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, Gradien
 from sklearn.tree import DecisionTreeClassifier
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
-from dataset_loader import normalize_data
+from dataset_loader import normalize_data, DATASETS_INFO
 from collections import Counter
 from imblearn.over_sampling import SMOTE
 
@@ -53,8 +53,9 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    'rf': RandomForestClassifier,
-                    'gb': GradientBoostingClassifier,
+                    #'rf': RandomForestClassifier,
+                    #'gb': GradientBoostingClassifier,
+                    #'xb': XGBClassifier,
                     #'adaboost': AdaBoostClassifier,
                     }
 
@@ -287,6 +288,53 @@ class CBEG:
                 vote_sums, # Voting weights
                 np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
+    def smote_oversampling(self):
+        # Number of real samples
+        n_original_samples = sum([len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()])
+        # Used to map which data points are synthetic
+        self.idx_synth_data_by_cluster = {}
+
+        for c, X_cluster in self.samples_by_cluster.items():
+
+            y_cluster = self.labels_by_cluster[c]
+
+            n_samples_by_class_cluster = [
+                len(np.where(y_cluster == lbl)[0]) for lbl in range(self.n_labels)
+            ]
+            # Get the minority class and the number os samples in it
+            self.minority_class, n_minority_class = min(
+                    enumerate(n_samples_by_class_cluster), key=lambda x: x[1])
+            n_real_cluster = len(y_cluster) # Number of real samples in this cluster
+            n_samples = len(y_cluster)
+
+            if n_minority_class >=2 and n_samples >= 3:
+                k_neighbors = min(n_minority_class - 1, 5)
+
+                oversample = SMOTE(k_neighbors=k_neighbors)
+                X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
+
+                n_samples_cluster = len(y_cluster)  # Number of samples in cluster including synthetic
+
+                n_synthetic_cluster = n_samples_cluster - n_real_cluster
+                # Used to map which data points n this cluster are synthetic
+                synthetic_data_map = np.array(
+                    [False] * n_real_cluster + [True] * n_synthetic_cluster )
+
+                idx_samples = np.arange(n_samples_cluster)
+                # Shuffle the order of samples in each cluster
+                np.random.shuffle(idx_samples)
+                
+                self.samples_by_cluster[c] = X_cluster[idx_samples]
+                self.labels_by_cluster[c] = y_cluster[idx_samples]
+                self.idx_synth_data_by_cluster[c] = np.where(synthetic_data_map[idx_samples])[0]
+            else:
+                self.idx_synth_data_by_cluster[c] = []
+        # Number of samples including the synthetic ones 
+        n_total_samples = sum([len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()])
+        # TODO ver como fazer com as classes majoritárias no gráfico de bolinhas
+        # TODO consertar majority voting par
+        print(f"Num. samples before: {n_original_samples}\nNum. samples after: {n_total_samples}")
+
     def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = []
 
@@ -346,15 +394,19 @@ class CBEG:
             selected_features = self.features_module.features_by_cluster[c]
             base_classifier = self.base_classifiers[c]
             labels_cluster = self.labels_by_cluster[c]
+            synthetic_samples = self.idx_synth_data_by_cluster[c]
 
             print(f"========== Cluster {c} ==========\n", file=file_output)
 
             print(f"Base classifier: {base_classifier}\n", file=file_output)
 
+            print(f"Minority Class: {self.minority_class}\n", file=file_output)
+
             print(f"Selected Features: {selected_features}\n", file=file_output)
 
             print(f"Labels: {labels_cluster}\n", file=file_output)
 
+            print(f"Synthetic samples indexes: {synthetic_samples}\n", file=file_output)
         file_output.close()
 
     def save_test_data(self, prediction_results: PredictionResults, filename: str, folder: str) -> None:
@@ -441,15 +493,8 @@ class CBEG:
             print("Performing feature selection...")
 
         ############ SMOTE ###############
-        for c, X_cluster in self.samples_by_cluster.items():
-            y_cluster = self.labels_by_cluster[c]
-
-            if len(np.unique(y_cluster) > 1):
-                oversample = SMOTE()
-                X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
-            
-                self.samples_by_cluster[c] = X_cluster
-                self.labels_by_cluster[c] = y_cluster
+        print("Running SMOTE oversampling...")
+        self.smote_oversampling()
         ###################################
 
         self.features_module = FeatureSelectionModule(
@@ -465,13 +510,13 @@ class CBEG:
             self.base_classifiers = self.select_base_classifiers( classification_metrics )
 
         else:
-            n_clusters = int(self.cluster_module.n_clusters)
+            self.n_labels = int(self.cluster_module.n_clusters)
 
             # If no base classifier is selected the default is GaussianNB
             # If only a sample is present in cluster, the default is the DummyClassifier
             self.base_classifiers = [create_classifier(DEFAULT_CLASSIFIER) if len(self.samples_by_cluster[c]) > 1
                                      else DummyClassifier(strategy="most_frequent")
-                                     for c in range(n_clusters) ]
+                                     for c in range(self.n_labels) ]
 
         # Fit the data in each different cluster to the designated classifier.
         for c in range(self.cluster_module.n_clusters):
@@ -483,6 +528,25 @@ class CBEG:
 def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:
     """ Save training and test data.
     """
+    folder_name = get_folder_name(args)
+    filename = f'run_{fold}.txt'
+
+    folder_training = os.path.join(folder_name, 'training_summary')
+    
+    # Save the data: clusters, labels, selected features, etc
+    os.makedirs(folder_training, exist_ok=True)
+    cbeg.save_training_data(filename, folder_training)
+
+    print('Training data saved successfully.')
+
+    folder_test = os.path.join(folder_name, 'test_summary')
+    os.makedirs(folder_test, exist_ok=True)
+    cbeg.save_test_data(prediction_results, filename, folder_test)
+    
+    print('Test data saved successfully.')
+    print(50 * '-',"\n")
+
+def get_folder_name(args):
     folder_name_suffix = 'classifier_selection_' if args.base_classifier_selection else 'naive_bayes_'
     folder_name_suffix += f'{args.n_clusters}_clusters_'
 
@@ -495,22 +559,7 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
             'results', args.dataset,
             f'mutual_info_{args.min_mutual_info_percentage}', 'cbeg'
         )
-    filename = f'run_{fold}.txt'
-
-    folder_training = os.path.join(folder_name_prefix, folder_name_suffix, 'training_summary')
-    
-    # Save the data: clusters, labels, selected features, etc
-    os.makedirs(folder_training, exist_ok=True)
-    cbeg.save_training_data(filename, folder_training)
-
-    print('Training data saved successfully.')
-
-    folder_test = os.path.join(folder_name_prefix, folder_name_suffix, 'test_summary')
-    os.makedirs(folder_test, exist_ok=True)
-    cbeg.save_test_data(prediction_results, filename, folder_test)
-    
-    print('Test data saved successfully.')
-    print(50 * '-',"\n")
+    return os.path.join(folder_name_prefix, folder_name_suffix)
 
 
 def main():
@@ -529,7 +578,15 @@ def main():
 
     args.n_clusters = int(args.n_clusters) if args.n_clusters != "compare" else "compare"
 
-    # process_args_and_add_default_values(args)
+    # Check if the experiments are valid
+    from process_results import filter_cbeg_experiments_configs
+    folder_name = get_folder_name(args).split("/")[-1]
+    n_classes_dataset = DATASETS_INFO[args.dataset]["nlabels"]
+    mutual_info = args.min_mutual_info_percentage
+    experiment_config = filter_cbeg_experiments_configs(folder_name, mutual_info, n_classes_dataset)
+    if not(experiment_config):
+        print("Skipping experiment variation...")
+        return
 
     for fold in range(1, N_FOLDS+1):
         X, y = dataset_loader.select_dataset_function(args.dataset)()

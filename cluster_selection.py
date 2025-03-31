@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from typing import Callable, Optional
-from sklearn.cluster import KMeans, SpectralClustering, kmeans_plusplus
+from sklearn.cluster import DBSCAN, KMeans, SpectralClustering, kmeans_plusplus
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
@@ -12,7 +12,6 @@ CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
     'fcm': FuzzyCMeans,
-    # 'spectral_clustering': SpectralClustering,
 }
 
 
@@ -61,6 +60,11 @@ class ClusteringModule:
 
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
             for c in range(2, max_clusters):
+                # dbscan = DBSCAN(eps=3, min_samples=2)
+
+                # clusters = dbscan.fit_predict(self.X)
+                # idx_clusters = np.where(clusters > -1)[0]
+                # c = len(np.unique(clusters[idx_clusters]))
 
                 clusterer = self.create_clusterer(clustering_algorithm, c)
                 clusters = clusterer.fit_predict(self.X)
@@ -68,17 +72,17 @@ class ClusteringModule:
                 # We need to pass n_clusters as a param instead of c, because the number
                 # of clusters might change for Fuzzy C-means.
                 evaluation_value = self.evaluation_function(clusters, clusterer.n_clusters)
-                # print(clustering_algorithm, clusterer, c, evaluation_value)
+                # print(clustering_algorithm, c, evaluation_value, clusterer)
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
-
 
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
 
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
         self.best_evaluation_value = evaluation_values[idx_best_clusterer]
+        # print(f"Best evaluation: {self.clustering_algorithm} - {self.best_evaluation_value}")
 
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
