@@ -101,20 +101,22 @@ class Logger:
         """
         folder_name_suffix = f'supervided_clustering_base_classifier_{self.classifier.base_classifier}'
 
-        folder_name_prefix = os.path.join('results', self.dataset, 'mutual_info_100.0', 'supervised_clustering')
-        filename = f'run_{fold}.txt'
+        for mutual_info in [50.0, 75.0, 100.0]:
+            folder_name_prefix = os.path.join('results', self.dataset,
+                                              f'mutual_info_{mutual_info}', 'supervised_clustering')
+            filename = f'run_{fold}.txt'
 
-        folder_training = os.path.join(folder_name_prefix, folder_name_suffix, 'training_summary')
-        
-        # Save the data: clusters, labels, selected features, etc
-        os.makedirs(folder_training, exist_ok=True)
-        self.save_training_data(filename, folder_training)
+            folder_training = os.path.join(folder_name_prefix, folder_name_suffix, 'training_summary')
+            
+            # Save the data: clusters, labels, selected features, etc
+            os.makedirs(folder_training, exist_ok=True)
+            self.save_training_data(filename, folder_training)
 
-        print('Training data saved successfully.')
+            print('Training data saved successfully.')
 
-        folder_test = os.path.join(folder_name_prefix, folder_name_suffix, 'test_summary')
-        os.makedirs(folder_test, exist_ok=True)
-        self.save_test_data(filename, folder_test)
-        
-        print('Test data saved successfully.')
-        print(50 * '-',"\n")
+            folder_test = os.path.join(folder_name_prefix, folder_name_suffix, 'test_summary')
+            os.makedirs(folder_test, exist_ok=True)
+            self.save_test_data(filename, folder_test)
+            
+            print('Test data saved successfully.')
+            print(50 * '-',"\n")

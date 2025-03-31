@@ -510,13 +510,13 @@ class CBEG:
             self.base_classifiers = self.select_base_classifiers( classification_metrics )
 
         else:
-            self.n_labels = int(self.cluster_module.n_clusters)
+            n_clusters = int(self.cluster_module.n_clusters)
 
             # If no base classifier is selected the default is GaussianNB
             # If only a sample is present in cluster, the default is the DummyClassifier
             self.base_classifiers = [create_classifier(DEFAULT_CLASSIFIER) if len(self.samples_by_cluster[c]) > 1
                                      else DummyClassifier(strategy="most_frequent")
-                                     for c in range(self.n_labels) ]
+                                     for c in range(n_clusters) ]
 
         # Fit the data in each different cluster to the designated classifier.
         for c in range(self.cluster_module.n_clusters):
@@ -585,6 +585,7 @@ def main():
     mutual_info = args.min_mutual_info_percentage
     experiment_config = filter_cbeg_experiments_configs(folder_name, mutual_info, n_classes_dataset)
     if not(experiment_config):
+        print(folder_name)
         print("Skipping experiment variation...")
         return
 

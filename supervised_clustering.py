@@ -268,6 +268,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
     parser.add_argument("-b", "--base_classifier", type=str, default='svm', help = "Values: svm, dt, lr")
+    parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "Mutual information value.")
     parser.add_argument("-M", type=int, default=10,
                         help = "Number of closest neighbors, used do determine the voting weight of each base classifier.")
     args = parser.parse_args()
@@ -282,8 +283,6 @@ if __name__ == "__main__":
         X_train, X_val = normalize_data(X_train, X_val)
 
         s_clf = SupervisedClustering(base_classifier=args.base_classifier, M=args.M)
-
-        # logger = Logger(sc, )
         s_clf.fit(X_train, y_train)
         y_pred, voting_weights, y_pred_by_clusters = s_clf.predict(X_val)
         prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_clusters)

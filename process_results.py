@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
-# from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from cbeg import N_FOLDS
 from dataclasses import dataclass
 from dataset_loader import DATASETS_INFO
@@ -16,10 +15,11 @@ CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
 
 CLASSIFIERS_FULLNAMES = {
     'nb': "Naive Bayes", 'svm': "SVM", 'lr': "Logistic Reg", 'dt': "Decision Tree",
-    'rf': "Random Forest", 'gb': "Grad. Boosting", 'xb': "XGBoost" }
+    'rf': "Random Forest", 'gb': "Grad. Boosting", 'xb': "XGBoost",
+    'sc_dt': 'S. Clustering (DT)', 'sc_svm': 'S. Clustering (SVM)', 'sc_lr': 'S. Clustering (LR)'}
 
 LABELS_CLASSIFIERS = ['GaussianNB', 'SVC', 'KNeighborsClassifier',
-                      'LogisticRegression', 'DecisionTreeClassifier', 'RandomForestClassifier']
+                      'LogisticRegression', 'DecisionTreeClassifier', 'RandomForestClassifier', ]
 
 RESULTS_FILENAMES = {"cbeg": "results.csv" , "baseline": "results_baseline.csv"}
 
@@ -225,7 +225,6 @@ class SingleCbegResult(BaseClassifierResult):
                 self._get_minority_class_by_cluster(content_training))
         self.classifier_by_cluster_folds.append(
                 self._get_base_classifiers_by_cluster(content_training))
-        # Get base classifiers TODO
         # Get selected features TODO
 
     def _get_labels_by_cluster(self, content_training: str) -> list[list[int]]:
@@ -263,7 +262,7 @@ class SingleCbegResult(BaseClassifierResult):
         return base_classifiers
 
     def _get_synthetic_samples_by_cluster(self, content_training: str) -> list:
-        found_strings = re.findall(r"Synthetic samples indexes:\s\[[0-9\s\n]+\]",
+        found_strings = re.findall(r"Synthetic samples indexes:\s\[[0-9\s\n]*\]",
                                    content_training)
         if not(found_strings):
             return [[] for _ in range(self.n_clusters)]
@@ -274,7 +273,10 @@ class SingleCbegResult(BaseClassifierResult):
             str_labels = found_strings[c].replace(
                     "Synthetic samples indexes: [", "").replace("]", "").strip()
             idx_synthetic = re.split(r"[\n\s]+", str_labels)
-            synthetic_samples_by_cluster.append( [int(idx) for idx in idx_synthetic] )
+            if idx_synthetic[0] != "":
+                synthetic_samples_by_cluster.append( [int(idx) for idx in idx_synthetic] )
+            else:
+                synthetic_samples_by_cluster.append( [] )
         return synthetic_samples_by_cluster
 
     def extract_test_information(self, content_test):
@@ -335,18 +337,18 @@ class SingleCbegResult(BaseClassifierResult):
                 # Count the number of samples per cluster.
                 # If it's the minority class, remove the synthetic samples from the ounting
                 minority_class = self.minority_class_by_cluster_folds[fold][c]
+                # TODO consertar caso com múltiplas classes
                 count_lbls = [
                     (count - n_synth_samples, lbl) if lbl == minority_class else (count, lbl)
                     for lbl, count in label_count.items()
                 ]
 
                 n_majority, lbl_majority = max(count_lbls)
+                n_minority, _ = min(count_lbls)
                 # if there's only one class in the cluster, we say that the minority class
                 # contains only a single samples from minority class.
-                if len(count_lbls) == 1:
+                if len(count_lbls) == 1 or n_minority == 0:
                     n_minority = 1
-                else:
-                    n_minority, _ = min(count_lbls)
                 
                 metric_value = self.cluster_classification_folds[fold][classification_metric][c]
                 base_classifier = self.classifier_by_cluster_folds[fold][c]
@@ -354,6 +356,10 @@ class SingleCbegResult(BaseClassifierResult):
                 # x axis: number of majority class X minority class
                 # y axis: metric value
                 x_values.append(n_majority / n_minority)
+                if (n_majority / n_minority) < 0:
+                    print(n_majority / n_minority)
+                    print(n_majority, n_minority)
+                    print("------------")
                 y_values.append(metric_value)
                 hue_values.append(lbl_majority)
                 n_samples_clusters.append(len(cluster_labels))
@@ -377,7 +383,7 @@ class SingleCbegResult(BaseClassifierResult):
         sp = sns.scatterplot(
             data=data, x=cols_names["imbalance"], y=cols_names[classification_metric],
             hue=cols_names["majority"], size=cols_names["n_samples"],
-            style=cols_names["base_classifier"], palette="deep", #style_order=LABELS_CLASSIFIERS,
+            style=cols_names["base_classifier"], palette="deep",
         )
         sp.legend(loc="upper left", bbox_to_anchor=(1, 1))
         ax.set_ylim(0, 1)
@@ -392,8 +398,8 @@ class SingleCbegResult(BaseClassifierResult):
         os.makedirs(folder_scatter, exist_ok=True)
         plt.savefig(full_filename)
         print(full_filename, "saved successfully.")
+        plt.clf()
         plt.close()
-
 
     def __repr__(self):
         return f"""
@@ -484,9 +490,6 @@ class CbegResultsCompiler:
         # Save the heat map
         ax.tick_params(axis='x', labelrotation=0)
         ax.tick_params(axis='y', labelrotation=0)
-        # plt.savefig(filename)
-        # plt.clf()
-        # plt.close()
 
     def _fill_heatmap_dict(self, metric, vote_fusion_strategies):
         results_dict_heatmap = {}
@@ -504,11 +507,6 @@ class CbegResultsCompiler:
 
                 results_dict_heatmap[experiment_label][fusion_strategy] = float(clf_metric_value)
 
-        # Complete the empty values in the matrix with zeroes
-        # for experiment_label in results_dict_heatmap.keys():
-        #     for fusion_strategy in vote_fusion_strategies:
-        #         if fusion_strategy not in results_dict_heatmap[experiment_label]:
-        #             results_dict_heatmap[experiment_label][fusion_strategy] = 0
         return results_dict_heatmap
 
     def plot_clusters_scatterplot(self):
@@ -592,11 +590,11 @@ def process_cbeg_results(datasets, mutual_info_percentages):
         )
         cbeg_results = []
 
+        print(dataset)
         for config in experiments_configs:
             path = f"./results/{dataset}/mutual_info_{config['mutual_info']}/cbeg/{config['folder']}"
             loader = DataReader(path, training=True)
             loader.read_data()
-
             cbeg_single_result = SingleCbegResult(
                 loader.data["training"], loader.data["test"], config['folder'],
                 config["variation"], config['mutual_info']
@@ -616,7 +614,11 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
         for mutual_info in mutual_info_percentages:
 
             for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
-                path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
+                if "sc" in abbrev_classifier:
+                    base_clf = abbrev_classifier.split("_")[1]
+                    path = f'results/{dataset}/mutual_info_{mutual_info}/supervised_clustering/supervided_clustering_base_classifier_{base_clf}'
+                else:
+                    path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
 
                 loader = DataReader(path, training=False)
                 loader.read_data()
@@ -639,7 +641,8 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
     return valid_datasets
 
 def main():
-    datasets = ["australian_credit", "contraceptive", "german_credit", "heart",
+    datasets = [#"australian_credit",
+                "contraceptive", "german_credit", "heart",
                 "iris", "pima", "wdbc", "wine"]
     datasets = filter_no_experim_datasets(datasets)
 
