@@ -489,13 +489,13 @@ class CBEG:
 
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
-        if self.verbose and self.min_mutual_info_percentage < 100:
-            print("Performing feature selection...")
-
         ############ SMOTE ###############
         print("Running SMOTE oversampling...")
         self.smote_oversampling()
         ###################################
+
+        if self.verbose and self.min_mutual_info_percentage < 100:
+            print("Performing feature selection...")
 
         self.features_module = FeatureSelectionModule(
             self.samples_by_cluster, self.labels_by_cluster,
