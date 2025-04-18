@@ -9,6 +9,7 @@ from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.dummy import DummyClassifier
 
 N_FOLDS = 10
 
@@ -48,7 +49,8 @@ internal_metrics = {
 
 class CielOptimizer:
     def __init__(self, n_clusters: int, svm_params=None,
-                 extra_tree_params=None, grad_boost_params=None, weights=None):
+                 extra_tree_params=None, grad_boost_params=None, weights=None,
+                 combination_strategy='dynamic_weighted_prob'):
         self.n_clusters = n_clusters
 
         self.svm_params = svm_params
@@ -59,6 +61,8 @@ class CielOptimizer:
         if weights is None:
             self.weights = np.random.random(n_clusters).astype(np.float32)
             self.weights = self.weights / self.weights.sum()
+        else:
+            self.weights = weights
 
     def create_clusterer(self, clusterer_name: str):
         if clusterer_name == 'kmeans':
@@ -80,24 +84,33 @@ class CielOptimizer:
         else:
             return KMeans(self.n_clusters, random_state=42)
 
-    def create_classifier(self, classifier_name, params=None):
+    def create_classifier(self, classifier_name: str, cluster=None):
         if classifier_name == 'svm':
-            if params is None:
+            if self.svm_params is None or cluster is None:
                 return SVC()
             else:
-                return SVC()
+                return SVC(C=self.svm_params[cluster]['cost'],
+                           gamma=self.svm_params[cluster]['gamma'])
 
         elif classifier_name == 'extra_tree':
-            if params is None:
+            if self.extra_tree_params is None or cluster is None:
                 return ExtraTreesClassifier()
             else:
-                return ExtraTreesClassifier()
-
-        else: #classifier_name == 'gb' 
-            if params is None:
+                et_params = self.extra_tree_params
+                return ExtraTreesClassifier(n_estimators=et_params[cluster]["n_estimators"],
+                                            max_depth=et_params[cluster]['max_depth'],
+                                            min_samples_split=et_params[cluster]['min_samples_split'],
+                                            min_samples_leaf=et_params[cluster]['min_samples_leaf'])
+        else:  # classifier_name == 'gb' 
+            if self.grad_boost_params is None or cluster is None:
                 return GradientBoostingClassifier()
             else:
-                return GradientBoostingClassifier()
+                gb_params = self.grad_boost_params
+                return GradientBoostingClassifier(n_estimators=gb_params[cluster]["n_estimators"],
+                                                  max_depth=gb_params[cluster]['max_depth'],
+                                                  min_samples_split=gb_params[cluster]['min_samples_split'],
+                                                  min_samples_leaf=gb_params[cluster]['min_samples_leaf'],
+                                                  learning_rate=gb_params[cluster]['learning_rate'])
 
     def calc_metrics_clustering(self, clusters_pred: NDArray,
                                 X_val: NDArray, y_val: NDArray) -> tuple[dict, dict]:
@@ -193,7 +206,7 @@ class CielOptimizer:
             if clusterer_updated:
                 best_clusterer = clusterer_name
         
-        print(f'Selected clusterer: {best_clusterer}')
+        # print(f'Selected clusterer: {best_clusterer}')
         return best_clusterer
 
     def crossval_classifiers_scores(self, classifiers: dict, X_train: NDArray, y_train: NDArray):
@@ -225,18 +238,21 @@ class CielOptimizer:
         classifiers = {
             clf_name: self.create_classifier(clf_name) for clf_name in BASE_CLASSIFIERS
         }
-            
         auc_by_classifier = self.crossval_classifiers_scores(classifiers, X, y)
         selected_classifier = max(auc_by_classifier, key=auc_by_classifier.get)
 
-        print(f'Selected classifier: {selected_classifier}')
+        # print(f'Selected classifier: {selected_classifier}')
         return selected_classifier
 
     def train_classifiers(self, samples_by_cluster, labels_by_cluster, best_classifier):
         self.classifiers = []
 
         for c in range(self.n_clusters):
-            clf = self.create_classifier(best_classifier)
+            if np.all(labels_by_cluster[c] == labels_by_cluster[c][0]):
+                clf = DummyClassifier(strategy="most_frequent")
+            else:
+                clf = self.create_classifier(best_classifier, c)
+
             clf.fit(samples_by_cluster[c], labels_by_cluster[c])
             self.classifiers.append( clf )
 
@@ -256,14 +272,13 @@ class CielOptimizer:
         return samples_by_cluster, labels_by_cluster
 
     def fit(self, X, y):
-        # TODO adicionar inputs de parâmetros do PSO
         self.n_labels = len(np.unique(y))
 
-        print('Selecting best clustering algorithm...')
+        # print('Selecting best clustering algorithm...')
         # Traverse all clustering algorithms and select the optimal one
         name_best_clusterer = self.select_optimal_clustering_algorithm(X, y)
 
-        print('Selecting best classifier...')
+        # print('Selecting best classifier...')
         # Traverse all classification algorithms to select the optimal one
         name_best_classifier = self.select_optimal_classifier(X, y)
 
@@ -275,20 +290,23 @@ class CielOptimizer:
                 samples_by_cluster, labels_by_cluster, name_best_classifier)
 
 
-    def predict(self, X):
-        self.weights = np.tile(self.weights, (len(X), 1))
+    def predict_proba(self, X):
+        # weights = np.tile(self.weights, (len(X), 1))
 
         voting_weights = np.zeros((len(X), self.n_labels))
-        rows = range(len(X))
+        # rows = range(len(X))
 
         # Dynamic weighted probability combination strategy for the final classification results;
         for c, classifier in enumerate(self.classifiers):
-            y_pred_cluster = classifier.predict(X)
+            # y_pred_cluster = classifier.predict(X)
+            # voting_weights[rows, y_pred_cluster] += weights[:, c]
+            voting_weights += classifier.predict_proba(X) * self.weights[c]
 
-            voting_weights[rows, y_pred_cluster] += self.weights[:, c]
+        return voting_weights
 
-        return np.argmax(voting_weights, axis=1)
-
+    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        return np.argmax(probabilities, axis=1)
 
 def main():
     X, y = dataset_loader.select_dataset_function('german_credit')()
