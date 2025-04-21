@@ -44,13 +44,13 @@ class SupervisedClustering:
             else:
                 # Distance between all samples and centroids for the current cluster
                 dists_samples_center = np.linalg.norm(X_cluster - centroids_k[c], axis=0)**2
-                # Distance between samples in the same cluster
-                # print(dists_samples_center)
-                if np.max(dists_samples_center) == 0:
+                max_dist = np.max(dists_samples_center)
+
+                if round(max_dist, 5) == 0:
                     intra_dists[c] = 0
                 else:
-                    intra_dists[c] = np.sum(dists_samples_center) / (
-                                     np.max(dists_samples_center) * n_samples)
+                    # Distance between samples in the same cluster
+                    intra_dists[c] = np.sum(dists_samples_center) / (max_dist * n_samples)
 
         intra = np.sum(intra_dists) / n_clusters
         # Average distance between centroids
