@@ -45,8 +45,12 @@ class SupervisedClustering:
                 # Distance between all samples and centroids for the current cluster
                 dists_samples_center = np.linalg.norm(X_cluster - centroids_k[c], axis=0)**2
                 # Distance between samples in the same cluster
-                intra_dists[c] = np.sum(dists_samples_center) / (
-                                 np.max(dists_samples_center) * n_samples)
+                # print(dists_samples_center)
+                if np.max(dists_samples_center) == 0:
+                    intra_dists[c] = 0
+                else:
+                    intra_dists[c] = np.sum(dists_samples_center) / (
+                                     np.max(dists_samples_center) * n_samples)
 
         intra = np.sum(intra_dists) / n_clusters
         # Average distance between centroids
@@ -189,6 +193,11 @@ class SupervisedClustering:
 
         return vote_sums, classifiers_weights.T, np.vstack(y_pred_by_clusters).T
 
+    def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
+        y_score, classifiers_weights, y_pred_by_clusters = self.predict_proba(X_test)
+        y_pred = np.argmax(y_score, axis=0)
+
+        return y_pred, classifiers_weights, y_pred_by_clusters
 
     def predict_proba(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = np.zeros(( self.n_clusters, len(X_test)  ), dtype="int")
@@ -283,12 +292,11 @@ if __name__ == "__main__":
         s_clf = SupervisedClustering(base_classifier=args.base_classifier, M=args.M)
         s_clf.fit(X_train, y_train)
 
-        y_score, voting_weights, y_pred_by_clusters = s_clf.predict_proba(X_val)
-        y_pred = np.argmax(y_score, axis=0)
+        y_pred, voting_weights, y_pred_by_clusters = s_clf.predict(X_val)
 
-        prediction_results = PredictionResults(y_score, y_pred, y_val, voting_weights, y_pred_by_clusters)
+        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_clusters)
         log = Logger(s_clf, args.dataset, prediction_results)
         log.save_data_fold_supervised_clustering(fold)
-        print(classification_report(y_val, y_score))
+        print(classification_report(y_val, y_pred))
 
 

@@ -59,7 +59,7 @@ class CielOptimizer:
         self.grad_boost_params = grad_boost_params
         self.combination_strategy = combination_strategy
 
-        self.pso_params = {
+        self.classifiers_params = {
             "svm": svm_params,
             "extra_tree": extra_tree_params,
             "grad_boost": grad_boost_params,
@@ -323,13 +323,19 @@ class CielOptimizer:
 
         # Dynamic weighted probability combination strategy for the final classification results;
         for c, classifier in enumerate(self.classifiers):
-            # TODO consertar problema do número de classes ser menor que o número de clusters
-            if isinstance(classifier, DummyClassifier):
-                lbl = classifier.classes_[0]
-                predicted_probs = np.zeros((len(X), self.n_classes))
-                predicted_probs[:, lbl] = 1
-            else:
-                predicted_probs = classifier.predict_proba(X)
+            predicted_probs = classifier.predict_proba(X)
+
+            # If the classifier was not trained with instances from some classes, add
+            # columns with zeros in the predicted_probs for the missing classes
+            if len(classifier.classes_) < self.n_classes:
+                missing_labels = [label for label in range(self.n_classes)
+                                  if label not in classifier.classes_]
+
+                for lbl in missing_labels:
+                    col_zeros = np.zeros((X.shape[0], 1))
+                    predicted_probs = np.hstack(
+                        (predicted_probs[:, :lbl], col_zeros, predicted_probs[:, lbl:])
+                    )
             probability_by_class += predicted_probs * self.weights[c]
         return probability_by_class
 

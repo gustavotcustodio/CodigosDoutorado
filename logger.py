@@ -38,8 +38,8 @@ class Logger:
         with open(fullpath, "w") as file_output:
 
             if isinstance(self.classifier, CielOptimizer):
-                print("============== PSO parameters ==============", file=file_output)
-                print(f"{self.classifier.pso_params}\n", file=file_output)
+                print("============== Classifiers Parameters ==============", file=file_output)
+                print(f"{self.classifier.classifiers_params}\n", file=file_output)
 
             # Save clustering information 
             self.save_clustering_metric(file_output)
