@@ -1,17 +1,19 @@
 # Tabela 5
 # Quantos indivídios tem nesse PSO?
 # pág 17
-from math import cos
 import pyswarms as ps
+import argparse
 import numpy as np
 from sklearn.model_selection import train_test_split
 import dataset_loader
-from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+from sklearn.metrics import classification_report, roc_auc_score
 from ciel_optimizer import CielOptimizer
 from ciel_optimizer import N_FOLDS
-from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.model_selection import StratifiedKFold
+from logger import PredictionResults
+from logger import Logger
+from dataset_loader import normalize_data
 
 class Ciel:
 
@@ -42,8 +44,8 @@ class Ciel:
             extra_tree_params.append({})
             grad_boost_params.append({})
 
-            svm_params[c]['cost'] = solution[11 * c + 1] 
-            svm_params[c]['gamma'] = solution[11 * c + 2] 
+            svm_params[c]['cost'] = solution[11 * c + 1]
+            svm_params[c]['gamma'] = solution[11 * c + 2]
 
             extra_tree_params[c]['n_estimators'] = round(solution[11 * c + 3])
             extra_tree_params[c]['max_depth'] = round(solution[11 * c + 4])
@@ -55,12 +57,12 @@ class Ciel:
             grad_boost_params[c]['min_samples_split'] = round(solution[11 * c + 9])
             grad_boost_params[c]['min_samples_leaf'] = round(solution[11 * c + 10])
             grad_boost_params[c]['learning_rate'] = solution[11 * c + 11]
-                      
+
             weights[c] = solution[c + 110]
 
         weights  = weights / weights.sum()
 
-        params = {} 
+        params = {}
         params['n_clusters'] = n_clusters
         params['svm_params'] = svm_params
         params['extra_tree_params'] = extra_tree_params
@@ -83,33 +85,31 @@ class Ciel:
                     params['n_clusters'], params['svm_params'],
                     params['extra_tree_params'], params['grad_boost_params'],
                     params['weights'])
-                # TODO estudar fazer o hash dos parâmetros?
 
                 auc_values = []
                 folds_splits = kf.split(X, y)
-                for fold, (train_indexes, test_indexes) in enumerate(folds_splits):
+
+                for _, (train_indexes, test_indexes) in enumerate(folds_splits):
                     X_train, y_train = X[train_indexes], y[train_indexes]
                     X_test, y_test = X[test_indexes], y[test_indexes]
 
                     ciel_opt.fit(X_train, y_train)
                     # Predict probability
                     y_score = ciel_opt.predict_proba(X_test)
-                    
+
                     if self.n_labels == 2:
                         auc_val = roc_auc_score(y_test, y_score[:,1])
                     else:
                         auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
 
-                    print(auc_val)
                     auc_values.append(auc_val)
 
                 cost = 1 - np.mean(auc_values)
                 cost_values.append(cost)
 
-            print(cost_values)
             return cost_values
         return wrapper
-        
+
     def fit(self, X, y):
         self.n_labels = len(np.unique(y))
 
@@ -130,42 +130,39 @@ class Ciel:
             params['grad_boost_params'], params['weights'])
         self.best_opt.fit(X_train, y_train)
 
+        # self.base_classifier = self.best_opt.base_classifier
+        # self.labels_by_cluster = self.best_opt.labels_by_cluster
+        # self.best_clustering_metrics = self.best_opt.best_clustering_metrics
+        # self.n_clusters = self.best_opt.best_clustering_metrics
+
     def predict(self, X):
-        return self.best_opt.predict(X)
+        y_pred, voting_weights, y_pred_by_cluster = self.best_opt.predict(X)
+        return y_pred, voting_weights, y_pred_by_cluster
 
-
-def test_params_optimization(X_train, X_test, y_train, y_test):
-    def wrapper(possible_solutions):
-        # The function receives (n_particles x n_dims)
-        results = []
-
-        for solution in possible_solutions:
-            et = ExtraTreesClassifier(
-                n_estimators=round(solution[0]), max_depth=round(solution[1]),
-                min_samples_split=round(solution[2]), min_samples_leaf=round(solution[3]),
-            )
-            et.fit(X_train, y_train)
-            y_pred = et.predict(X_test)
-            results.append(1 - accuracy_score(y_test, y_pred) )
-        return results
-    return wrapper
-         
-    # fit function (inside the fit function the best optimizer is saved)
 
 if __name__ == "__main__":
-    X, y = dataset_loader.select_dataset_function("german_credit")()
+    parser = argparse.ArgumentParser()
 
-    # Randomize samples
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
+    parser.add_argument("-n", "--num_iters", type=int, required=True, help = "Number of PSO iters.")
+    parser.add_argument("-p", "--num_particles", type=int, required=True, help = "Number of PSO particles")
+    args = parser.parse_args()
 
-    kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True)
-    folds_splits = kf.split(X, y)
+    X, y = dataset_loader.select_dataset_function(args.dataset)()
 
-    for fold, (train_indexes, test_indexes) in enumerate(folds_splits):
-        ciel = Ciel(n_iters=7, n_particles=5)
-        X_train, y_train = X[train_indexes], y[train_indexes]
-        X_test, y_test = X[test_indexes], y[test_indexes]
+    for fold in range(1, N_FOLDS+1):
 
+        # Break dataset in training and validation
+        X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
+        X_train, X_val = normalize_data(X_train, X_val)
+
+        ciel = Ciel(n_iters=args.num_iters, n_particles=args.num_particles)
         ciel.fit(X_train, y_train)
-        y_pred = ciel.predict(X_test)
-        print(classification_report(y_test, y_pred))
+
+        y_pred, voting_weights, y_pred_by_cluster = ciel.predict(X_val)
+
+        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_cluster)
+        log = Logger(ciel.best_opt, args.dataset, prediction_results)
+        log.save_data_fold_ciel(fold)
+        print(classification_report(y_val, y_pred, zero_division=0.0))
+

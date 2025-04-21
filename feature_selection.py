@@ -8,7 +8,7 @@ class FeatureSelectionModule:
     samples_by_cluster: dict[int, NDArray]
     labels_by_cluster: dict[int, NDArray]
     min_mutual_info_percentage: float = 100.0
-        
+
     def get_attribs_by_mutual_info(self, X_cluster, y_cluster) -> NDArray:
         n_features = X_cluster.shape[1]
 
@@ -31,7 +31,7 @@ class FeatureSelectionModule:
 
         # Mutual info values normalized between 0 and 1. The sum is 1.
         normalized_mutual_info = mutual_info / np.sum(mutual_info)
-        
+
         # features sorted by mutual information.
         sorted_features = mutual_info.argsort()[::-1]
 

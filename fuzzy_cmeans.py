@@ -13,7 +13,7 @@ class FuzzyCMeans:
         selected_random_values = np.random.random(len(X))
 
         probability_matrix = np.cumsum(u_membership, axis=0)
-       
+
         mask_clusters = (selected_random_values <= probability_matrix).T
         clusters = mask_clusters.shape[1] - mask_clusters.sum(axis=1)
 
@@ -25,7 +25,7 @@ class FuzzyCMeans:
 
         clusters_numbers_dict = {cluster: fixed_cluster
                                  for fixed_cluster, cluster in enumerate(possible_clusters)}
-        
+
         # this is used to fix skipping cluster numbers.
         # Example: [0, 2, 3, 5] should be [0, 1, 2, 3]
         for c in possible_clusters:

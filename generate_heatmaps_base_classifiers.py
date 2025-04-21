@@ -41,7 +41,7 @@ for dataset in DATASETS:
 
             for i in range(1, 11):
                 full_filename = f"./results/{dataset}/mutual_info_{mutual_info}/baselines/{base_classifier}/test_summary/run_{i}.txt"
-                
+
                 text_file = open(full_filename).read()
 
                 dict_classification = get_all_classification_metrics(text_file)
@@ -50,7 +50,7 @@ for dataset in DATASETS:
                 precision_values.append(dict_classification["Precision"][0])
                 recall_values.append(dict_classification["Recall"][0])
                 f1_values.append(dict_classification["F1"][0])
-            
+
             indexes.append(f"{base_classifier} ({mutual_info} %)")
             classification_results["Accuracy"].append( np.mean(acc_values) )
             classification_results["Precision"].append( np.mean(precision_values) )

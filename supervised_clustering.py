@@ -114,14 +114,14 @@ class SupervisedClustering:
         centroids = []
 
         samples_in_cluster = []
-        self.labels_by_cluster = {}
+        self.labels_by_cluster = []
 
         # After the pairwise combination, samples are replicated.
         # THis loop get the new samples, their labels and their clusters numbers
         for current_cluster in range(total_clusters):
 
             samples_in_cluster = []
-            self.labels_by_cluster[current_cluster] = []
+            self.labels_by_cluster.append( [] )
 
             for lbl in range(self.n_classes):
                 X_class = self.samples_by_class[lbl]
@@ -132,7 +132,7 @@ class SupervisedClustering:
                 # Samples of the current class that have belong to the selected cluster
                 indexes_cluster = np.where(self.clusters_by_class[lbl] == selected_cluster)[0]
                 samples_in_cluster.append( X_class[indexes_cluster] )
-                
+
                 # Final labels is the new y of the dataset
                 self.labels_by_cluster[current_cluster] += [lbl] * len(indexes_cluster)
 
@@ -145,7 +145,7 @@ class SupervisedClustering:
             n_samples_in_cluster = len(samples_in_cluster)
             final_clusters += [current_cluster] * n_samples_in_cluster
             final_labels += self.labels_by_cluster[current_cluster]
-            
+
             centroids.append( np.mean(samples_in_cluster, axis=0) )
             self._next_combination(selected_clusters_by_class)
 
@@ -179,7 +179,7 @@ class SupervisedClustering:
 
             clf.fit(X_cluster, y_cluster)
 
-    def fuse_votes(self, y_pred_by_clusters, classifiers_weights):
+    def combine_votes(self, y_pred_by_clusters, classifiers_weights):
         n_samples = y_pred_by_clusters.shape[1]
         vote_sums = np.zeros(( self.n_classes, n_samples ))
         idx_samples = range(n_samples)
@@ -187,10 +187,10 @@ class SupervisedClustering:
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
             vote_sums[y_pred_cluster, idx_samples] += classifiers_weights[c, idx_samples]
 
-        return np.argmax(vote_sums, axis=0), classifiers_weights.T, np.vstack(y_pred_by_clusters).T
+        return vote_sums, classifiers_weights.T, np.vstack(y_pred_by_clusters).T
 
 
-    def predict(self, X_test: NDArray) -> NDArray:
+    def predict_proba(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = np.zeros(( self.n_clusters, len(X_test)  ), dtype="int")
         # Get distances between samples to predict and training samples
         dists_samples = cdist(X_test, self.X)
@@ -203,7 +203,7 @@ class SupervisedClustering:
             for i in range(len(X_test)):
                 # Get the M closest samples
                 indexes_closest = np.argsort(dists_samples[i, :])[:self.M]
-                X_selection = self.X[indexes_closest] 
+                X_selection = self.X[indexes_closest]
                 y_selection = self.y[indexes_closest]
 
                 y_pred_selection = clf.predict(X_selection)
@@ -213,9 +213,9 @@ class SupervisedClustering:
         # Process votes 
         # y_pred = process_votes(y_pred_clusters, classifiers_weights)
         classifiers_weights = classifiers_weights / classifiers_weights.sum(axis=0)
-        y_pred, _, _ = self.fuse_votes(y_pred_by_clusters, classifiers_weights)
+        y_score, _, _ = self.combine_votes(y_pred_by_clusters, classifiers_weights)
         self.y_pred_by_clusters = y_pred_by_clusters.T
-        return y_pred, classifiers_weights.T, self.y_pred_by_clusters
+        return y_score, classifiers_weights.T, self.y_pred_by_clusters
 
     def divide_samples_by_class(self, n_classes, X, y):
         samples_by_class = [[]] * n_classes
@@ -273,21 +273,22 @@ if __name__ == "__main__":
                         help = "Number of closest neighbors, used do determine the voting weight of each base classifier.")
     args = parser.parse_args()
 
-    fold = 1
+    X, y = dataset_loader.select_dataset_function(args.dataset)()
 
     for fold in range(1, N_FOLDS+1):
-
-        X, y = dataset_loader.select_dataset_function(args.dataset)()
         # Break dataset in training and validation
         X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
         X_train, X_val = normalize_data(X_train, X_val)
 
         s_clf = SupervisedClustering(base_classifier=args.base_classifier, M=args.M)
         s_clf.fit(X_train, y_train)
-        y_pred, voting_weights, y_pred_by_clusters = s_clf.predict(X_val)
-        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_clusters)
+
+        y_score, voting_weights, y_pred_by_clusters = s_clf.predict_proba(X_val)
+        y_pred = np.argmax(y_score, axis=0)
+
+        prediction_results = PredictionResults(y_score, y_pred, y_val, voting_weights, y_pred_by_clusters)
         log = Logger(s_clf, args.dataset, prediction_results)
         log.save_data_fold_supervised_clustering(fold)
-        print(classification_report(y_val, y_pred))
+        print(classification_report(y_val, y_score))
 
 

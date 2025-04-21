@@ -1,0 +1,60 @@
+============== PSO parameters ==============
+{'svm': [{'cost': np.float64(183.46703595438657), 'gamma': np.float64(663.2180539522092)}, {'cost': np.float64(263.4267875353425), 'gamma': np.float64(768.3426879100762)}, {'cost': np.float64(116.23530618737004), 'gamma': np.float64(631.1247017601692)}, {'cost': np.float64(740.4628157892419), 'gamma': np.float64(406.7262430476633)}, {'cost': np.float64(785.5096514652), 'gamma': np.float64(595.0810186521355)}], 'extra_tree': [{'n_estimators': 445, 'max_depth': 7, 'min_samples_split': 4, 'min_samples_leaf': 4}, {'n_estimators': 114, 'max_depth': 5, 'min_samples_split': 6, 'min_samples_leaf': 3}, {'n_estimators': 413, 'max_depth': 2, 'min_samples_split': 4, 'min_samples_leaf': 8}, {'n_estimators': 345, 'max_depth': 6, 'min_samples_split': 5, 'min_samples_leaf': 7}, {'n_estimators': 297, 'max_depth': 8, 'min_samples_split': 4, 'min_samples_leaf': 1}], 'grad_boost': [{'n_estimators': 310, 'max_depth': 3, 'min_samples_split': 6, 'min_samples_leaf': 3, 'learning_rate': np.float64(0.14338316934440054)}, {'n_estimators': 220, 'max_depth': 2, 'min_samples_split': 4, 'min_samples_leaf': 3, 'learning_rate': np.float64(0.8741951403504864)}, {'n_estimators': 135, 'max_depth': 4, 'min_samples_split': 9, 'min_samples_leaf': 3, 'learning_rate': np.float64(0.8011074695090352)}, {'n_estimators': 350, 'max_depth': 8, 'min_samples_split': 4, 'min_samples_leaf': 7, 'learning_rate': np.float64(0.6620505318067446)}, {'n_estimators': 363, 'max_depth': 3, 'min_samples_split': 6, 'min_samples_leaf': 9, 'learning_rate': np.float64(0.7752706202065061)}]}
+
+Optimal clusterer: gb
+
+External clustering metrics:
+adjusted_rand_score: -0.008931534526821652
+normalized_mutual_info_score: 0.020939577942695135
+v_measure_score: 0.02093957794269513
+fowlkes_mallows_score: 0.7469082848005917
+
+Internal clustering metrics:
+silhouette: -0.04875856857480935
+davies_bouldin: 1.471159867559735
+calinski_harabasz_score: 3.26265412338787
+
+Base classifier: gb
+========== Cluster 0 ==========
+
+Labels: [1 0 0 0 0 0 0 0 0 0 0 1 0 1 1 1 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0
+ 0 1 0 0 0 0 0 0 1 1 1 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 1 0 0 0 0 0 1
+ 1 0 1 1 0 0 0 0 0 1 1 1 0 0 0 0 1 0 0 0 0 0 1 1 0 1 1 0 0 0 0 0 1 1 0 0 0
+ 0 0 1 1 0 0 0 0 0 0 1 1 1 0 0 0 0 1 1 0 0 0 1 0 0 0 1 0 1 0 0 1 0 0 1 1 0
+ 0 0 1 0 0 0 0 0 1 1 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 1 0 0
+ 0 1 0 1 1 1 0 1 0 0 0 1 1 0 1 0 1 0 1 1 0 0 0 1 1 0 1 0 1 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1
+ 0 0 0 1 1 0 1 1 0 0 0 1 0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 0 0 0 1 0 0 1 0 0 0
+ 0 0 1 1 0 0 0 1 0 0 1 0 0 1 0 1 1 0 0 1 0 0 0 0 1 1 0 0 0 1 0 0 0 1 0 0 0
+ 0 0 1 0 0 0 1 0 0 0 1 1 0 0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0
+ 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0 0 0 0
+ 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 0 0 0 0 1 1 0 1 0 0 0 1 0 0
+ 0 0 1 1 0 1 1 1 1 1 0 0 0 0 0 0 1 1 1 0 1 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0
+ 0 1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0 1 1 1 1 1 0 0 0 0 1 0 0 1 0 1 0 0 1
+ 0 0 1 1 1 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 1 1 0 1 1 0 1 0
+ 1 0 1 0 1 0 0 1 1 0 1 0 0 0 1 1 0 0 0 0 0 1 0 1 0 1 1 0 0 1 1 0 0 1 0 0 0
+ 0 1 0 0 0 1 1 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 1 0
+ 1 0 1 0 0 1 0 0 1 0 1 1 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 1 1 0 0 0 0 0 0 1 1 1 0 0 0 0 1 0
+ 1 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 0 0 0 1 0 0 1 1 0 0 0
+ 1 0 0 1 0 1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 1 1 0 1
+ 1 0 0 0 0 0 0 1 1 1 0 0 0 0 1 0 0 0 1 1 1 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0
+ 0 0 0 1 0 0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 1 0
+ 0 0 0 1 1 1 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 1 1 0 0 1 1 1 1 1 1 1 1]
+
+========== Cluster 1 ==========
+
+Labels: [0 0 0 0 0]
+
+========== Cluster 2 ==========
+
+Labels: [0 0]
+
+========== Cluster 3 ==========
+
+Labels: [1 1]
+
+========== Cluster 4 ==========
+
+Labels: [0 0 0 0 0]
+

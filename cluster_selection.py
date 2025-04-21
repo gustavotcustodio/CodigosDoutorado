@@ -34,7 +34,7 @@ class ClusteringModule:
             return KMeans(n_clusters, init="random", random_state=42)
         else:
             return CLUSTERING_ALGORITHMS[algorithm](n_clusters)
-         
+
     def select_evaluation_function(self) -> Callable:
         if self.evaluation_metric == "dbc":
             # Calculate distances between samples

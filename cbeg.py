@@ -162,8 +162,8 @@ class CBEG:
             cv_results = cross_validate(classifier, X_train, y_train, cv=cv,
                                         scoring=classification_metrics)
             # Get the mean AUC of the classifier
-            if 'test_roc_auc_ovo' in cv_results:
-                auc_by_classifier[clf_name] = cv_results['test_roc_auc_ovo'].mean()
+            if 'test_roc_auc_ovr' in cv_results:
+                auc_by_classifier[clf_name] = cv_results['test_roc_auc_ovr'].mean()
             else:
                 auc_by_classifier[clf_name] = cv_results['test_roc_auc'].mean()
 
@@ -323,7 +323,7 @@ class CBEG:
                 idx_samples = np.arange(n_samples_cluster)
                 # Shuffle the order of samples in each cluster
                 np.random.shuffle(idx_samples)
-                
+
                 self.samples_by_cluster[c] = X_cluster[idx_samples]
                 self.labels_by_cluster[c] = y_cluster[idx_samples]
                 self.idx_synth_data_by_cluster[c] = np.where(synthetic_data_map[idx_samples])[0]
@@ -471,7 +471,7 @@ class CBEG:
         self.n_labels = np.unique(y).shape[0]
 
         if self.n_labels > 2:
-            classification_metrics = ["roc_auc_ovo", "accuracy"]
+            classification_metrics = ["roc_auc_ovr", "accuracy"]
         else:
             classification_metrics = ["roc_auc", "accuracy"]
 
@@ -532,7 +532,7 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
     filename = f'run_{fold}.txt'
 
     folder_training = os.path.join(folder_name, 'training_summary')
-    
+
     # Save the data: clusters, labels, selected features, etc
     os.makedirs(folder_training, exist_ok=True)
     cbeg.save_training_data(filename, folder_training)
