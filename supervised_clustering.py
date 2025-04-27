@@ -46,6 +46,7 @@ class SupervisedClustering:
                 dists_samples_center = np.linalg.norm(X_cluster - centroids_k[c], axis=0)**2
                 max_dist = np.max(dists_samples_center)
 
+                # Avoid the 0 in denominator
                 if round(max_dist, 5) == 0:
                     intra_dists[c] = 0
                 else:
@@ -191,7 +192,7 @@ class SupervisedClustering:
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
             vote_sums[y_pred_cluster, idx_samples] += classifiers_weights[c, idx_samples]
 
-        return vote_sums, classifiers_weights.T, np.vstack(y_pred_by_clusters).T
+        return vote_sums # , classifiers_weights.T, np.vstack(y_pred_by_clusters).T
 
     def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_score, classifiers_weights, y_pred_by_clusters = self.predict_proba(X_test)
@@ -222,7 +223,8 @@ class SupervisedClustering:
         # Process votes 
         # y_pred = process_votes(y_pred_clusters, classifiers_weights)
         classifiers_weights = classifiers_weights / classifiers_weights.sum(axis=0)
-        y_score, _, _ = self.combine_votes(y_pred_by_clusters, classifiers_weights)
+        y_score = self.combine_votes(y_pred_by_clusters, classifiers_weights)
+
         self.y_pred_by_clusters = y_pred_by_clusters.T
         return y_score, classifiers_weights.T, self.y_pred_by_clusters
 
@@ -285,6 +287,7 @@ if __name__ == "__main__":
     X, y = dataset_loader.select_dataset_function(args.dataset)()
 
     for fold in range(1, N_FOLDS+1):
+
         # Break dataset in training and validation
         X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
         X_train, X_val = normalize_data(X_train, X_val)
@@ -292,11 +295,11 @@ if __name__ == "__main__":
         s_clf = SupervisedClustering(base_classifier=args.base_classifier, M=args.M)
         s_clf.fit(X_train, y_train)
 
-        y_pred, voting_weights, y_pred_by_clusters = s_clf.predict(X_val)
+        y_score, voting_weights, y_pred_by_clusters = s_clf.predict_proba(X_val)
+        y_pred = np.argmax(y_score, axis=1)
+        prediction_results = PredictionResults(
+            y_pred, y_val, y_score, voting_weights, y_pred_by_clusters)
 
-        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_clusters)
         log = Logger(s_clf, args.dataset, prediction_results)
         log.save_data_fold_supervised_clustering(fold)
-        print(classification_report(y_val, y_pred))
-
-
+        print(classification_report(y_val, y_score))

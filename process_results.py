@@ -7,6 +7,7 @@ import seaborn as sns
 from collections import Counter
 from cbeg import N_FOLDS
 from dataclasses import dataclass
+from cluster_selection import CLUSTERING_ALGORITHMS
 from dataset_loader import DATASETS_INFO
 
 BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}"
@@ -187,6 +188,7 @@ class SingleCbegResult(BaseClassifierResult):
         self.idx_synthetic_by_cluster_folds = []
         self.classifier_by_cluster_folds = []
         self.minority_class_by_cluster_folds = []
+        self.clustering_algorithms_folds = []
 
         self.n_folds = len(test_info_folds)
         for fold in range(self.n_folds):
@@ -218,6 +220,9 @@ class SingleCbegResult(BaseClassifierResult):
             self.fusion_strategy = "Majority Voting"
 
     def extract_training_information(self, content_training: str):
+        """ Extract labels by cluster, base classifiers selected and more
+        information related to the training stage. """
+
         self.labels_by_cluster_folds.append( self._get_labels_by_cluster(content_training) )
         self.idx_synthetic_by_cluster_folds.append(
                 self._get_synthetic_samples_by_cluster(content_training))
@@ -225,7 +230,19 @@ class SingleCbegResult(BaseClassifierResult):
                 self._get_minority_class_by_cluster(content_training))
         self.classifier_by_cluster_folds.append(
                 self._get_base_classifiers_by_cluster(content_training))
+
         # Get selected features TODO
+        # Get selected clustering algorithm
+        self.clustering_algorithms_folds.append(
+                self._get_selected_clustering_algorithms(content_training))
+
+    def _get_selected_clustering_algorithms(self, content_training: str) -> str:
+        found_strings = re.findall(r"Clustering algorithm selected: .*", content_training)
+        
+        if found_strings:
+            return found_strings[0].split(": ")[1]
+        else:
+            return ""
 
     def _get_labels_by_cluster(self, content_training: str) -> list[list[int]]:
         # Labels: [0 0 0  0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0
@@ -356,10 +373,10 @@ class SingleCbegResult(BaseClassifierResult):
                 # x axis: number of majority class X minority class
                 # y axis: metric value
                 x_values.append(n_majority / n_minority)
-                if (n_majority / n_minority) < 0:
-                    print(n_majority / n_minority)
-                    print(n_majority, n_minority)
-                    print("------------")
+                # if (n_majority / n_minority) < 0:
+                #     print(n_majority / n_minority)
+                #     print(n_majority, n_minority)
+                #     print("------------")
                 y_values.append(metric_value)
                 hue_values.append(lbl_majority)
                 n_samples_clusters.append(len(cluster_labels))
@@ -478,7 +495,60 @@ class CbegResultsCompiler:
 
             # plt.tight_layout()
             plt.savefig(filename)
+            plt.close()
             print(f"{filename} saved successfully.")
+
+    def plot_clusterers_heatmap(self):
+        """Plot the heatmaps showing how many times each
+        clustering algorithm was selected.
+        """
+        #data_count = np.zeros(
+        #    (len(self.cbeg_results), len(CLUSTERING_ALGORITHMS))).astype(np.int32)
+        selected_clusterers_folder = f"results/{self.dataset}/selected_clusterers"
+        os.makedirs(selected_clusterers_folder, exist_ok=True)
+
+        xlabels = list(CLUSTERING_ALGORITHMS.keys())
+        ylabels = []
+
+        data_count = []
+
+        for _, result in enumerate(self.cbeg_results):
+            if (str(result.experiment_variation)[0] != '1' or
+                result.mutual_info_percentage < 100 or
+                result.fusion_strategy == "Majority Voting"
+            ):
+                continue
+
+            ylabel = f'{result.experiment_variation} - {result.cluster_selection_strategy}\n{result.fusion_strategy}'
+            ylabels.append(ylabel)
+
+            row_clustering_count = len(xlabels) * [0]
+
+            # aaa += result.clustering_algorithms_folds
+            for clustering_method in result.clustering_algorithms_folds:
+                                
+                k = xlabels.index(clustering_method)
+                row_clustering_count[k] += 1 
+
+            data_count.append(row_clustering_count)
+        
+        data_count = np.array(data_count)
+        _, ax = plt.subplots(figsize=(16, 12))
+        # selections_by_classifier = np.sum(data_count, axis=0)
+        # sns.histplot(data=aaa)
+        g = sns.heatmap(data_count, annot=True, cmap='Blues', ax=ax, annot_kws={"size": 14},
+                        xticklabels=xlabels, yticklabels=ylabels, vmin=0, vmax=1)
+
+        g.set_yticklabels(g.get_yticklabels(), size=10)
+        g.set_xticklabels(g.get_xticklabels(), size=12)
+
+        filename = os.path.join(selected_clusterers_folder, 'clusterers_comparison.png')
+        plt.savefig(filename)
+
+        print(f'{filename} saved successfully.')
+        # self.cluster_selection_strategy = ""
+        # self.fusion_strategy = "Cluster Density"
+        plt.close()
 
     def add_heatmap(self, data, columns, indexes, ax, cbar=True):
         sns.heatmap(data, ax=ax, annot=True, cmap='Blues', cbar=cbar,
@@ -602,8 +672,9 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             cbeg_results.append( cbeg_single_result )
 
         cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
-        cbeg_compilation.plot_classification_heatmap()
-        cbeg_compilation.plot_clusters_scatterplot()
+        cbeg_compilation.plot_clusterers_heatmap()
+        # cbeg_compilation.plot_classification_heatmap()
+        # cbeg_compilation.plot_clusters_scatterplot()
 
 
 def process_base_results(datasets: list[str], mutual_info_percentages: list[float]):
@@ -649,7 +720,7 @@ def main():
     mutual_info_percentages = [100.0, 75.0, 50.0]
 
     process_cbeg_results(datasets, mutual_info_percentages)
-    process_base_results(datasets, mutual_info_percentages) 
+    # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
     main()

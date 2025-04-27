@@ -147,23 +147,18 @@ class CielOptimizer:
     def internal_breaks_tie(self, clustering_metrics, best_clustering_metrics):
         """ If there is a tie in the external metrics, break the tie
         using the internal metrics. """
-        # Number of internal metrics improved compared to the best solution
-        n_internal_improved = 0
+        
+        # Davies Bouldin is a special case, because lower values are better values
+        best_davies_bouldin = best_clustering_metrics['internal']['davies_bouldin']
+        davies_bouldin_val = clustering_metrics['internal']['davies_bouldin']
 
-        for metric, value_metric in clustering_metrics['internal'].items():
-            # Current best value of this metric
-            best_value_metric = best_clustering_metrics['internal'][metric]
-
-            # Davies Bouldin is a special case, because lower values are better values
-            if metric == 'davies_bouldin' and value_metric < best_value_metric:
-                n_internal_improved += 1
-
-            elif metric != 'davies_bouldin' and value_metric > best_value_metric:
-                n_internal_improved += 1
+        # Subtract davies bouldin from the sum, because it's a minimization technique
+        best_internal_sum = sum(best_clustering_metrics["internal"].values()) - 2 * best_davies_bouldin
+        sum_internal = sum(clustering_metrics["internal"].values()) - 2 * davies_bouldin_val
 
         # if more than half of the internal metrics are improved, the new clusterer
         # is the new best
-        if n_internal_improved >= 2:
+        if sum_internal > best_internal_sum:
             return True
         return False
 
@@ -173,19 +168,27 @@ class CielOptimizer:
             best_clustering_metrics['external'] = clustering_metrics['external'].copy()
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
             return True
+        
+        # CUrrent best sum of external clustering metrics
+        best_sum_external = sum(best_clustering_metrics["external"].values())
+        sum_external = sum(clustering_metrics['external'].values())
 
-        n_external_improved = 0
+        if sum_external > best_sum_external:
+            best_clustering_metrics['external'] = clustering_metrics['external'].copy()
+            best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
 
-        for metric, value_metric in clustering_metrics['external'].items():
-            best_value_metric = best_clustering_metrics['external'][metric]
+        # n_external_improved = 0
 
-            if value_metric > best_value_metric:
-                n_external_improved += 1
+        # for metric, value_metric in clustering_metrics['external'].items():
+        #     best_value_metric = best_clustering_metrics['external'][metric]
+
+        #     if value_metric > best_value_metric:
+        #         n_external_improved += 1
 
         # Tie break with internal metrics if external metric are a draw
-        if n_external_improved >= 3 or (
-                n_external_improved == 2 and self.internal_breaks_tie(clustering_metrics, best_clustering_metrics)
-            ):
+        if sum_external == best_sum_external and \
+                self.internal_breaks_tie(clustering_metrics, best_clustering_metrics):
+
             best_clustering_metrics['external'] = clustering_metrics['external'].copy()
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
 

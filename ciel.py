@@ -136,8 +136,13 @@ class Ciel:
         # self.n_clusters = self.best_opt.best_clustering_metrics
 
     def predict(self, X):
-        y_pred, voting_weights, y_pred_by_cluster = self.best_opt.predict(X)
+        y_score, voting_weights, y_pred_by_cluster = self.best_opt.predict_proba(X)
+        y_pred = np.argmax(y_score, axis=1)
         return y_pred, voting_weights, y_pred_by_cluster
+
+    def predict_proba(self, X):
+        y_score, voting_weights, y_pred_by_cluster = self.best_opt.predict_proba(X)
+        return y_score, voting_weights, y_pred_by_cluster
 
 
 if __name__ == "__main__":
