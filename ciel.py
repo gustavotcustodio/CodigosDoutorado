@@ -95,7 +95,7 @@ class Ciel:
 
                     ciel_opt.fit(X_train, y_train)
                     # Predict probability
-                    y_score = ciel_opt.predict_proba(X_test)
+                    y_score, _, _ = ciel_opt.predict_proba(X_test)
 
                     if self.n_labels == 2:
                         auc_val = roc_auc_score(y_test, y_score[:,1])
@@ -140,8 +140,8 @@ class Ciel:
         return y_pred, voting_weights, y_pred_by_cluster
 
     def predict_proba(self, X):
-        y_score, = self.best_opt.predict_proba(X)
-        return y_score
+        y_score, voting_weights, y_pred_by_cluster  = self.best_opt.predict_proba(X)
+        return y_score, voting_weights, y_pred_by_cluster
 
 
 if __name__ == "__main__":
@@ -163,9 +163,10 @@ if __name__ == "__main__":
         ciel = Ciel(n_iters=args.num_iters, n_particles=args.num_particles)
         ciel.fit(X_train, y_train)
 
-        y_pred, voting_weights, y_pred_by_cluster = ciel.predict(X_val)
+        y_score, voting_weights, y_pred_by_cluster = ciel.predict_proba(X_val)
+        y_pred = np.argmax(y_score, axis=1)
 
-        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_cluster)
+        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_cluster, y_score)
         log = Logger(ciel.best_opt, args.dataset, prediction_results)
         log.save_data_fold_ciel(fold)
         print(classification_report(y_val, y_pred, zero_division=0.0))

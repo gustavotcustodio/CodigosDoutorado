@@ -147,7 +147,7 @@ class CielOptimizer:
     def internal_breaks_tie(self, clustering_metrics, best_clustering_metrics):
         """ If there is a tie in the external metrics, break the tie
         using the internal metrics. """
-        
+
         # Davies Bouldin is a special case, because lower values are better values
         best_davies_bouldin = best_clustering_metrics['internal']['davies_bouldin']
         davies_bouldin_val = clustering_metrics['internal']['davies_bouldin']
@@ -168,7 +168,7 @@ class CielOptimizer:
             best_clustering_metrics['external'] = clustering_metrics['external'].copy()
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
             return True
-        
+
         # CUrrent best sum of external clustering metrics
         best_sum_external = sum(best_clustering_metrics["external"].values())
         sum_external = sum(clustering_metrics['external'].values())
@@ -301,6 +301,7 @@ class CielOptimizer:
         #print("Time:",time.time() - inicio)
 
         optimal_clusterer = self.create_clusterer(name_best_clusterer)
+        # TODO fix this
         self.optimal_clusterer = name_best_classifier
 
         samples_by_cluster, self.labels_by_cluster = self.cluster_samples(X, y, optimal_clusterer)
@@ -340,13 +341,14 @@ class CielOptimizer:
                         (predicted_probs[:, :lbl], col_zeros, predicted_probs[:, lbl:])
                     )
             probability_by_class += predicted_probs * self.weights[c]
-        return probability_by_class
-
-    def predict(self, X):
-        probabilities = self.predict_proba(X)
-        y_pred_by_cluster = self.predict_labels_by_cluster(X)
 
         weights = np.tile(self.weights, (len(X), 1))
+
+        y_pred_by_cluster = self.predict_labels_by_cluster(X)
+        return probability_by_class, weights, y_pred_by_cluster
+
+    def predict(self, X):
+        probabilities, weights, y_pred_by_cluster = self.predict_proba(X)
 
         return np.argmax(probabilities, axis=1), weights, y_pred_by_cluster
 

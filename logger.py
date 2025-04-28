@@ -1,10 +1,12 @@
 import os
+from typing import Optional
 import numpy as np
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from cbeg import CBEG
 from sklearn.metrics import classification_report
 from ciel_optimizer import CielOptimizer
+from sklearn.metrics import classification_report, roc_auc_score
 
 @dataclass
 class PredictionResults:
@@ -13,6 +15,7 @@ class PredictionResults:
     # y_score: NDArray
     voting_weights: NDArray
     y_pred_by_clusters: NDArray
+    y_score: Optional[NDArray] = None
 
 
 class Logger:
@@ -23,7 +26,7 @@ class Logger:
         self.prediction_results = prediction_results
 
     def print_classification_report(self, y_pred: NDArray, y_val: NDArray, file_output: 'File',
-                                    multiclass: bool = False) -> None:
+                                    y_score: Optional[NDArray] = None, multiclass: bool = False) -> None:
         # If it is a multiclass problem, we use the weighted avg. to calculate metrics.
         avg_type = "weighted avg" if multiclass else "1"
 
@@ -32,6 +35,14 @@ class Logger:
         print(f"Recall: {clf_report[avg_type]['recall']}", file = file_output)
         print(f"Precision: {clf_report[avg_type]['precision']}", file = file_output)
         print(f"F1: {clf_report[avg_type]['f1-score']}\n", file = file_output)
+
+        # Add AUC score
+        if y_score is not None:
+            if multiclass:
+                auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
+            else:
+                auc_val = roc_auc_score(y_val, y_score)
+            print(f"AUC: {auc_val}\n", file = file_output)
 
     def save_training_data(self, filename: str, folder: str):
         fullpath = os.path.join(folder, filename)
@@ -84,11 +95,12 @@ class Logger:
     def save_test_data(self, filename: str, folder: str):
         y_pred = self.prediction_results.y_pred
         y_val = self.prediction_results.y_val
+        y_score = self.prediction_results.y_score
 
         n_samples = y_val.shape[0]
         n_labels = self.classifier.n_classes
 
-        multiclass = n_labels > 2 # Used to calculate precision, recall and F1 for multiclass problems
+        is_multiclass = n_labels > 2 # Used to calculate precision, recall and F1 for multiclass problems
 
         fullpath = os.path.join(folder, filename)
 
@@ -105,10 +117,11 @@ class Logger:
         for c in range(int(self.classifier.n_clusters)):
             y_pred_cluster = self.prediction_results.y_pred_by_clusters[:, c]
             print(f"====== Cluster {c} ======", file=file_output)
-            self.print_classification_report(y_pred_cluster, y_val, file_output, multiclass)
+            self.print_classification_report(y_pred_cluster, y_val, file_output, multiclass=is_multiclass)
 
         print(f"====== Total ======", file=file_output)
-        self.print_classification_report(y_pred, y_val, file_output, multiclass)
+        self.print_classification_report(y_pred, y_val, file_output,
+                                         y_score=y_score, multiclass=is_multiclass)
 
         self.save_clustering_metric(file_output)
 
