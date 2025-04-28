@@ -224,7 +224,7 @@ class CielOptimizer:
 
     def crossval_classifiers_scores(self, classifiers: dict, X_train: NDArray, y_train: NDArray):
         if self.n_classes > 2:
-            classification_metrics = ['roc_auc_ovo', 'accuracy']
+            classification_metrics = ['roc_auc_ovr', 'accuracy']
         else:
             classification_metrics = ['roc_auc', 'accuracy']
 
@@ -237,8 +237,8 @@ class CielOptimizer:
             cv_results = cross_validate(classifier, X_train, y_train, cv=cv,
                                         scoring=classification_metrics)
             # Get the mean AUC of the classifier
-            if 'test_roc_auc_ovo' in cv_results:
-                mean_auc = cv_results['test_roc_auc_ovo'].mean()
+            if 'test_roc_auc_ovr' in cv_results:
+                mean_auc = cv_results['test_roc_auc_ovr'].mean()
             else:
                 mean_auc = cv_results['test_roc_auc'].mean()
 

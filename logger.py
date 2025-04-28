@@ -10,7 +10,7 @@ from ciel_optimizer import CielOptimizer
 class PredictionResults:
     y_pred: NDArray
     y_val: NDArray
-    y_score: NDArray
+    # y_score: NDArray
     voting_weights: NDArray
     y_pred_by_clusters: NDArray
 
