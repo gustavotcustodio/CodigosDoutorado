@@ -301,8 +301,7 @@ class CielOptimizer:
         #print("Time:",time.time() - inicio)
 
         optimal_clusterer = self.create_clusterer(name_best_clusterer)
-        # TODO fix this
-        self.optimal_clusterer = name_best_classifier
+        self.optimal_clusterer = name_best_clusterer
 
         samples_by_cluster, self.labels_by_cluster = self.cluster_samples(X, y, optimal_clusterer)
 

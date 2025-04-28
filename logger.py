@@ -41,6 +41,7 @@ class Logger:
             if multiclass:
                 auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
             else:
+                y_score = y_score[:, 1]
                 auc_val = roc_auc_score(y_val, y_score)
             print(f"AUC: {auc_val}\n", file = file_output)
 
