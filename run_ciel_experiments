@@ -1,0 +1,12 @@
+#!/bin/bash
+
+DATASETS="heart contraceptive german_credit pima wdbc australian_credit wine iris"
+N_PARTICLES=10
+N_ITERS=5
+
+for dataset in $DATASETS; do
+
+    echo "Running for ${dataset}..."
+    python ciel.py -d "$dataset" -n "$N_ITERS" -p "$N_PARTICLES"
+
+done

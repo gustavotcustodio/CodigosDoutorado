@@ -1,55 +1,70 @@
-============== PSO parameters ==============
-{'svm': [{'cost': np.float64(832.0626192449313), 'gamma': np.float64(714.6313902920544)}, {'cost': np.float64(265.1052604774982), 'gamma': np.float64(459.00374345108725)}, {'cost': np.float64(429.92234810967807), 'gamma': np.float64(742.133816355959)}, {'cost': np.float64(268.83136332611764), 'gamma': np.float64(991.1859349878019)}], 'extra_tree': [{'n_estimators': 361, 'max_depth': 4, 'min_samples_split': 3, 'min_samples_leaf': 3}, {'n_estimators': 404, 'max_depth': 5, 'min_samples_split': 6, 'min_samples_leaf': 2}, {'n_estimators': 335, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 5}, {'n_estimators': 160, 'max_depth': 2, 'min_samples_split': 7, 'min_samples_leaf': 1}], 'grad_boost': [{'n_estimators': 75, 'max_depth': 7, 'min_samples_split': 4, 'min_samples_leaf': 9, 'learning_rate': np.float64(0.8255720575823349)}, {'n_estimators': 477, 'max_depth': 5, 'min_samples_split': 10, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.36643459726423433)}, {'n_estimators': 176, 'max_depth': 7, 'min_samples_split': 6, 'min_samples_leaf': 3, 'learning_rate': np.float64(0.8735315886774987)}, {'n_estimators': 448, 'max_depth': 10, 'min_samples_split': 3, 'min_samples_leaf': 4, 'learning_rate': np.float64(0.688454819937064)}]}
+============== Classifiers Parameters ==============
+{'svm': [{'cost': np.float64(349.60318272486234), 'gamma': np.float64(415.06831513607676)}, {'cost': np.float64(438.45598137796867), 'gamma': np.float64(235.1394113751228)}, {'cost': np.float64(6.911044537718112), 'gamma': np.float64(983.2399980839618)}, {'cost': np.float64(175.12003082490716), 'gamma': np.float64(755.0041800289758)}, {'cost': np.float64(854.7738695776973), 'gamma': np.float64(509.8419934952635)}, {'cost': np.float64(940.7092639904165), 'gamma': np.float64(384.0110878130949)}, {'cost': np.float64(88.57007745825229), 'gamma': np.float64(938.5780796410262)}, {'cost': np.float64(250.61985617067597), 'gamma': np.float64(468.22579987364213)}], 'extra_tree': [{'n_estimators': 254, 'max_depth': 7, 'min_samples_split': 2, 'min_samples_leaf': 3}, {'n_estimators': 88, 'max_depth': 5, 'min_samples_split': 8, 'min_samples_leaf': 8}, {'n_estimators': 388, 'max_depth': 6, 'min_samples_split': 8, 'min_samples_leaf': 9}, {'n_estimators': 66, 'max_depth': 2, 'min_samples_split': 3, 'min_samples_leaf': 8}, {'n_estimators': 89, 'max_depth': 9, 'min_samples_split': 10, 'min_samples_leaf': 4}, {'n_estimators': 407, 'max_depth': 3, 'min_samples_split': 4, 'min_samples_leaf': 2}, {'n_estimators': 234, 'max_depth': 7, 'min_samples_split': 7, 'min_samples_leaf': 7}, {'n_estimators': 213, 'max_depth': 8, 'min_samples_split': 4, 'min_samples_leaf': 6}], 'grad_boost': [{'n_estimators': 375, 'max_depth': 6, 'min_samples_split': 5, 'min_samples_leaf': 8, 'learning_rate': np.float64(0.5620979411589917)}, {'n_estimators': 333, 'max_depth': 3, 'min_samples_split': 8, 'min_samples_leaf': 4, 'learning_rate': np.float64(0.7002237387374967)}, {'n_estimators': 399, 'max_depth': 6, 'min_samples_split': 9, 'min_samples_leaf': 6, 'learning_rate': np.float64(0.612833189734468)}, {'n_estimators': 406, 'max_depth': 7, 'min_samples_split': 10, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.945851060863089)}, {'n_estimators': 447, 'max_depth': 5, 'min_samples_split': 7, 'min_samples_leaf': 7, 'learning_rate': np.float64(0.4255904827422264)}, {'n_estimators': 433, 'max_depth': 7, 'min_samples_split': 9, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.33906609197919635)}, {'n_estimators': 274, 'max_depth': 2, 'min_samples_split': 4, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.3408846973482733)}, {'n_estimators': 367, 'max_depth': 2, 'min_samples_split': 4, 'min_samples_leaf': 4, 'learning_rate': np.float64(0.8081410896999593)}]}
 
-Optimal clusterer: gb
+Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.007414110863772775
-normalized_mutual_info_score: 0.01833700622947582
-v_measure_score: 0.01833700622947582
-fowlkes_mallows_score: 0.4907619347361297
+adjusted_rand_score: 0.0002523284267352931
+normalized_mutual_info_score: 0.012951438464387654
+v_measure_score: 0.012951438464387656
+fowlkes_mallows_score: 0.40418128482941557
 
 Internal clustering metrics:
-silhouette: 0.047436907950401126
-davies_bouldin: 3.030329683707915
-calinski_harabasz_score: 34.17823797690952
+silhouette: 0.016628307682004382
+davies_bouldin: 2.8576353027739856
+calinski_harabasz_score: 20.781219162381912
 
 Base classifier: gb
 ========== Cluster 0 ==========
 
-Labels: [0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1
- 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 1 1 0 0 0 0 1 0 0
- 0 0 1 0 0 0 1 0 1 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 1
- 0 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1
- 0 1 1 0 0 0 1 1 1 0 1 1 0 0 0 0 0 0 0 1 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1
- 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0
- 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 1 1 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 0 0
- 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0 0 0 1 1 1 0 0
- 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0]
+Labels: [0 0 0 1 0 0 0 0 0 1 0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 0 1 0 0 0 0 1 1
+ 0 0 0 0 0 0 0 1 1 1 1 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 1 1 1 0 1 0 0 0 1 1 1 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1
+ 0 0 0 0 1 1 0 0 0 0 1 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0
+ 0 0 0 0]
 
 ========== Cluster 1 ==========
 
-Labels: [1 0 0 0 0 0 0 1 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 1 0 0 0 0
- 0 1 0 0 0 1 1 0 1 0 0 0 0 1 1 1 0 0 0 1 1 1 1 0 0 1 0 0 1 0 1 1 0 0 0 1 0
- 0 1 0 0 1 1 1 0 0 0 1 1 0 1 0 0 0 0 0 0 0 1 0 1 1 0 0 0 1 0 1 1 1 0 1 0 0
- 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0
- 0 0 1 1 1 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 1 0 0 1 0 0 1 1 0 0 1 1 0 1 0 0 1
- 0 0 0 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 1 1 1 0 0 0 0 1 0 1
- 0 0 1 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 0 0 0 1 0 0 0 0
- 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 1 0 0
- 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 1 0 1 0 1 1 1 1 1 0 1 1 0 0 0 0 0 1 0 0 0
- 0 1 0 1 1 0 1 0 1 0 1 0 0 1 1 1 0 0 0 1 0 0 0 0 1 0 0 0 1 1 1 0 0 0 1 0 1
- 0 1 1 1 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 1 1 0 0 1 0 0 1 1 1 0 0 0 0 0 0 1
- 0 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 1 0 1 1 1 0 1 1 0 0 0 0 1 0 1 0
- 0 1 1 1 0 1 1 0 1 1 0 0 0 1 0 0 1 0 0 1 0]
+Labels: [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1 0 0 0 0 0 0 0 0
+ 0 1 0 0 0 1 0 1 0 0 1 0 1 0 0 0 0 0 0 1 0 1 1 1 0 0 0 0 1 1 0 0 0 0 1 0 0
+ 0 0 0 0 0 1 0 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 1 1
+ 0 0 0 0 0 0 1 0 0 0 0 1]
 
 ========== Cluster 2 ==========
 
-Labels: [0 0 1 1 0 1 1 0 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 1 1
- 0 1 1 0 1 0 0 0 0 1 0 1 1 0 0 0 0 1 1 1 0 0 1 1 0 1 1 1 1 1 0 1 0 0 0 0 1
- 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 1 1 0 0 1 1 0 1 1 1 0 0 0 1 1]
+Labels: [0 0 0 0 0 0 1 1 0 1 0 1 1 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 1 0 0
+ 1 1 1 0 1 0 0 0 1 0 1 0 1 0 1 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 1 1 1 0 0 1 0 0
+ 1 0 0 0 0 0 1 0 1 0]
 
 ========== Cluster 3 ==========
 
-Labels: [0 0 0 0]
+Labels: [0 0 1 1 0 1 0 0 1 1 0 0 1 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 1
+ 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0]
+
+========== Cluster 4 ==========
+
+Labels: [1 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 0
+ 0 0 0 0 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 1 1 1 1 0 0 0 0 1
+ 0 1 1 1 1 0 0 0 1 0 0 1 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 1 0 0 1 0 1 0 1 0
+ 1 0 0 0 0 1 0 0 0 1 1 0 0 1 1 0]
+
+========== Cluster 5 ==========
+
+Labels: [0 0 0 0 1 1 0 0 0 1 0 0 0 0 1 0 1 1 0 0 1 0 0 0 1 0 0 0 0 1 0 1 1 0 1 0 0
+ 1 1 1 0 1 1 1 1 1 0 0 0 0 1 0 1 0 0 0 1 1 1 1 0 0 1 1 1 1 1 1 0 0 0 0 1 1
+ 0 0 0 1 0 0 0 0 1 0 1 1 0 0 1 0 0 0 0 1 1 0 1 1 0 1 1 0 0 0 1]
+
+========== Cluster 6 ==========
+
+Labels: [0 1 0 1 1 1 1 0 0 0 0 0 0 1 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 1 0
+ 0 0 1 0 0 0 1 0 0 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1
+ 1 0 0 1 0 1 0 0 0 0 0 0 0 1 1 1]
+
+========== Cluster 7 ==========
+
+Labels: [0 1 1 1 1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 1 0 0 1 0 0 1 1 0 0 0
+ 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0
+ 0 0 0 0 0 0 1 1 1 0 0 0 1 0 1 0 0 0 0 1 0 1 0 1 1 0 1 1 0 1 0 0 0 0 0 1 0
+ 0 0 0 0 1 0 0 0 0 1 1 0 1 1 1 1 1 0]
 
