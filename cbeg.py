@@ -17,6 +17,7 @@ from sklearn.svm import SVC
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.multiclass import OneVsRestClassifier
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data, DATASETS_INFO
@@ -61,15 +62,16 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
 
 def create_classifier(classifier_name: str) -> BaseEstimator:
     if classifier_name == "knn7":
-        return KNeighborsClassifier(n_neighbors=7)
+        clf = KNeighborsClassifier(n_neighbors=7)
     elif classifier_name == "knn5":
-        return KNeighborsClassifier(n_neighbors=5)
+        clf = KNeighborsClassifier(n_neighbors=5)
     elif classifier_name == "svm":
-        return SVC(probability=True)
+        clf = SVC(probability=True)
     elif classifier_name == "adaboost":
-        return AdaBoostClassifier(algorithm="SAMME")
+        clf = AdaBoostClassifier(algorithm="SAMME")
     else:
-        return BASE_CLASSIFIERS[classifier_name]()
+        clf = BASE_CLASSIFIERS[classifier_name]()
+    return clf
 
 @dataclass
 class PredictionResults:
@@ -89,6 +91,17 @@ class CBEG:
     combination_strategy: str = "weighted_membership"
     max_threads: int = 4
     verbose: bool = False
+
+    def choose_default_classifier(self, y_cluster: NDArray, cluster: int
+                                  ) -> None:
+        """Return the default classifier if y has samples of
+        two or more classes, otherwise, produce a Dummy Classifier
+        """
+        unique_y = np.unique(y_cluster)
+        if len(unique_y) > 1:
+            self.base_classifiers[cluster] = create_classifier(DEFAULT_CLASSIFIER)
+        else:
+            self.base_classifiers[cluster] = DummyClassifier(strategy="most_frequent")
     
     def choose_best_classifier(
         self, X_cluster: NDArray, y_cluster: NDArray,
@@ -105,6 +118,7 @@ class CBEG:
         elif len(X_cluster) // 10 < 8:
             del possible_base_classifiers["knn7"]
 
+        assert hasattr(self, 'n_labels')
         classifiers = {clf_name: create_classifier(clf_name)
                        for clf_name in possible_base_classifiers}
 
@@ -126,6 +140,7 @@ class CBEG:
             selected_base_classifiers[cluster] = dummy_classifier
             return
 
+        assert hasattr(self, 'n_labels')
         if n_minority_class == 1:
             # Default classifier is the Naive-Bayes
             selected_base_classifiers[cluster] = create_classifier(DEFAULT_CLASSIFIER)
@@ -288,11 +303,18 @@ class CBEG:
                 vote_sums, # Voting weights
                 np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
-    def smote_oversampling(self):
-        # Number of real samples
-        n_original_samples = sum([len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()])
+    def smote_oversampling(self, class_rate=1):
         # Used to map which data points are synthetic
         self.idx_synth_data_by_cluster = {}
+
+        # We use this option when we don't want the oversampling
+        if class_rate <= 0:
+            return
+
+        # Number of real samples
+        n_original_samples = sum(
+            [len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()]
+        )
 
         for c, X_cluster in self.samples_by_cluster.items():
 
@@ -310,7 +332,7 @@ class CBEG:
             if n_minority_class >=2 and n_samples >= 3:
                 k_neighbors = min(n_minority_class - 1, 5)
 
-                oversample = SMOTE(k_neighbors=k_neighbors)
+                oversample = SMOTE(sampling_strategy=class_rate, k_neighbors=k_neighbors)
                 X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
 
                 n_samples_cluster = len(y_cluster)  # Number of samples in cluster including synthetic
@@ -337,12 +359,13 @@ class CBEG:
 
     def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
         y_pred_by_clusters = []
+        n_clusters = self.cluster_module.n_clusters
 
         if self.cluster_module.n_clusters is None:
             print("Error: Number of clusters isn't set.")
             sys.exit(1)
 
-        for c in range(self.cluster_module.n_clusters):
+        for c in range(n_clusters):
             selected_features = self.features_module.features_by_cluster[c]
             X_test_cluster = X_test[:, selected_features]
 
@@ -394,19 +417,21 @@ class CBEG:
             selected_features = self.features_module.features_by_cluster[c]
             base_classifier = self.base_classifiers[c]
             labels_cluster = self.labels_by_cluster[c]
-            synthetic_samples = self.idx_synth_data_by_cluster[c]
 
             print(f"========== Cluster {c} ==========\n", file=file_output)
 
             print(f"Base classifier: {base_classifier}\n", file=file_output)
 
-            print(f"Minority Class: {self.minority_class}\n", file=file_output)
+            # print(f"Minority Class: {self.minority_class}\n", file=file_output)
 
             print(f"Selected Features: {selected_features}\n", file=file_output)
 
             print(f"Labels: {labels_cluster}\n", file=file_output)
 
-            print(f"Synthetic samples indexes: {synthetic_samples}\n", file=file_output)
+            if self.idx_synth_data_by_cluster is not None:
+                synthetic_samples = self.idx_synth_data_by_cluster[c]
+                print(f"Synthetic samples indexes: {synthetic_samples}\n", file=file_output)
+
         file_output.close()
 
     def save_test_data(self, prediction_results: PredictionResults, filename: str, folder: str) -> None:
@@ -490,8 +515,13 @@ class CBEG:
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
         ############ SMOTE ###############
-        print("Running SMOTE oversampling...")
-        self.smote_oversampling()
+        smote = True
+        if smote:
+            print("Running SMOTE oversampling...")
+            self.smote_oversampling(class_rate=0)
+        else:
+            self.idx_synth_data_by_cluster = None
+
         ###################################
 
         if self.verbose and self.min_mutual_info_percentage < 100:
@@ -503,6 +533,8 @@ class CBEG:
         )
         self.samples_by_cluster = self.features_module.select_features_by_cluster()
 
+        n_clusters = int(self.cluster_module.n_clusters)
+
         if self.base_classifier_selection:
             if self.verbose:
                 print("Performing classifier selection...")
@@ -510,18 +542,28 @@ class CBEG:
             self.base_classifiers = self.select_base_classifiers( classification_metrics )
 
         else:
-            n_clusters = int(self.cluster_module.n_clusters)
+            self.base_classifiers = []
 
             # If no base classifier is selected the default is GaussianNB
             # If only a sample is present in cluster, the default is the DummyClassifier
-            self.base_classifiers = [create_classifier(DEFAULT_CLASSIFIER) if len(self.samples_by_cluster[c]) > 1
-                                     else DummyClassifier(strategy="most_frequent")
-                                     for c in range(n_clusters) ]
+            for c in range(n_clusters):
+                single_class_in_cluster = len(np.unique(self.labels_by_cluster[c])) == 1
+
+                if single_class_in_cluster:
+                    self.base_classifiers.append ( DummyClassifier(strategy="most_frequent") )
+                else:
+                    self.base_classifiers.append ( create_classifier(DEFAULT_CLASSIFIER) )
 
         # Fit the data in each different cluster to the designated classifier.
-        for c in range(self.cluster_module.n_clusters):
+        for c in range(n_clusters):
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
+            
+            possible_classes = np.unique(y_cluster)
+
+            #if len(possible_classes) > 2:
+            #    self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
+
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
 
@@ -580,6 +622,7 @@ def main():
 
     # Check if the experiments are valid
     from process_results import filter_cbeg_experiments_configs
+
     folder_name = get_folder_name(args).split("/")[-1]
     n_classes_dataset = DATASETS_INFO[args.dataset]["nlabels"]
     mutual_info = args.min_mutual_info_percentage
@@ -595,9 +638,11 @@ def main():
         X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
         X_train, X_val = normalize_data(X_train, X_val)
 
-        cbeg = CBEG(args.n_clusters, args.base_classifier_selection, args.min_mutual_info_percentage,
-                    args.clustering_evaluation_metric, args.combination_strategy,
-                    max_threads=7, verbose=True)
+        cbeg = CBEG(
+            args.n_clusters, args.base_classifier_selection,
+            args.min_mutual_info_percentage, args.clustering_evaluation_metric,
+            args.combination_strategy, max_threads=7, verbose=True
+        )
         cbeg.fit(X_train, y_train)
 
         y_pred, voting_weights, y_pred_by_clusters = cbeg.predict(X_val)
