@@ -26,8 +26,6 @@ from imblearn.over_sampling import SMOTE
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
-# TODO implementar CIEL
-
 # TODO ponderar pela quantidade de amostras vistas no treinamento (plotar um gráfico disos também)
 
 # TODO opções para resolver o problema do FCM:
@@ -303,13 +301,9 @@ class CBEG:
                 vote_sums, # Voting weights
                 np.vstack(y_pred_by_clusters).T) # Predicted labels for each cluster (sample, cluster)
 
-    def smote_oversampling(self, class_rate=1):
+    def smote_oversampling(self):
         # Used to map which data points are synthetic
         self.idx_synth_data_by_cluster = {}
-
-        # We use this option when we don't want the oversampling
-        if class_rate <= 0:
-            return
 
         # Number of real samples
         n_original_samples = sum(
@@ -332,7 +326,7 @@ class CBEG:
             if n_minority_class >=2 and n_samples >= 3:
                 k_neighbors = min(n_minority_class - 1, 5)
 
-                oversample = SMOTE(sampling_strategy=class_rate, k_neighbors=k_neighbors)
+                oversample = SMOTE(k_neighbors=k_neighbors)
                 X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
 
                 n_samples_cluster = len(y_cluster)  # Number of samples in cluster including synthetic
@@ -353,7 +347,6 @@ class CBEG:
                 self.idx_synth_data_by_cluster[c] = []
         # Number of samples including the synthetic ones 
         n_total_samples = sum([len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()])
-        # TODO ver como fazer com as classes majoritárias no gráfico de bolinhas
         # TODO consertar majority voting par
         print(f"Num. samples before: {n_original_samples}\nNum. samples after: {n_total_samples}")
 
@@ -428,7 +421,7 @@ class CBEG:
 
             print(f"Labels: {labels_cluster}\n", file=file_output)
 
-            if self.idx_synth_data_by_cluster is not None:
+            if self.idx_synth_data_by_cluster:
                 synthetic_samples = self.idx_synth_data_by_cluster[c]
                 print(f"Synthetic samples indexes: {synthetic_samples}\n", file=file_output)
 
@@ -515,12 +508,12 @@ class CBEG:
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
         ############ SMOTE ###############
-        smote = True
+        smote = True # TODO parametrizar isso
         if smote:
             print("Running SMOTE oversampling...")
-            self.smote_oversampling(class_rate=0)
+            self.smote_oversampling()
         else:
-            self.idx_synth_data_by_cluster = None
+            self.idx_synth_data_by_cluster = {}
 
         ###################################
 
@@ -561,8 +554,8 @@ class CBEG:
             
             possible_classes = np.unique(y_cluster)
 
-            #if len(possible_classes) > 2:
-            #    self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
+            # if len(possible_classes) > 2:
+            #     self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
 
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
