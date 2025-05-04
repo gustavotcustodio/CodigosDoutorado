@@ -3,6 +3,8 @@ import sys
 import argparse
 import numpy as np
 import threading
+
+from numpy._core.multiarray import BUFSIZE
 import dataset_loader
 from dataclasses import dataclass
 from sklearn.base import BaseEstimator
@@ -23,6 +25,7 @@ from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data, DATASETS_INFO
 from collections import Counter
 from imblearn.over_sampling import SMOTE
+from process_results import filter_cbeg_experiments_configs
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
@@ -122,7 +125,7 @@ class CBEG:
 
         # Count the number of sample in the minority class.
         # If the number is lower than 10, the number of folds is reduced
-        n_minority_class = self.count_minority_class(y_cluster)
+        _, n_minority_class = self.count_minority_class(y_cluster)
 
         if n_minority_class < 10:
             n_folds = n_minority_class
@@ -154,11 +157,16 @@ class CBEG:
         # selected classifiers
         selected_base_classifiers[cluster] = classifiers[selected_classifier]
 
-    def count_minority_class(self, y: NDArray) -> int:
+    def count_minority_class(self, y: NDArray) -> tuple[int, int]:
         """ Count the number of samples in the minority class.
         """
-        class_count = Counter(y)
-        return min(class_count.values())
+        class_count = dict(Counter(y))
+
+        minority_class, n_minority_class = min(
+            class_count.items(), key=lambda x: x[1]
+        )
+        minority_class = int(minority_class)
+        return minority_class, n_minority_class
 
     def crossval_classifiers_scores(
         self, classifiers: Mapping[str, BaseEstimator], X_train: NDArray, 
@@ -314,12 +322,14 @@ class CBEG:
 
             y_cluster = self.labels_by_cluster[c]
 
-            n_samples_by_class_cluster = [
-                len(np.where(y_cluster == lbl)[0]) for lbl in range(self.n_labels)
-            ]
-            # Get the minority class and the number os samples in it
-            self.minority_class, n_minority_class = min(
-                    enumerate(n_samples_by_class_cluster), key=lambda x: x[1])
+            # n_samples_by_class_cluster = [
+            #     len(np.where(y_cluster == lbl)[0]) for lbl in range(self.n_labels)
+            # ]
+            # # Get the minority class and the number os samples in it
+            # minority_class, n_minority_class = min(
+            #     enumerate(n_samples_by_class_cluster), key=lambda x: x[1]
+            # )
+            n_minority_class = self.minority_classes_by_cluster[c][1]
             n_real_cluster = len(y_cluster) # Number of real samples in this cluster
             n_samples = len(y_cluster)
 
@@ -410,12 +420,13 @@ class CBEG:
             selected_features = self.features_module.features_by_cluster[c]
             base_classifier = self.base_classifiers[c]
             labels_cluster = self.labels_by_cluster[c]
+            minority_class = self.minority_classes_by_cluster[c][0]
 
             print(f"========== Cluster {c} ==========\n", file=file_output)
 
             print(f"Base classifier: {base_classifier}\n", file=file_output)
 
-            # print(f"Minority Class: {self.minority_class}\n", file=file_output)
+            print(f"Minority Class: {minority_class}\n", file=file_output)
 
             print(f"Selected Features: {selected_features}\n", file=file_output)
 
@@ -509,6 +520,10 @@ class CBEG:
 
         ############ SMOTE ###############
         smote = True # TODO parametrizar isso
+        n_clusters = int(self.cluster_module.n_clusters)
+        self.minority_classes_by_cluster = [
+            self.count_minority_class(self.labels_by_cluster[c]) for c in range(n_clusters)]
+
         if smote:
             print("Running SMOTE oversampling...")
             self.smote_oversampling()
@@ -612,9 +627,6 @@ def main():
     args = parser.parse_args()
 
     args.n_clusters = int(args.n_clusters) if args.n_clusters != "compare" else "compare"
-
-    # Check if the experiments are valid
-    from process_results import filter_cbeg_experiments_configs
 
     folder_name = get_folder_name(args).split("/")[-1]
     n_classes_dataset = DATASETS_INFO[args.dataset]["nlabels"]
