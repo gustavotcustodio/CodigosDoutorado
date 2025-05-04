@@ -417,10 +417,16 @@ class CBEG:
         print(f"Clustering evaluation value: {cluster_eval}\n", file=file_output)
 
         for c in sorted(clusters):
-            selected_features = self.features_module.features_by_cluster[c]
             base_classifier = self.base_classifiers[c]
-            labels_cluster = self.labels_by_cluster[c]
+
+            # Check if is a OneVsRestClassifier, if it is, extract the classifier
+            # inside the OneVsRestClassifier
+            if isinstance(base_classifier, OneVsRestClassifier):
+                base_classifier = base_classifier.estimator
+
             minority_class = self.minority_classes_by_cluster[c][0]
+            selected_features = self.features_module.features_by_cluster[c]
+            labels_cluster = self.labels_by_cluster[c]
 
             print(f"========== Cluster {c} ==========\n", file=file_output)
 
@@ -461,8 +467,12 @@ class CBEG:
 
         for c in range(int(self.cluster_module.n_clusters)):
             y_pred_cluster = prediction_results.y_pred_by_clusters[:, c]
+            base_classifier = self.base_classifiers[c]
+            if isinstance(base_classifier, OneVsRestClassifier):
+                base_classifier = base_classifier.estimator
+
             print(f"====== Cluster {c} ======", file=file_output)
-            print(f"Base classifier: {self.base_classifiers[c]}", file=file_output)
+            print(f"Base classifier: {base_classifier}", file=file_output)
             self.print_classification_report(y_pred_cluster, y_val, file_output, multiclass)
 
         print(f"====== Total ======", file=file_output)
@@ -569,8 +579,8 @@ class CBEG:
             
             possible_classes = np.unique(y_cluster)
 
-            # if len(possible_classes) > 2:
-            #     self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
+            if len(possible_classes) > 2:
+                self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
 
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
