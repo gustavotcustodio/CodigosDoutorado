@@ -2,7 +2,8 @@ import os
 import re
 from dataset_loader import DATASETS_INFO
 from processors.base_classifiers_compiler import BaseClassifiersCompiler, BaseClassifierResult
-from processors.cbeg_compiler import CbegResultsCompiler, SingleCbegResult
+from processors.cbeg_compiler import SingleCbegResult, CbegResultsCompiler
+from processors.ciel_compiler import SingleCielResult
 from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES
 
 
@@ -100,7 +101,6 @@ def process_cbeg_results(datasets, mutual_info_percentages):
 
 
 def process_base_results(datasets: list[str], mutual_info_percentages: list[float]):
-
     for dataset in datasets:
         classifiers_results = []
 
@@ -110,7 +110,7 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
                 if "sc" in abbrev_classifier:
                     base_clf = abbrev_classifier.split("_")[1]
                     path = (f'results/{dataset}/mutual_info_{mutual_info}/' + 
-                            f'supervised_clustering/supervided_clustering_base_classifier_{base_clf}')
+                            f'supervised_clustering/supervised_clustering_base_classifier_{base_clf}')
                 else:
                     path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
 
@@ -124,6 +124,26 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
         classifier_compiler = BaseClassifiersCompiler(classifiers_results, dataset)
         classifier_compiler.plot_classification_heatmap()
 
+
+def process_ciel_results(datasets: list[str], mutual_info_percentages: list[float]):
+    for dataset in datasets:
+
+        for mutual_info in mutual_info_percentages:
+
+            path = f"./results/{dataset}/mutual_info_{mutual_info}/ciel"
+            loader = DataReader(path, training=True)
+            loader.read_data()
+
+            ciel_result = SingleCielResult( loader.data["training"], loader.data["test"])
+
+            breakpoint()
+            # for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
+
+        # Plot the heatmap with classification metrics from base classifiers
+        # classifier_compiler = BaseClassifiersCompiler(classifiers_results, dataset)
+        # classifier_compiler.plot_classification_heatmap()
+
+
 def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
     valid_datasets = []
     results_list = os.listdir("./results")
@@ -136,13 +156,14 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 def main():
     datasets = ["australian_credit", "german_credit", "contraceptive", 
                 "heart", "iris", "pima", "wdbc", "wine"]
+    datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]
 
-    process_cbeg_results(datasets, mutual_info_percentages)
-    breakpoint()
-    process_base_results(datasets, mutual_info_percentages) 
+    process_ciel_results(datasets, mutual_info_percentages)
+    # process_cbeg_results(datasets, mutual_info_percentages)
+    # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
     main()

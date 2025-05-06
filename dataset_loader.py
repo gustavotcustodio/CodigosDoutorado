@@ -163,7 +163,6 @@ def read_wine_dataset():
 
     # enc = MultiLabelBinarizer(sparse_output=False)
     # y_1_hot = enc.fit_transform(y.reshape(-1, 1))
-    # breakpoint()
 
     return X, y
 

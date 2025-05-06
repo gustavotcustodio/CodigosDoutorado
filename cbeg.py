@@ -318,18 +318,14 @@ class CBEG:
             [len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()]
         )
 
-        for c, X_cluster in self.samples_by_cluster.items():
+        cluster_samples = self.samples_by_cluster.items()
+
+        for c, X_cluster in cluster_samples:
 
             y_cluster = self.labels_by_cluster[c]
 
-            # n_samples_by_class_cluster = [
-            #     len(np.where(y_cluster == lbl)[0]) for lbl in range(self.n_labels)
-            # ]
-            # # Get the minority class and the number os samples in it
-            # minority_class, n_minority_class = min(
-            #     enumerate(n_samples_by_class_cluster), key=lambda x: x[1]
-            # )
             n_minority_class = self.minority_classes_by_cluster[c][1]
+
             n_real_cluster = len(y_cluster) # Number of real samples in this cluster
             n_samples = len(y_cluster)
 
@@ -339,7 +335,8 @@ class CBEG:
                 oversample = SMOTE(k_neighbors=k_neighbors)
                 X_cluster, y_cluster = oversample.fit_resample(X_cluster, y_cluster)
 
-                n_samples_cluster = len(y_cluster)  # Number of samples in cluster including synthetic
+                # Number of samples in cluster including synthetic
+                n_samples_cluster = len(y_cluster)
 
                 n_synthetic_cluster = n_samples_cluster - n_real_cluster
                 # Used to map which data points n this cluster are synthetic
@@ -357,7 +354,6 @@ class CBEG:
                 self.idx_synth_data_by_cluster[c] = []
         # Number of samples including the synthetic ones 
         n_total_samples = sum([len(labels_cluster) for _, labels_cluster in self.labels_by_cluster.items()])
-        # TODO consertar majority voting par
         print(f"Num. samples before: {n_original_samples}\nNum. samples after: {n_total_samples}")
 
     def predict(self, X_test: NDArray) -> tuple[NDArray, NDArray, NDArray]:
@@ -381,6 +377,7 @@ class CBEG:
             return y_pred, membership, y_pred_clusters
 
         elif self.combination_strategy == "majority_voting":
+            # TODO consertar majority_voting par
             y_pred, u_membership, y_pred_clusters = self.majority_vote_outputs(y_pred_by_clusters)
             return y_pred, u_membership, y_pred_clusters
 
