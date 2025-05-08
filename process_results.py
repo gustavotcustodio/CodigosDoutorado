@@ -3,7 +3,7 @@ import re
 from dataset_loader import DATASETS_INFO
 from processors.base_classifiers_compiler import BaseClassifiersCompiler, BaseClassifierResult
 from processors.cbeg_compiler import SingleCbegResult, CbegResultsCompiler
-from processors.ciel_compiler import SingleCielResult
+from processors.ciel_compiler import SingleCielResult, CielCompiler
 from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES
 
 
@@ -127,6 +127,7 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
 
 def process_ciel_results(datasets: list[str], mutual_info_percentages: list[float]):
     for dataset in datasets:
+        ciel_results = []
 
         for mutual_info in mutual_info_percentages:
 
@@ -134,14 +135,13 @@ def process_ciel_results(datasets: list[str], mutual_info_percentages: list[floa
             loader = DataReader(path, training=True)
             loader.read_data()
 
-            ciel_result = SingleCielResult( loader.data["training"], loader.data["test"])
+            ciel_result = SingleCielResult(loader.data["training"], loader.data["test"],
+                                           mutual_info_percentage=mutual_info)
 
-            breakpoint()
-            # for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
+            ciel_results.append(ciel_result)
 
-        # Plot the heatmap with classification metrics from base classifiers
-        # classifier_compiler = BaseClassifiersCompiler(classifiers_results, dataset)
-        # classifier_compiler.plot_classification_heatmap()
+        ciel_compiler = CielCompiler(ciel_results, dataset)
+        ciel_compiler.plot_classification_heatmap()
 
 
 def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
@@ -156,7 +156,6 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 def main():
     datasets = ["australian_credit", "german_credit", "contraceptive", 
                 "heart", "iris", "pima", "wdbc", "wine"]
-    datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]
