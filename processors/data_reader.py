@@ -4,7 +4,7 @@ N_FOLDS = 10
 
 BASE_PATH_FOLDER = "results/{dataset}/mutual_info_{mutual_info_percentage}/{algorithm}/{experiment_folder}"
 
-CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1"]
+CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1", "AUC"]
 
 CLASSIFIERS_FULLNAMES = {
     'nb': "Naive Bayes", 'svm': "SVM", 'lr': "Logistic Reg", 'dt': "Decision Tree",

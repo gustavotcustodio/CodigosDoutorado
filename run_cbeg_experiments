@@ -1,9 +1,10 @@
 #!/bin/bash
 
-DATASETS="german_credit heart iris pima wdbc wine australian_credit contraceptive"
-# DATASETS="australian_credit contraceptive german_credit"
+# DATASETS="german_credit heart iris pima wdbc wine australian_credit contraceptive"
+DATASETS="contraceptive"
 EVALUATION_METRIC="silhouette dbc dbc_ss"
-COMBINATION_METHODS="weighted_membership majority_voting cluster_density weighted_membership_entropy"
+COMBINATION_METHODS="weighted_membership majority_voting weighted_membership_entropy cluster_density"
+# COMBINATION_METHODS="weighted_membership_entropy"
 POSSIBLE_N_CLUSTERS="2 3"
 
 for dataset in $DATASETS; do
@@ -14,9 +15,19 @@ for dataset in $DATASETS; do
 
             for eval_metric in $EVALUATION_METRIC; do
                 echo "======================================================"
+                echo "Running ${dataset} ${mutual_info} ${eval_metric} ${combination_method} classifier selection and oversampling..."
+                echo "======================================================"
+                python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b -s
+
+                echo "======================================================"
                 echo "Running ${dataset} ${mutual_info} ${eval_metric} ${combination_method} classifier selection..."
                 echo "======================================================"
                 python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b
+
+                echo "======================================================"
+                echo "Running ${dataset} ${mutual_info} ${eval_metric} ${combination_method} default naive bayes and oversampling..."
+                echo "======================================================"
+                python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -s
 
                 echo "======================================================"
                 echo "Running ${dataset} ${mutual_info} ${eval_metric} ${combination_method} default naive bayes..."
@@ -26,20 +37,25 @@ for dataset in $DATASETS; do
 
             for n_clusters in $POSSIBLE_N_CLUSTERS; do
                 echo "======================================================"
+                echo "Running ${dataset} ${mutual_info} ${eval_metric} ${n_clusters} classifier selection and oversampling..."
+                echo "======================================================"
+                python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b -s
+
+                echo "======================================================"
                 echo "Running ${dataset} ${mutual_info} ${eval_metric} ${n_clusters} classifier selection..."
                 echo "======================================================"
-                python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method" -b
+                python cbeg.py -d "$dataset" -n "$n_clusters"  -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -b
+
+                echo "======================================================"
+                echo "Running ${dataset} ${mutual_info} ${eval_metric} ${n_clusters} default naive bayes and oversampling..."
+                echo "======================================================"
+                python cbeg.py -d "$dataset" -n "$n_clusters"  -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -s
 
                 echo "======================================================"
                 echo "Running ${dataset} ${mutual_info} ${eval_metric} ${n_clusters} default naive bayes..."
                 echo "======================================================"
-
-                # Run only once for fixed number of clusters 
-                python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method"
+                python cbeg.py -d "$dataset" -n "$n_clusters"  -m "$mutual_info" -e "$eval_metric" -c "$combination_method"
             done
-
         done
-
     done
-
 done

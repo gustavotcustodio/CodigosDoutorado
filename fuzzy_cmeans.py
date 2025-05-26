@@ -7,7 +7,8 @@ class FuzzyCMeans:
         self.n_clusters = n_clusters
 
     def fit_predict(self, X):
-        centroids, u_membership, _, _, _, _, _ = cmeans(X.T, c=self.n_clusters, m=2, maxiter=1000, error=1e-6)
+        centroids, u_membership, _, _, _, _, _ = cmeans(
+                X.T, c=self.n_clusters, m=2, maxiter=1000, error=1e-6)
         # clusters = np.argmax(u_membership, axis=0)
 
         selected_random_values = np.random.random(len(X))

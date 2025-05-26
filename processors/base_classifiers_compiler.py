@@ -44,22 +44,27 @@ class BaseClassifierResult:
         elif metric == "Precision":
             return self.mean_precision
 
-        else: # F1
+        elif metric == "F1":
             return self.mean_f1
+        
+        else: # metric == "AUC":
+            return self.mean_auc
 
     def calc_mean_and_std_metrics(self):
         self.mean_accuracy  = np.mean([metrics["Accuracy"] for metrics in self.classification_results_folds])
         self.mean_recall    = np.mean([metrics["Recall"] for metrics in self.classification_results_folds])
         self.mean_precision = np.mean([metrics["Precision"] for metrics in self.classification_results_folds])
         self.mean_f1        = np.mean([metrics["F1"] for metrics in self.classification_results_folds])
+        self.mean_auc       = np.mean([metrics["AUC"] for metrics in self.classification_results_folds])
 
         self.std_accuracy   = np.std([metrics["Accuracy"] for metrics in self.classification_results_folds])
         self.std_recall     = np.std([metrics["Recall"] for metrics in self.classification_results_folds])
         self.std_precision  = np.std([metrics["Precision"] for metrics in self.classification_results_folds])
         self.std_f1         = np.std([metrics["F1"] for metrics in self.classification_results_folds])
+        self.std_auc        = np.std([metrics["AUC"] for metrics in self.classification_results_folds])
 
     def get_classification_metrics(self, content_test: str):
-        # Dictionary where the values of accuracy, recall, precision and F1 are stored
+        # Dictionary where the values of accuracy, recall, precision F1 and AUC are stored
         dict_classification_results = {}
 
         for metric in CLASSIFICATION_METRICS:
@@ -76,6 +81,7 @@ class BaseClassifierResult:
             Recall: {self.mean_recall} +- {self.std_recall}
             Precision: {self.mean_precision} +- {self.std_precision}
             F1 Score: {self.mean_f1} +- {self.std_f1}
+            AUC Score: {self.mean_auc} +- {self.std_auc}
         """
 
 @dataclass

@@ -140,6 +140,18 @@ class ClusteringModule:
 
         return samples_by_cluster, labels_by_cluster
 
+    def update_clusters_and_centroids(
+            self, X_by_cluster, y_by_cluster):
+
+        for c in X_by_cluster:
+            self.centroids[c] = np.mean(X_by_cluster[c], axis=0)
+
+        X_by_cluster = [X_cluster for X_cluster in iter(X_by_cluster.values())]
+        y_by_cluster = [y_cluster for y_cluster in iter(y_by_cluster.values())]
+
+        self.X = np.vstack(X_by_cluster)
+        self.y = np.hstack(y_by_cluster)
+
     def get_silhoutte(self) -> Callable[[NDArray, int], float]:
         def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
             return silhouette_score(self.X, clusters)

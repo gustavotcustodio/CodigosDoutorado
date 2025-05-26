@@ -25,8 +25,9 @@ class Logger:
         self.dataset = dataset
         self.prediction_results = prediction_results
 
-    def print_classification_report(self, y_pred: NDArray, y_val: NDArray, file_output: 'File',
-                                    y_score: Optional[NDArray] = None, multiclass: bool = False) -> None:
+    def print_classification_report(
+            self, y_pred: NDArray, y_val: NDArray, file_output: 'File',
+            y_score: Optional[NDArray] = None, multiclass: bool = False) -> None:
         # If it is a multiclass problem, we use the weighted avg. to calculate metrics.
         avg_type = "weighted avg" if multiclass else "1"
 

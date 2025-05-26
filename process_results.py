@@ -6,6 +6,13 @@ from processors.cbeg_compiler import SingleCbegResult, CbegResultsCompiler
 from processors.ciel_compiler import SingleCielResult, CielCompiler
 from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES
 
+def experiment_already_performed(dataset, experiment_variation, mutual_info):
+    folder_path = f'./results/{dataset}/mutual_info_{mutual_info}/cbeg/{experiment_variation}'
+    
+    if os.path.exists(folder_path):
+        return True
+    else:
+        return False
 
 def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_percentage: float,
                                     n_clusters: int) -> dict:
@@ -22,46 +29,42 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
 
     if found_numbers_clusters:
         if ("dbc" in experiment_variation or "silhouette" in experiment_variation):
+            print("dbc" or "silhouette")
             return {}
 
         found_n_clusters = int(found_numbers_clusters[0].split("_")[0])
         if found_n_clusters != n_clusters:
+            print(f"{n_clusters} - {found_n_clusters}")
             return {}
 
-    has_cluster_selection = True if "compare_clusters" in experiment_variation else False
-    has_classifier_selection = True if "classifier_selection" in experiment_variation else False
-    has_feature_selection = True if mutual_info_percentage < 100 else False
-    has_weighted_voting_fusion = True if "majority_voting" not in experiment_variation else False
+    variation_number = "0"
 
-    if (not(has_cluster_selection) and not(has_classifier_selection) and
-          not(has_feature_selection) and not(has_weighted_voting_fusion)):
-        return {"folder": experiment_variation, "mutual_info": 100.0, "variation": 0}
+    # 0 não para todos
+    # 1, 2, 3, 4, 5
+    if "compare_clusters" in experiment_variation:  # has_cluster_selection
+        variation_number += "1"
 
-    elif (has_cluster_selection and not(has_classifier_selection) and
-          not(has_feature_selection) and not(has_weighted_voting_fusion)):
-        return {"folder": experiment_variation, "mutual_info": 100.0, "variation": 1}
-        
-    elif (not(has_cluster_selection) and has_classifier_selection and
-          not(has_feature_selection) and not(has_weighted_voting_fusion)):
-        return {"folder": experiment_variation, "mutual_info": 100.0, "variation": 2}
+    if "classifier_selection" in experiment_variation: # has_classifier_selection
+        variation_number += "2"
 
-    elif (not(has_cluster_selection) and not(has_classifier_selection) and
-          has_feature_selection and not(has_weighted_voting_fusion)):
-        return {"folder": experiment_variation, "mutual_info": mutual_info_percentage, "variation": 3}
+    if mutual_info_percentage < 100: # has_feature_selection
+        variation_number += "3"
 
-    elif (not(has_cluster_selection) and not(has_classifier_selection) and
-          not(has_feature_selection) and has_weighted_voting_fusion):
-        return {"folder": experiment_variation, "mutual_info": 100.0, "variation": 4}
+    if "majority_voting" not in experiment_variation: # has_weighted_voting_fusion
+        variation_number += "4"
 
-    elif (has_cluster_selection and has_classifier_selection and
-          not(has_feature_selection) and has_weighted_voting_fusion):
-        return {"folder": experiment_variation, "mutual_info": 100.0, "variation": 124}
+    if "_oversampling" in experiment_variation:  # has_oversampling
+        variation_number += "5"
 
-    elif (has_cluster_selection and has_classifier_selection and
-          has_feature_selection and has_weighted_voting_fusion):
-        return {"folder": experiment_variation, "mutual_info": mutual_info_percentage, "variation": 1234}
-    else:
-        return {}
+    accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 125, 1234, 1245, 12345]
+    variation_number = int(variation_number)
+
+    print(f"Variation {variation_number}...")
+    if variation_number in accepted_variations:
+        return {"folder": experiment_variation, "mutual_info": mutual_info_percentage,
+                "variation": variation_number}
+    return {}
+
 
 def process_cbeg_results(datasets, mutual_info_percentages):
     for dataset in datasets:
@@ -77,6 +80,7 @@ def process_cbeg_results(datasets, mutual_info_percentages):
                 for experiment_variation in possible_experiments
             ]
 
+        # Remove empty dictionaries (invalid experiments configs)
         experiments_configs = [config for config in experiments_configs if config]
         experiments_configs = sorted(
             experiments_configs, key=lambda x: (x['variation'], x['folder'], x["mutual_info"])
@@ -95,7 +99,7 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             cbeg_results.append( cbeg_single_result )
 
         cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
-        cbeg_compilation.plot_clusterers_heatmap()
+        cbeg_compilation.plot_clusterers_heatmap() #TODO modificar esse
         cbeg_compilation.plot_classification_heatmap()
         cbeg_compilation.plot_clusters_scatterplot()
 
@@ -156,6 +160,7 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 def main():
     datasets = ["australian_credit", "german_credit", "contraceptive", 
                 "heart", "iris", "pima", "wdbc", "wine"]
+    datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]

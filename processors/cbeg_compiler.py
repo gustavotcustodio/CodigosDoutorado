@@ -172,7 +172,8 @@ class SingleCbegResult(BaseClassifierResult):
         for metric in CLASSIFICATION_METRICS:
             # All patterns found in text corresponding to the searched metric
             found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", content_test)
-            dict_classification_results[metric] = [float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
+            dict_classification_results[metric] = [
+                    float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
 
         if "Cluster" in content_test:
             pattern_n_clusters = re.findall(r"Cluster [0-9]", content_test)[-1]
@@ -188,6 +189,7 @@ class SingleCbegResult(BaseClassifierResult):
         n_samples_clusters = []
         base_classifiers = []
 
+        folder_scatter = f"results/{dataset}/results_by_clusters/{classification_metric}"
         # Get all cluster metric values and label distribution
         for fold in range(N_FOLDS):
             # labels_by_cluster = self.training_information_folds[fold].labels_by_cluster
@@ -202,7 +204,7 @@ class SingleCbegResult(BaseClassifierResult):
                 # Count the number of samples per cluster.
                 # If it's the minority class, remove the synthetic samples from the ounting
                 minority_class = self.minority_class_by_cluster_folds[fold][c]
-                # TODO consertar caso com múltiplas classes
+
                 count_lbls = [
                     (count - n_synth_samples, lbl) if lbl == minority_class else (count, lbl)
                     for lbl, count in label_count.items()
@@ -215,6 +217,7 @@ class SingleCbegResult(BaseClassifierResult):
                 if len(count_lbls) == 1 or n_minority == 0:
                     n_minority = 1
                 
+                # print(len(self.cluster_classification_folds[fold][classification_metric]))
                 metric_value = self.cluster_classification_folds[fold][classification_metric][c]
                 base_classifier = self.classifier_by_cluster_folds[fold][c]
                 base_classifier = base_classifier.split("(")[0]
@@ -297,7 +300,7 @@ class CbegResultsCompiler:
         return output
 
     def plot_classification_heatmap(self):
-        """ Save the confusion matrix for the ablation study.
+        """ Save the heatmap for the ablation study.
         """
         heatmaps_folder = f"results/{self.dataset}/ablation_results"
         os.makedirs(heatmaps_folder, exist_ok=True)
@@ -306,12 +309,18 @@ class CbegResultsCompiler:
         vote_fusion_strategies = set([row_cbeg.fusion_strategy for row_cbeg in self.cbeg_results
                                       if row_cbeg.fusion_strategy != "Majority Voting"])
         vote_fusion_strategies = sorted(list(vote_fusion_strategies))
+
+        # Order the results by the number of experiment variation and
+        # the clustering selection strategy
         self.cbeg_results = sorted(
                 self.cbeg_results,
                 key=lambda x: (x.experiment_variation, x.cluster_selection_strategy))
 
         for metric in CLASSIFICATION_METRICS:
             filename = os.path.join( heatmaps_folder, f"{metric}_heatmap_ablation_cbeg.png")
+
+            # We use two different dictionaries in order to split the majority_voting
+            # and the other experiments.
             dict_results_weighted = self._fill_heatmap_dict(metric, vote_fusion_strategies)
             dict_results_majority_vote = self._fill_heatmap_dict(metric, ["Majority Voting"])
 
@@ -319,9 +328,11 @@ class CbegResultsCompiler:
             data_majority_voting = []
             # Convert dict of dictionaries to 2D matrix
             for experiment_label in dict_results_weighted.keys():
+                # Row of the heatmap.
+                # Each row represents the experiment variation (1, 2, 3, ..., 1234) and
+                # each column a fusion strategy.
                 data_row = [dict_results_weighted[experiment_label][fusion_strategy]
                             for fusion_strategy in vote_fusion_strategies]
-                            # if fusion_strategy!= "Majority Voting"]
                 data_weighted_fusion.append(data_row)
 
             for experiment_label in dict_results_majority_vote.keys():
@@ -341,7 +352,6 @@ class CbegResultsCompiler:
             columns_weighted = vote_fusion_strategies
             self.add_heatmap(data_weighted_fusion, columns_weighted, indexes_weighted, ax[1], cbar=True)
 
-            # plt.tight_layout()
             plt.savefig(filename)
             plt.close()
             print(f"{filename} saved successfully.")
@@ -428,7 +438,9 @@ class CbegResultsCompiler:
         return results_dict_heatmap
 
     def plot_clusters_scatterplot(self):
+        val_classif_metrics = [metric for metric in CLASSIFICATION_METRICS if metric != "AUC"]
+
         for cbeg_result in self.cbeg_results:
-            for metric in CLASSIFICATION_METRICS:
+            for metric in val_classif_metrics:
                 cbeg_result.plot_clusters_scatterplot(self.dataset, metric)
 
