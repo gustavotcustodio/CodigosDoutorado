@@ -4,7 +4,7 @@ from dataset_loader import DATASETS_INFO
 from processors.base_classifiers_compiler import BaseClassifiersCompiler, BaseClassifierResult
 from processors.cbeg_compiler import SingleCbegResult, CbegResultsCompiler
 from processors.ciel_compiler import SingleCielResult, CielCompiler
-from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES
+from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES, CLASSIFICATION_METRICS
 
 def experiment_already_performed(dataset, experiment_variation, mutual_info):
     folder_path = f'./results/{dataset}/mutual_info_{mutual_info}/cbeg/{experiment_variation}'
@@ -99,7 +99,8 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             cbeg_results.append( cbeg_single_result )
 
         cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
-        cbeg_compilation.plot_clusterers_heatmap() #TODO modificar esse
+        for metric in CLASSIFICATION_METRICS:
+            cbeg_compilation.plot_clusterers_heatmap(metric) #TODO modificar esse
         cbeg_compilation.plot_classification_heatmap()
         cbeg_compilation.plot_clusters_scatterplot()
 
@@ -158,9 +159,17 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
     return valid_datasets
 
 def main():
-    datasets = ["australian_credit", "german_credit", "contraceptive", 
-                "heart", "iris", "pima", "wdbc", "wine"]
-    datasets = ["contraceptive"]
+    datasets = [
+        "australian_credit",
+        #"german_credit",
+        "contraceptive", 
+        "heart",
+        # "wine",
+        "wdbc",
+        "pima",
+        #"iris",
+    ]
+    # datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]

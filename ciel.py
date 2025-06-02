@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     X, y = dataset_loader.select_dataset_function(args.dataset)()
 
-    for fold in range(8, N_FOLDS+1):
+    for fold in range(1, N_FOLDS+1):
 
         # Break dataset in training and validation
         X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
@@ -166,7 +166,8 @@ if __name__ == "__main__":
         y_score, voting_weights, y_pred_by_cluster = ciel.predict_proba(X_val)
         y_pred = np.argmax(y_score, axis=1)
 
-        prediction_results = PredictionResults(y_pred, y_val, voting_weights, y_pred_by_cluster, y_score)
+        prediction_results = PredictionResults(
+                y_pred, y_val, voting_weights, y_pred_by_cluster, y_score)
         log = Logger(ciel.best_opt, args.dataset, prediction_results)
         log.save_data_fold_ciel(fold)
         print(classification_report(y_val, y_pred, zero_division=0.0))

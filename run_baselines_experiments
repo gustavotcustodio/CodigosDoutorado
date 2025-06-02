@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 
 DATASETS="australian_credit contraceptive german_credit heart iris pima wdbc wine"
 BASE_CLASSIFIERS="nb svm knn5 knn7 lr dt rf gb xb"
@@ -8,7 +8,8 @@ for dataset in $DATASETS; do
     for mutual_info in 100 75 50; do
 
         for classifier in $BASE_CLASSIFIERS; do
-
+            # Running contraceptive 100 dt PROBLEMA
+            echo "Running ${dataset} ${mutual_info} ${classifier}..."
             python base_classifier.py -d "$dataset" -c "$classifier" -m "$mutual_info"
 
         done

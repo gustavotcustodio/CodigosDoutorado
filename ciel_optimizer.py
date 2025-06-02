@@ -11,6 +11,7 @@ from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
+from sklearn.multiclass import OneVsRestClassifier
 
 N_FOLDS = 10
 
@@ -265,6 +266,11 @@ class CielOptimizer:
                 clf = DummyClassifier(strategy="most_frequent")
             else:
                 clf = self.create_classifier(best_classifier, c)
+
+            y_cluster = labels_by_cluster[c]
+            possible_classes = np.unique(y_cluster)
+            if len(possible_classes) > 2:
+                clf = OneVsRestClassifier(clf)
 
             clf.fit(samples_by_cluster[c], labels_by_cluster[c])
             self.classifiers.append( clf )

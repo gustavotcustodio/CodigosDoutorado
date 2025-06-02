@@ -24,6 +24,7 @@ from dataset_loader import normalize_data, DATASETS_INFO
 from collections import Counter
 from imblearn.over_sampling import SMOTE
 from process_results import filter_cbeg_experiments_configs, experiment_already_performed
+from logger import PredictionResults
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
@@ -72,13 +73,13 @@ def create_classifier(classifier_name: str) -> BaseEstimator:
         clf = BASE_CLASSIFIERS[classifier_name]()
     return clf
 
-@dataclass
-class PredictionResults:
-    y_pred: NDArray
-    voting_weights: NDArray
-    y_pred_by_clusters: NDArray
-    y_val: NDArray
-    y_score: Optional[NDArray] = None
+#@dataclass
+#class PredictionResults:
+#    y_pred: NDArray
+#    voting_weights: NDArray
+#    y_pred_by_clusters: NDArray
+#    y_val: NDArray
+#    y_score: Optional[NDArray] = None
 
 @dataclass
 class CBEG:
@@ -245,10 +246,10 @@ class CBEG:
             vote_count[range(n_samples), y_pred_cluster] += 1
 
         # Get the majority class for each sample
-        y_prob = vote_count / vote_count.sum(axis=1)[:, np.newaxis]
+        vote_sums = vote_count / vote_count.sum(axis=1)[:, np.newaxis]
         samples_weights = np.full((n_samples, n_clusters), 1 / n_clusters)
 
-        return y_prob, samples_weights # Voting weights
+        return vote_sums, samples_weights # Voting weights
 
     def weighted_membership_outputs(
             self, X: NDArray, y_pred_by_clusters: list[NDArray],
@@ -269,18 +270,21 @@ class CBEG:
 
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
 
-            if function_to_combine is not None and function_to_combine == self.calc_training_entropy:
-                entropy_cluster = function_to_combine(self.samples_by_cluster[c]) 
+            if function_to_combine is not None \
+                    and function_to_combine == self.calc_training_entropy:
+
+                entropy_cluster = function_to_combine(self.labels_by_cluster[c]) 
                 vote_sums[idx_samples, y_pred_cluster
                           ] += u_membership[idx_samples, c] + entropy_cluster
-                vote_sums /= vote_sums.sum(axis=1)[:, np.newaxis]
             else:
                 vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c]
+
+        vote_sums /= vote_sums.sum(axis=1)[:, np.newaxis]
         return vote_sums, u_membership
 
-    def calc_training_entropy(self, ypred_cluster: NDArray):
+    def calc_training_entropy(self, y_pred_cluster: NDArray):
         # Number of samples by each label in cluster
-        n_samples_by_label = [(ypred_cluster == lbl).sum()
+        n_samples_by_label = [(y_pred_cluster == lbl).sum()
                               for lbl in range(self.n_labels)]
         n_samples_by_label = np.array(n_samples_by_label)
         pk = (n_samples_by_label + 1e-10) / sum(n_samples_by_label)
@@ -302,8 +306,8 @@ class CBEG:
             vote_sums[idx_samples, y_pred_cluster] += weights[c]
 
         vote_sums = vote_sums / vote_sums.sum(axis=1)[..., np.newaxis]
-
         samples_weights = np.tile(weights, (n_samples, 1))
+
         return vote_sums, samples_weights
 
     def cluster_density_output(self, y_pred_by_clusters: list[NDArray]):
@@ -322,6 +326,7 @@ class CBEG:
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
             vote_sums[idx_samples, y_pred_cluster] += weights[c]
 
+        vote_sums = vote_sums / vote_sums.sum(axis=1)[..., np.newaxis]
         samples_weights = np.tile(weights, (n_samples, 1))
         return vote_sums, samples_weights
 
@@ -503,6 +508,7 @@ class CBEG:
                                              multiclass=multiclass)
 
         print(f"====== Total ======", file=file_output)
+
         self.print_classification_report(y_pred, y_val, file_output,
                                          y_score, multiclass=multiclass)
 
@@ -538,7 +544,10 @@ class CBEG:
 
         # Add AUC score
         if y_score is not None:
+            y_score = y_score / y_score.sum(axis=1)[:, np.newaxis]
             if multiclass:
+                # print(y_val)
+                # print(y_score)
                 auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
             else:
                 y_score = y_score[:, 1]
@@ -571,7 +580,6 @@ class CBEG:
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
         ############ SMOTE ###############
-        # self.use_smote = True # TODO parametrizar isso
         n_clusters = int(self.cluster_module.n_clusters)
         self.minority_classes_by_cluster = [
             self.count_minority_class(self.labels_by_cluster[c])
@@ -693,10 +701,10 @@ def main():
     experiment_config = filter_cbeg_experiments_configs(
             folder_name, mutual_info, n_classes_dataset)
 
-    if experiment_already_performed(args.dataset, folder_name, mutual_info):
-        print(folder_name)
-        print("Experiment already exists...")
-        return
+    #if experiment_already_performed(args.dataset, folder_name, mutual_info):
+    #    print(folder_name)
+    #    print("Experiment already exists...")
+    #    return
 
     if not(experiment_config):
         print(folder_name)
@@ -720,8 +728,8 @@ def main():
         y_pred = np.argmax(y_score, axis=1)
 
         prediction_results = PredictionResults(
-            y_pred, cbeg.cluster_weights_samples,
-            cbeg.y_pred_by_clusters, y_val, y_score
+            y_pred, y_val, cbeg.cluster_weights_samples,
+            cbeg.y_pred_by_clusters, y_score
         )
         print("CBEG", classification_report(y_pred, y_val, zero_division=0.0))
         print("Selected Base Classifiers:", cbeg.base_classifiers)

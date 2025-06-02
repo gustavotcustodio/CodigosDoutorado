@@ -14,6 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report
 from logger import PredictionResults
+from sklearn.multiclass import OneVsRestClassifier
 
 N_FOLDS = 10
 
@@ -182,6 +183,11 @@ class SupervisedClustering:
             X_cluster = self.X[indexes_cluster]
             y_cluster = self.y[indexes_cluster]
 
+            possible_classes = np.unique(y_cluster)
+            if len(possible_classes) > 2:
+                clf = OneVsRestClassifier(clf)
+                self.classifiers[cluster] = clf
+
             clf.fit(X_cluster, y_cluster)
 
     def combine_votes(self, y_pred_by_clusters, classifiers_weights):
@@ -226,7 +232,7 @@ class SupervisedClustering:
         y_score = self.combine_votes(y_pred_by_clusters, classifiers_weights)
 
         self.y_pred_by_clusters = y_pred_by_clusters.T
-        return y_score, classifiers_weights.T, self.y_pred_by_clusters
+        return y_score.T, classifiers_weights.T, self.y_pred_by_clusters
 
     def divide_samples_by_class(self, n_classes, X, y):
         samples_by_class = [[]] * n_classes
@@ -297,9 +303,9 @@ if __name__ == "__main__":
 
         y_score, voting_weights, y_pred_by_clusters = s_clf.predict_proba(X_val)
         y_pred = np.argmax(y_score, axis=1)
-        prediction_results = PredictionResults(
-            y_pred, y_val, y_score, voting_weights, y_pred_by_clusters)
 
+        prediction_results = PredictionResults(
+                y_pred, y_val, voting_weights, y_pred_by_clusters, y_score)
         log = Logger(s_clf, args.dataset, prediction_results)
         log.save_data_fold_supervised_clustering(fold)
-        print(classification_report(y_val, y_score))
+        print(classification_report(y_val, y_pred))

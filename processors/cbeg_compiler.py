@@ -145,7 +145,11 @@ class SingleCbegResult(BaseClassifierResult):
         return synthetic_samples_by_cluster
 
     def extract_test_information(self, content_test):
+        #print("COMEÇA AQUI")
         classification_results_fold = self.get_classification_metrics(content_test)
+        #print(classification_results_fold)
+        #print(self.mutual_info_percentage)
+        #print("TERMINA AQUI")
 
         self.cluster_classification_folds.append(
             self._get_classification_results_by_cluster(classification_results_fold)
@@ -172,6 +176,8 @@ class SingleCbegResult(BaseClassifierResult):
         for metric in CLASSIFICATION_METRICS:
             # All patterns found in text corresponding to the searched metric
             found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", content_test)
+            print(self.folder_name)
+            # print(found_metric_patterns)
             dict_classification_results[metric] = [
                     float(pattern.split(": ")[1]) for pattern in found_metric_patterns]
 
@@ -356,7 +362,7 @@ class CbegResultsCompiler:
             plt.close()
             print(f"{filename} saved successfully.")
 
-    def plot_clusterers_heatmap(self):
+    def plot_clusterers_heatmap(self, metric='Accuracy'):
         """Plot the heatmaps showing how many times each
         clustering algorithm was selected.
         """
@@ -368,7 +374,29 @@ class CbegResultsCompiler:
         xlabels = list(CLUSTERING_ALGORITHMS.keys())
         ylabels = []
 
-        data_count = []
+        classif_per_clusterer = self.get_classif_values_per_clusterer(
+                xlabels, ylabels, metric)
+        
+        _, ax = plt.subplots(figsize=(16, 12))
+        # selections_by_classifier = np.sum(data_count, axis=0)
+        # sns.histplot(data=aaa)
+        g = sns.heatmap(classif_per_clusterer, annot=True,
+                        cmap='Blues', ax=ax, annot_kws={"size": 14},
+                        xticklabels=xlabels, yticklabels=ylabels, vmin=0, vmax=1)
+
+        g.set_yticklabels(g.get_yticklabels(), size=10)
+        g.set_xticklabels(g.get_xticklabels(), size=12)
+
+        filename = os.path.join(selected_clusterers_folder,
+                                f'clusterers_comparison_{metric}.png')
+        plt.savefig(filename)
+
+        print(f'{filename} saved successfully.')
+        plt.close()
+
+    def get_classif_values_per_clusterer(
+            self, clustering_methods, experiments, metric):
+        classification_values_per_clusterer = []
 
         for _, result in enumerate(self.cbeg_results):
             if (str(result.experiment_variation)[0] != '1' or
@@ -377,36 +405,31 @@ class CbegResultsCompiler:
             ):
                 continue
 
-            ylabel = f'{result.experiment_variation} - {result.cluster_selection_strategy}\n{result.fusion_strategy}'
-            ylabels.append(ylabel)
+            if metric == "Accuracy":
+                metric_value = result.mean_accuracy
+            elif metric == "Precision":
+                metric_value = result.mean_precision
+            elif metric == "Recall":
+                metric_value = result.mean_recall
+            elif metric == "F1":
+                metric_value = result.mean_f1
+            else:  # metric == "AUC"
+                metric_value = result.mean_auc
 
-            row_clustering_count = len(xlabels) * [0]
+            # Get the classification results for all metrics
+            experim_variation = f'{result.experiment_variation} -' + \
+                    f'{result.cluster_selection_strategy}\n{result.fusion_strategy}'
+            experiments.append(experim_variation)
 
-            # aaa += result.clustering_algorithms_folds
+            classification_metrics = len(clustering_methods) * [0.0]
+
             for clustering_method in result.clustering_algorithms_folds:
-                                
-                k = xlabels.index(clustering_method)
-                row_clustering_count[k] += 1 
 
-            data_count.append(row_clustering_count)
-        
-        data_count = np.array(data_count)
-        _, ax = plt.subplots(figsize=(16, 12))
-        # selections_by_classifier = np.sum(data_count, axis=0)
-        # sns.histplot(data=aaa)
-        g = sns.heatmap(data_count, annot=True, cmap='Blues', ax=ax, annot_kws={"size": 14},
-                        xticklabels=xlabels, yticklabels=ylabels, vmin=0, vmax=1)
+                k = clustering_methods.index(clustering_method)
+                classification_metrics[k] = metric_value
 
-        g.set_yticklabels(g.get_yticklabels(), size=10)
-        g.set_xticklabels(g.get_xticklabels(), size=12)
-
-        filename = os.path.join(selected_clusterers_folder, 'clusterers_comparison.png')
-        plt.savefig(filename)
-
-        print(f'{filename} saved successfully.')
-        # self.cluster_selection_strategy = ""
-        # self.fusion_strategy = "Cluster Density"
-        plt.close()
+            classification_values_per_clusterer.append(classification_metrics)
+        return np.array(classification_values_per_clusterer)
 
     def add_heatmap(self, data, columns, indexes, ax, cbar=True):
         sns.heatmap(data, ax=ax, annot=True, cmap='Blues', cbar=cbar,

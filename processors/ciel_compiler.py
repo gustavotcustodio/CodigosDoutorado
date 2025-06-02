@@ -147,19 +147,21 @@ class CielCompiler:
 
                 data_matrix[row, col] = ciel_result.get_metric_value(metric)
             
-            indexes = [classifier for classifier in classifiers_rows]
-            columns = [f"{mutual_info} %" for mutual_info in mutual_info_columns]
+            # indexes = [classifier for classifier in classifiers_rows]
+            columns = [f"{mutual_info} %"
+                       for mutual_info in mutual_info_columns]
 
-            filename = os.path.join( heatmaps_folder, f"{metric}_heatmap_ciel.png")
-            self.save_heatmap(data_matrix, columns, indexes, filename)
+            filename = os.path.join(
+                    heatmaps_folder, f"{metric}_heatmap_ciel.png")
+            self.save_heatmap(data_matrix, columns, filename)
 
 
-    def save_heatmap(self, data, columns, indexes, filename):
+    def save_heatmap(self, data, columns, filename):
         sns.heatmap(data, annot=True, cmap='Blues',
-                    xticklabels=columns, yticklabels=indexes, vmin=0, vmax=1)
+                    xticklabels=columns, yticklabels=[], vmin=0, vmax=1)
 
         plt.xlabel("Mutual Information Percentage", fontdict={'weight': 'bold'})
-        plt.ylabel("Base Classifier", fontdict={'weight': 'bold'})
+        plt.ylabel("CIEL", fontdict={'weight': 'bold'})
         # Save the heat map
         plt.tight_layout()
         plt.savefig(filename)

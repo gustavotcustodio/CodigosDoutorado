@@ -2,35 +2,40 @@ Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.562833860155028
+Clustering evaluation value: 0.6605958633335615
 
 ========== Cluster 0 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: GaussianNB()
 
 Minority Class: 2
 
-Selected Features: [12 11 10  9  8  7  6  5  4  3]
+Selected Features: [11 10  3  1  9 12  8  7  6  5  4  2]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1]
-
-Synthetic samples indexes: []
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 2 2]
 
 ========== Cluster 1 ==========
 
-Base classifier: SVC(probability=True)
+Base classifier: DummyClassifier(strategy='most_frequent')
 
-Minority Class: 2
+Minority Class: 0
 
-Selected Features: [ 2  3 12  0  6  4  9]
+Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
-Labels: [1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2]
-
-Synthetic samples indexes: []
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 2 ==========
+
+Base classifier: SVC(probability=True)
+
+Minority Class: 0
+
+Selected Features: [ 0  6  9 12  5  8  4  7 11]
+
+Labels: [0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 3 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -38,20 +43,16 @@ Minority Class: 2
 
 Selected Features: [12 11 10  9  8  7  6  5  4  3]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0]
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2]
 
-Synthetic samples indexes: []
+========== Cluster 4 ==========
 
-========== Cluster 3 ==========
+Base classifier: DummyClassifier(strategy='most_frequent')
 
-Base classifier: SVC(probability=True)
+Minority Class: 1
 
-Minority Class: 2
+Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
-Selected Features: [ 6  5  9  0  4 11 12  2  8 10]
-
-Labels: [0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-Synthetic samples indexes: []
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
