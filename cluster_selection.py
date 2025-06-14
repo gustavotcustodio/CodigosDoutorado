@@ -7,6 +7,8 @@ from sklearn.cluster import DBSCAN, KMeans, SpectralClustering, kmeans_plusplus
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
+from scipy.spatial import distance_matrix
+from sklearn.metrics import adjusted_rand_score
 
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
@@ -21,8 +23,28 @@ class ClusteringModule:
     y: NDArray
     n_clusters: str | int = "compare"
     clustering_algorithm: str = "kmeans++"
-    evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss
+    evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss, dbc_rand
     weights_dbc_silhouette = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
+
+    def __post_init__(self):
+        self.n_labels = len(np.unique(self.y))
+        # Calculate the average cosine distance between samples
+        self.distances_between_samples = cosine_distances(self.X, self.X)
+
+    def get_clusters_by_centroids(self, centroids):
+        dist_matrix = distance_matrix(self.X, centroids)
+        assigned_clusters = np.argmin(dist_matrix, axis=1)
+
+        unique_clusters = np.unique(assigned_clusters)
+
+        cluster_correspondence = {
+            cluster: fixed_cluster
+            for fixed_cluster, cluster in enumerate(unique_clusters)
+        }
+
+        clusters = [cluster_correspondence[cluster]
+                    for cluster in assigned_clusters]
+        return np.array(clusters)
 
     def create_clusterer(self, algorithm: str, n_clusters: int
                          ) -> KMeans | SpectralClustering:
@@ -40,13 +62,17 @@ class ClusteringModule:
             # Calculate distances between samples
             return self.get_DBC_distance()
 
-        elif self.evaluation_metric == "silhouette":
-            return self.get_silhoutte()
+        elif self.evaluation_metric == "rand":
+            return self.get_rand_score()
 
-        #TODO elif self.evaluation_metric == "entropy":
-        #   return self.get_entropy()
+        elif self.evaluation_metric == "dbc_rand":
+            return self.get_DBC_rand_score(self.get_DBC_distance(), self.get_rand_score())
+
+        elif self.evaluation_metric == "silhouette":
+            return self.get_silhouette()
+
         else: # DBC combined with silhouette
-            return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhoutte())
+            return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhouette())
 
     def compare_clusterers_and_select(self) -> "Clusterer":
         """ Compare multiple different clusterers and select the best
@@ -87,6 +113,7 @@ class ClusteringModule:
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
         print("Best clusterer:", possible_clusterers[idx_best_clusterer])
+        print("Best evaluation:", self.best_evaluation_value)
         return clusterer
 
     def cluster_data(self):
@@ -96,11 +123,6 @@ class ClusteringModule:
         if self.n_clusters != "compare" and type(self.n_clusters) != int:
             print("Error. Invalid n_clusters value.")
             sys.exit(1)
-
-        self.n_labels = len(np.unique(self.y))
-
-        # Calculate the average cosine distance between samples
-        self.distances_between_samples = cosine_distances(self.X, self.X)
 
         # Select the clustering evaluation function
         self.evaluation_function = self.select_evaluation_function()
@@ -124,11 +146,14 @@ class ClusteringModule:
         # Define the centroids for the best clusterer
         # If it's Spectral Clustering, the centroids need to be calculated.
         if isinstance(self.best_clusterer, SpectralClustering):
-            self.centroids = np.array([self.X[clusters == c].mean(axis=0)
-                                       for c in range(self.n_clusters)])
+            self.calc_centroids(self.X, clusters, self.n_clusters)
         else:
             self.centroids = self.best_clusterer.cluster_centers_
 
+        # Split the samples according to the cluster they are assigned
+        return self.create_clusters_dict(clusters)
+
+    def create_clusters_dict(self, clusters):
         # Split the samples according to the cluster they are assigned
         samples_by_cluster = {}
         labels_by_cluster = {}
@@ -139,6 +164,10 @@ class ClusteringModule:
             labels_by_cluster[c] = self.y[indexes_c]
 
         return samples_by_cluster, labels_by_cluster
+
+    def calc_centroids(self, X, clusters, n_clusters):
+        self.centroids = np.array([X[clusters == c].mean(axis=0)
+                                   for c in range(n_clusters)])
 
     def update_clusters_and_centroids(
             self, X_by_cluster, y_by_cluster):
@@ -152,9 +181,29 @@ class ClusteringModule:
         self.X = np.vstack(X_by_cluster)
         self.y = np.hstack(y_by_cluster)
 
-    def get_silhoutte(self) -> Callable[[NDArray, int], float]:
+    def get_silhouette(self) -> Callable[[NDArray, int], float]:
         def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
+            if np.all(clusters == clusters[0]):
+                return -1
             return silhouette_score(self.X, clusters)
+        return wrapper
+
+    def get_rand_score(self) -> Callable[[NDArray, int], float]:
+        def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
+            if np.all(clusters == clusters[0]):
+                return 0
+            return adjusted_rand_score(self.y, clusters)
+        return wrapper
+
+    def get_DBC_rand_score(self, func_DBC: Callable, func_rand_score: Callable
+                           ) -> Callable[[NDArray, int], float]:
+        def wrapper(clusters: NDArray[np.int32], n_clusters: int) -> float:
+            w1 = self.weights_dbc_silhouette[0]
+            w2 = self.weights_dbc_silhouette[1]
+
+            dbc = func_DBC(clusters, n_clusters)
+            rand_score_val = func_rand_score(clusters, n_clusters)
+            return w1 * dbc + w2 * rand_score_val
         return wrapper
 
     def get_DBC_silhouette(self, func_DBC: Callable, func_silhouette: Callable
@@ -174,6 +223,9 @@ class ClusteringModule:
         samples of different classes in clusters.
         """
         def wrapper(clusters: NDArray[np.int32], n_clusters: int) -> float:
+            if np.all(clusters == clusters[0]):
+                return 0
+
             dists_centroids_cluster = np.empty((n_clusters))
 
             for c in range(n_clusters):

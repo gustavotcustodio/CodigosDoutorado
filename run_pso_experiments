@@ -1,0 +1,13 @@
+#!/bin/bash
+DATASETS="wine australian_credit german_credit pima wdbc iris contraceptive heart"
+# DATASETS="german_credit"
+EVALUATION_METRIC="dbc_rand rand dbc"
+# COMBINATION_METHODS="weighted_membership majority_voting weighted_membership_entropy cluster_density"
+COMBINATION_METHODS="weighted_membership"
+POSSIBLE_N_CLUSTERS="2 3"
+
+for dataset in $DATASETS; do
+    for eval_metric in $EVALUATION_METRIC; do
+        python cbeg.py -d "$dataset" -n compare -m 100.0 -p clustering -e "$eval_metric" -c weighted_membership -b
+    done
+done

@@ -51,6 +51,10 @@ class SingleCbegResult(BaseClassifierResult):
             self.cluster_selection_strategy = "DBC + SS"
         elif 'silhouette' in folder_name:
             self.cluster_selection_strategy = "SS"
+        elif 'dbc_rand' in folder_name:
+            self.cluster_selection_strategy = "DBC + Rand"
+        elif 'rand' in folder_name:
+            self.cluster_selection_strategy = "Rand"
         elif 'dbc' in folder_name:
             self.cluster_selection_strategy = "DBC"
         else:
@@ -346,13 +350,16 @@ class CbegResultsCompiler:
                 data_majority_voting.append(data_row)
             
             data_weighted_fusion = np.vstack(data_weighted_fusion)
-            data_majority_voting = np.vstack(data_majority_voting)
 
             _, ax = plt.subplots(1, 2, figsize=(13,6), width_ratios=[1, 4])
-            plt.subplots_adjust( wspace=0.5)
-            indexes_majority = list(dict_results_majority_vote.keys())
-            columns_majority = ["Majority Voting"]
-            self.add_heatmap(data_majority_voting, columns_majority, indexes_majority, ax[0], cbar=False)
+
+            if data_majority_voting:
+                data_majority_voting = np.vstack(data_majority_voting)
+
+                plt.subplots_adjust( wspace=0.5)
+                indexes_majority = list(dict_results_majority_vote.keys())
+                columns_majority = ["Majority Voting"]
+                self.add_heatmap(data_majority_voting, columns_majority, indexes_majority, ax[0], cbar=False)
 
             indexes_weighted = list(dict_results_weighted.keys())
             columns_weighted = vote_fusion_strategies

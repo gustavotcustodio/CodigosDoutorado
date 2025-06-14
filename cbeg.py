@@ -25,10 +25,10 @@ from collections import Counter
 from imblearn.over_sampling import SMOTE
 from process_results import filter_cbeg_experiments_configs, experiment_already_performed
 from logger import PredictionResults
+from xgboost import XGBClassifier
+from pso_optimizator import PsoOptimizator
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
-
-# TODO ponderar pela quantidade de amostras vistas no treinamento (plotar um gráfico disos também)
 
 # TODO opções para resolver o problema do FCM:
     # - Diminuir para a quantidade de grupos encontrada realmente
@@ -54,10 +54,10 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    #'rf': RandomForestClassifier,
-                    #'gb': GradientBoostingClassifier,
-                    #'xb': XGBClassifier,
-                    #'adaboost': AdaBoostClassifier,
+                    'rf': RandomForestClassifier,
+                    'gb': GradientBoostingClassifier,
+                    # 'xb': XGBClassifier,
+                    'adaboost': AdaBoostClassifier,
                     }
 
 def create_classifier(classifier_name: str) -> BaseEstimator:
@@ -68,7 +68,7 @@ def create_classifier(classifier_name: str) -> BaseEstimator:
     elif classifier_name == "svm":
         clf = SVC(probability=True)
     elif classifier_name == "adaboost":
-        clf = AdaBoostClassifier(algorithm="SAMME")
+        clf = AdaBoostClassifier()
     else:
         clf = BASE_CLASSIFIERS[classifier_name]()
     return clf
@@ -87,6 +87,7 @@ class CBEG:
     n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
     min_mutual_info_percentage: float  = 100.0
+    cluster_selection_method: str = "clustering" # clustering | pso
     clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
     weights_dbc_silhouette = (0.5, 0.5) # ver isso depois TODO
     combination_strategy: str = "weighted_membership"
@@ -556,28 +557,11 @@ class CBEG:
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
-        # Check if it's a multi-class classification problem and create
-        # appropriate metric for it.
         self.n_labels = np.unique(y).shape[0]
-
-        if self.n_labels > 2:
-            classification_metrics = ["roc_auc_ovr", "accuracy"]
-        else:
-            classification_metrics = ["roc_auc", "accuracy"]
 
         # Perform the pre-clustering step in order to split the data
         # between the different classifiers
-        if self.verbose:
-            print("Performing pre-clustering...")
-
-        self.cluster_module = ClusteringModule(
-                X, y,
-                n_clusters=self.n_clusters,
-                clustering_algorithm="kmeans++",
-                evaluation_metric=self.clustering_evaluation_metric,
-        )
-
-        self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
+        self.perform_clustering_step(X, y)
 
         ############ SMOTE ###############
         n_clusters = int(self.cluster_module.n_clusters)
@@ -604,6 +588,13 @@ class CBEG:
         self.samples_by_cluster = self.features_module.select_features_by_cluster()
 
         n_clusters = int(self.cluster_module.n_clusters)
+
+        # Check if it's a multi-class classification problem and create
+        # appropriate metric for it.
+        if self.n_labels > 2:
+            classification_metrics = ["roc_auc_ovr", "accuracy"]
+        else:
+            classification_metrics = ["roc_auc", "accuracy"]
 
         if self.base_classifier_selection:
             if self.verbose:
@@ -635,6 +626,59 @@ class CBEG:
                 self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
 
             self.base_classifiers[c].fit(X_cluster, y_cluster)
+
+    def perform_clustering_step(self, X, y):
+        # Perform the pre-clustering step in order to split the data
+        # between the different classifiers
+        if self.verbose:
+            print("Performing pre-clustering...")
+
+        if self.cluster_selection_method == "clustering" \
+                and self.n_clusters == "compare":
+
+            self.cluster_module = ClusteringModule(
+                    X, y,
+                    n_clusters=self.n_clusters,
+                    clustering_algorithm="kmeans++",
+                    evaluation_metric=self.clustering_evaluation_metric,
+            )
+            self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
+
+        else: 
+            self.cluster_module = ClusteringModule(
+                    X, y,
+                    n_clusters='compare',
+                    clustering_algorithm="kmeans++",
+                    evaluation_metric=self.clustering_evaluation_metric,
+            )
+            # self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
+            clustering_func = self.cluster_module.select_evaluation_function()
+
+            #if self.cluster_module.evaluation_metric != 'silhouette':
+            fitness_func = lambda cl, n: (1 - clustering_func(cl, n))
+
+            n_samples = X.shape[0]
+            max_clusters = int(np.sqrt(n_samples))
+
+            min_bounds = [2] + [0] * max_clusters * X.shape[1]
+            max_bounds = [max_clusters] + [1] * max_clusters * X.shape[1]
+
+            pso_optim = PsoOptimizator(
+                n_iters=30, n_particles=100, dimensions=len(max_bounds),
+                fitness_func=fitness_func,
+                min_bounds=min_bounds, max_bounds=max_bounds,
+                cluster_module=self.cluster_module
+            )
+            clusters, best_cost = pso_optim.optimize()
+            n_clusters = len(np.unique(clusters))
+
+            self.cluster_module.n_clusters = n_clusters
+            self.cluster_module.calc_centroids(X, clusters, n_clusters)
+            self.cluster_module.best_evaluation_value = \
+                    clustering_func(clusters, n_clusters)
+
+            self.samples_by_cluster, self.labels_by_cluster = \
+                    self.cluster_module.create_clusters_dict(clusters)
 
 
 def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:
@@ -685,10 +729,12 @@ def main():
     parser.add_argument("-b", "--base_classifier_selection", type=bool, default=False,
                         action=argparse.BooleanOptionalAction, help = "")
     parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "")
+    parser.add_argument("-p", "--cluster_selection_method", default="clustering", help="")
     parser.add_argument("-e", "--clustering_evaluation_metric", default="dbc", help = "")
     parser.add_argument("-c", "--combination_strategy", default="majority_voting", help = "")
     parser.add_argument("-s", "--smote_oversample", default=False,
                         action=argparse.BooleanOptionalAction, help = "")
+    # cluster_selection_method: str = "clustering" # clustering | pso
 
     # Read arguments from command line
     args = parser.parse_args()
@@ -719,8 +765,9 @@ def main():
 
         cbeg = CBEG(
             args.n_clusters, args.base_classifier_selection,
-            args.min_mutual_info_percentage, args.clustering_evaluation_metric,
-            args.combination_strategy, max_threads=7, verbose=True
+            args.min_mutual_info_percentage, args.cluster_selection_method,
+            args.clustering_evaluation_metric, args.combination_strategy,
+            max_threads=7, verbose=True
         )
         cbeg.fit(X_train, y_train)
 
