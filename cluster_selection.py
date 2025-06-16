@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from numpy.typing import NDArray
 from typing import Callable, Optional
 from sklearn.cluster import DBSCAN, KMeans, SpectralClustering, kmeans_plusplus
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
 from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
 from scipy.spatial import distance_matrix
@@ -24,7 +24,7 @@ class ClusteringModule:
     n_clusters: str | int = "compare"
     clustering_algorithm: str = "kmeans++"
     evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss, dbc_rand
-    weights_dbc_silhouette = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
+    weights_dbc_external = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
 
     def __post_init__(self):
         self.n_labels = len(np.unique(self.y))
@@ -62,11 +62,11 @@ class ClusteringModule:
             # Calculate distances between samples
             return self.get_DBC_distance()
 
-        elif self.evaluation_metric == "rand":
-            return self.get_rand_score()
+        elif self.evaluation_metric == "ext":
+            return self.get_external_score()
 
-        elif self.evaluation_metric == "dbc_rand":
-            return self.get_DBC_rand_score(self.get_DBC_distance(), self.get_rand_score())
+        elif self.evaluation_metric == "dbc_ext":
+            return self.get_DBC_external(self.get_DBC_distance(), self.get_external_score())
 
         elif self.evaluation_metric == "silhouette":
             return self.get_silhouette()
@@ -188,30 +188,39 @@ class ClusteringModule:
             return silhouette_score(self.X, clusters)
         return wrapper
 
-    def get_rand_score(self) -> Callable[[NDArray, int], float]:
+    def get_external_score(self) -> Callable[[NDArray, int], float]:
         def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
             if np.all(clusters == clusters[0]):
                 return 0
-            return adjusted_rand_score(self.y, clusters)
+            rand = adjusted_rand_score(self.y, clusters)
+            mi =  normalized_mutual_info_score(self.y, clusters)
+            vm = v_measure_score(self.y, clusters)
+            fm = fowlkes_mallows_score(self.y, clusters)
+
+            avg_external = float(rand + mi + vm + fm) / 4
+            return avg_external
         return wrapper
 
-    def get_DBC_rand_score(self, func_DBC: Callable, func_rand_score: Callable
+    def get_DBC_external(self, func_DBC: Callable, func_external_score: Callable
                            ) -> Callable[[NDArray, int], float]:
         def wrapper(clusters: NDArray[np.int32], n_clusters: int) -> float:
-            w1 = self.weights_dbc_silhouette[0]
-            w2 = self.weights_dbc_silhouette[1]
+            w1 = self.weights_dbc_external[0]
+            w2 = self.weights_dbc_external[1]
 
             dbc = func_DBC(clusters, n_clusters)
-            rand_score_val = func_rand_score(clusters, n_clusters)
-            return w1 * dbc + w2 * rand_score_val
+            external_score_val = func_external_score(clusters, n_clusters)
+
+            # print("DBC:", dbc)
+            # print("External:", external_score_val)
+            return w1 * dbc + w2 * external_score_val
         return wrapper
 
     def get_DBC_silhouette(self, func_DBC: Callable, func_silhouette: Callable
                            ) -> Callable[[NDArray, int], float]:
 
         def wrapper(clusters: NDArray[np.int32], n_clusters: int) -> float:
-            w1 = self.weights_dbc_silhouette[0]
-            w2 = self.weights_dbc_silhouette[1]
+            w1 = self.weights_dbc_external[0]
+            w2 = self.weights_dbc_external[1]
 
             dbc = func_DBC(clusters, n_clusters)
             silhouette_val = func_silhouette(clusters, n_clusters)
@@ -253,7 +262,6 @@ class ClusteringModule:
                     dists_centroids_cluster[c] = 1.0
 
             macro_avg_metric = np.mean(dists_centroids_cluster).astype(float)
-
             return macro_avg_metric
         return wrapper
 

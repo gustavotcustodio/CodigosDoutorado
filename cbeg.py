@@ -18,6 +18,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.cluster import KMeans
 from cluster_selection import ClusteringModule
 from feature_selection import FeatureSelectionModule
 from dataset_loader import normalize_data, DATASETS_INFO
@@ -645,40 +646,65 @@ class CBEG:
             self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
         else: 
-            self.cluster_module = ClusteringModule(
-                    X, y,
-                    n_clusters='compare',
-                    clustering_algorithm="kmeans++",
-                    evaluation_metric=self.clustering_evaluation_metric,
-            )
-            # self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
-            clustering_func = self.cluster_module.select_evaluation_function()
+            self.select_clusters_using_pso(X, y)
 
-            #if self.cluster_module.evaluation_metric != 'silhouette':
-            fitness_func = lambda cl, n: (1 - clustering_func(cl, n))
+    def select_clusters_using_pso(self, X, y):
+        self.cluster_module = ClusteringModule(
+                X, y,
+                n_clusters='compare',
+                clustering_algorithm="kmeans++",
+                evaluation_metric=self.clustering_evaluation_metric,
+        )
+        clustering_func = self.cluster_module.select_evaluation_function()
 
-            n_samples = X.shape[0]
-            max_clusters = int(np.sqrt(n_samples))
+        fitness_func = lambda cl, n: (1 - clustering_func(cl, n))
 
-            min_bounds = [2] + [0] * max_clusters * X.shape[1]
-            max_bounds = [max_clusters] + [1] * max_clusters * X.shape[1]
+        # n_samples = X.shape[0]
+        n_labels = self.cluster_module.n_labels 
+        max_clusters = n_labels + 2 # int(np.sqrt(n_samples) / 2)
 
+        best_cost = float('inf')
+        optimal_n_clusters = 2
+        optimal_clusters = [0] * X.shape[0]
+
+        for n_clusters in range(2, max_clusters + 1):
+
+            min_bounds = [0] * n_clusters * X.shape[1]
+            max_bounds =  [1] * n_clusters * X.shape[1]
+
+            self.cluster_module.n_clusters = n_clusters
             pso_optim = PsoOptimizator(
-                n_iters=30, n_particles=100, dimensions=len(max_bounds),
+                n_iters=20, n_particles=200, dimensions=len(max_bounds),
                 fitness_func=fitness_func,
                 min_bounds=min_bounds, max_bounds=max_bounds,
                 cluster_module=self.cluster_module
             )
-            clusters, best_cost = pso_optim.optimize()
+            clusters, calculated_cost = pso_optim.optimize()
             n_clusters = len(np.unique(clusters))
 
-            self.cluster_module.n_clusters = n_clusters
-            self.cluster_module.calc_centroids(X, clusters, n_clusters)
-            self.cluster_module.best_evaluation_value = \
-                    clustering_func(clusters, n_clusters)
+            if calculated_cost < best_cost:
+                best_cost = calculated_cost
+                optimal_n_clusters = n_clusters
+                optimal_clusters = clusters
 
-            self.samples_by_cluster, self.labels_by_cluster = \
-                    self.cluster_module.create_clusters_dict(clusters)
+        print("Best metric before k-means:", 1 - best_cost)
+
+        self.cluster_module.n_clusters = optimal_n_clusters
+        self.cluster_module.calc_centroids(X, optimal_clusters, optimal_n_clusters)
+
+        # Perform a kmeans clustering using the centroids found by the PSO
+        centroids = self.cluster_module.centroids
+        clusterer = KMeans(optimal_n_clusters, init=centroids)
+        optimal_clusters = clusterer.fit_predict(X)
+
+        print("Best metric after k-means:",
+              clustering_func(optimal_clusters, optimal_n_clusters))
+
+        self.cluster_module.best_evaluation_value = \
+                clustering_func(optimal_clusters, optimal_n_clusters)
+
+        self.samples_by_cluster, self.labels_by_cluster = \
+                self.cluster_module.create_clusters_dict(optimal_clusters)
 
 
 def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int) -> None:
@@ -703,7 +729,8 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
     print(50 * '-',"\n")
 
 def get_folder_name(args):
-    folder_name_suffix = 'classifier_selection_' if args.base_classifier_selection else 'naive_bayes_'
+    folder_name_suffix = 'classifier_selection_' \
+            if args.base_classifier_selection else 'naive_bayes_'
     folder_name_suffix += f'{args.n_clusters}_clusters_'
 
     if args.n_clusters == "compare":
@@ -713,6 +740,9 @@ def get_folder_name(args):
 
     if args.smote_oversample:
         folder_name_suffix += '_oversampling'
+
+    if args.cluster_selection_method == "pso":
+        folder_name_suffix += '_pso'
 
     folder_name_prefix = os.path.join(
             'results', args.dataset,

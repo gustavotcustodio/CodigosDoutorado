@@ -11,6 +11,7 @@ def rosenbrock(x):
                for i in range(len(x)-1))
     return cost
 
+
 @dataclass
 class PsoOptimizator:
     n_iters: int
@@ -31,7 +32,7 @@ class PsoOptimizator:
         for solution in solutions:
             # Prepare candidate solution for fitness function
             if self.cluster_module is not None:
-                clusters, n_clusters = self.convert_solution_to_clusters(solution)
+                clusters, n_clusters = self.convert_solution_to_clusters( solution )
 
                 cost = self.fitness_func(clusters, n_clusters)
             else:
@@ -44,11 +45,10 @@ class PsoOptimizator:
         return costs
 
     def convert_solution_to_clusters(self, solution):
-        n_clusters = int(solution[0])
         dims_dataset = self.cluster_module.X.shape[1]
+        n_clusters = len(solution) // dims_dataset
 
-        relevant_solution = solution[1: (dims_dataset * n_clusters)+1]
-        centroids = relevant_solution.reshape((n_clusters, dims_dataset))
+        centroids = solution.reshape((n_clusters, dims_dataset))
 
         clusters = self.cluster_module.get_clusters_by_centroids(centroids)
         return clusters, n_clusters
@@ -67,8 +67,9 @@ class PsoOptimizator:
         best_cost, best_solution = pso.optimize(
             self.calc_fitness_solutions, iters=self.n_iters)
 
+
         if self.cluster_module is not None:
-            clusters, n_clusters = self.convert_solution_to_clusters(best_solution)
+            clusters, _ = self.convert_solution_to_clusters(best_solution)
             return clusters, best_cost
 
         return best_solution, best_cost

@@ -56,7 +56,7 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     if "_oversampling" in experiment_variation:  # has_oversampling
         variation_number += "5"
 
-    if "_pso" in experiment_variation:  # has_oversampling
+    if "_pso" in experiment_variation:
         variation_number += "6"
 
     accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 125, 1234, 1245, 12345, 1246]
@@ -163,22 +163,22 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
-        "australian_credit",
+        #"australian_credit",
         "german_credit",
         "contraceptive", 
-        "heart",
-        "wine",
-        "wdbc",
-        "pima",
-        "iris",
+        #"heart",
+        #"wine",
+        #"wdbc",
+        #"pima",
+        #"iris",
     ]
     # datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0] #, 75.0, 50.0]
 
-    # process_ciel_results(datasets, mutual_info_percentages)
     process_cbeg_results(datasets, mutual_info_percentages)
+    # process_ciel_results(datasets, mutual_info_percentages)
     # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
