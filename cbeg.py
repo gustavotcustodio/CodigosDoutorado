@@ -28,6 +28,7 @@ from process_results import filter_cbeg_experiments_configs, experiment_already_
 from logger import PredictionResults
 from xgboost import XGBClassifier
 from pso_optimizator import PsoOptimizator
+from classifier_selection import ClassifierSelector
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
@@ -403,7 +404,6 @@ class CBEG:
             return y_prob
 
         elif self.combination_strategy == "majority_voting":
-            # TODO consertar majority_voting par
             y_prob, clusters_weights = self.majority_vote_outputs(y_pred_by_clusters)
             self.cluster_weights_samples = clusters_weights
             return y_prob
@@ -601,8 +601,13 @@ class CBEG:
             if self.verbose:
                 print("Performing classifier selection...")
 
-            self.base_classifiers = self.select_base_classifiers( classification_metrics )
+            fusion_function = self.weighted_membership_outputs
 
+            # self.base_classifiers = self.select_base_classifiers( classification_metrics )
+            clf_selector = ClassifierSelector(
+                self.n_labels, n_clusters, self.samples_by_cluster,
+                self.labels_by_cluster, fusion_function)
+            self.base_classifiers = clf_selector.select_base_classifiers()
         else:
             self.base_classifiers = []
 
