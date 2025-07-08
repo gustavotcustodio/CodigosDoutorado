@@ -13,7 +13,7 @@ from sklearn.metrics import adjusted_rand_score
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
-    'fcm': FuzzyCMeans,
+    # 'fcm': FuzzyCMeans,
 }
 
 

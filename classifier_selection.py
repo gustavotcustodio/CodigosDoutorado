@@ -1,12 +1,13 @@
-from typing import Callable
 import numpy as np
+import sys
 import random
 import pyswarms as ps
+from typing import Callable
 from deslib.util.diversity import disagreement_measure
-from joblib import Parallel, delayed
 from xgboost import XGBClassifier
 from dataclasses import dataclass
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
@@ -15,8 +16,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dask import delayed, compute
 
-N_FOLDS = 10
+N_FOLDS = 15
 
 # Default classifier selected
 DEFAULT_CLASSIFIER = 'nb'
@@ -27,10 +30,10 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    'rf': RandomForestClassifier,
-                    'gb': GradientBoostingClassifier,
-                    # 'xb': XGBClassifier,
-                    'adaboost': AdaBoostClassifier,
+                    #'rf': RandomForestClassifier,
+                    #'gb': GradientBoostingClassifier,
+                    #'xb': XGBClassifier,
+                    #'adaboost': AdaBoostClassifier,
                     }
 
 @dataclass
@@ -41,14 +44,15 @@ class ClassifierSelector:
     samples_by_cluster: dict
     labels_by_cluster: dict
     fusion_function: Callable
-    n_iters: int = 5
-    n_particles: int = 30
-    options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
-    
+    n_iters: int = 10
+    n_particles: int = 40
+    # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
+    options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
+
     def __post_init__(self):
         max_idx_clf = len(BASE_CLASSIFIERS.keys()) - 1
         min_bounds = [0,           1e-4, 1e-4, 0.1,   1,  2,  1,  1] * self.n_clusters
-        max_bounds = [max_idx_clf,  1e3,  1e3,   1, 500, 10, 10, 10] * self.n_clusters
+        max_bounds = [max_idx_clf, 1000, 1000,   1, 500, 10, 10, 10] * self.n_clusters
         self.bounds = (min_bounds, max_bounds)
 
         self.dims = len(max_bounds)
@@ -56,6 +60,8 @@ class ClassifierSelector:
             "w": self.options[0], "c1": self.options[1], "c2": self.options[2]
         }
         print("Num clusters:", self.n_clusters)
+
+        print("Fusion function:", self.fusion_function)
 
     def create_classifier(self, idx_classifier: int, params: dict):
         classifier_name = list(BASE_CLASSIFIERS.keys())[idx_classifier]
@@ -69,7 +75,7 @@ class ClassifierSelector:
         elif classifier_name == "knn7":
             return KNeighborsClassifier(n_neighbors=7)
         elif classifier_name == "lr":
-            return LogisticRegression(C=params["C"])
+            return LogisticRegression()#(C=params["C"])
         elif classifier_name == "dt":
             return DecisionTreeClassifier(
                 max_depth=params["max_depth"],
@@ -95,6 +101,15 @@ class ClassifierSelector:
             return AdaBoostClassifier(
                 n_estimators=params["n_estimators"],
                 learning_rate=params["learning_rate"])
+        elif classifier_name == "xb":
+            return XGBClassifier(
+                learning_rate=params["learning_rate"],
+                n_estimators=params["n_estimators"],
+                max_depth=params["max_depth"],
+            )
+        else:
+            print("Error: invalid classifier.")
+            sys.exit(1)
 
     def calc_diversity_score(self, n_clf, y_true, y_pred_by_clf):
         # Double fault measure diversity score
@@ -104,7 +119,7 @@ class ClassifierSelector:
             for j in range(i + 1, n_clf):
                 y_pred_i = y_pred_by_clf[i]
                 y_pred_j = y_pred_by_clf[j]
-                
+
                 disagreement = disagreement_measure(y_true, y_pred_i, y_pred_j)
                 total_diversity += disagreement
 
@@ -170,8 +185,8 @@ class ClassifierSelector:
         for c in range(n_clusters):
             fold = 0
 
-            X_cluster = self.samples_by_cluster[c] 
-            y_cluster = self.labels_by_cluster[c] 
+            X_cluster = self.samples_by_cluster[c]
+            y_cluster = self.labels_by_cluster[c]
 
             for train_index, val_index in skf.split(X_cluster, y_cluster):
 
@@ -182,7 +197,7 @@ class ClassifierSelector:
                 y_cluster_by_fold[c][fold] = y_cluster[train_index]
 
                 fold += 1
-            
+
         X_val_by_fold = [np.array(X_val) for X_val in X_val_by_fold]
         y_val_by_fold = [np.array(y_val) for y_val in y_val_by_fold]
 
@@ -196,12 +211,10 @@ class ClassifierSelector:
     def eval_base_classifiers(self, X_cluster_by_fold, X_val_by_fold,
                               y_cluster_by_fold, y_val_by_fold):
         def wrapper(selected_classifiers):
-            n_clusters = self.n_clusters
 
             eval_by_fold = []
 
             for fold in range(N_FOLDS):
-                auc_score_by_cluster = []
                 y_pred_by_clf = []
 
                 X_val = X_val_by_fold[fold]
@@ -214,10 +227,8 @@ class ClassifierSelector:
 
                 # y_prob_by_clf = Parallel(n_jobs=-1)(
                 #     delayed(self.train_clf_predict_proba) (
-                #         clf,
-                #         X_cluster_by_fold[c][fold],
-                #         y_cluster_by_fold[c][fold],
-                #         X_val)
+                #         clf, X_cluster_by_fold[c][fold],
+                #         y_cluster_by_fold[c][fold], X_val)
                 #     for c, clf in enumerate(selected_classifiers)
                 # )
 
@@ -252,16 +263,16 @@ class ClassifierSelector:
                     auc_score = roc_auc_score(y_val, y_prob[:,1])
                     f1_val = f1_score(y_val, y_pred)
 
-
                 # print("fold:", fold)
                 # print("AUC score:", auc_score)
                 # avg_auc_clusters = sum(auc_score_by_cluster) / n_clusters
 
                 # Calc diversity for this classifier
-                diversity_score = self.calc_diversity_score(
-                        n_clusters, y_val, y_pred_by_clf)
+                #diversity_score = self.calc_diversity_score(
+                #        n_clusters, y_val, y_pred_by_clf)
                 # Calc the combination of AUC and diversity for this fold
-                eval_fold = 0.8* f1_val + 0.2 * diversity_score # (auc_score + diversity_score + f1_val) / 3
+                eval_fold = auc_score * 0.5 + f1_val * 0.5
+                #0.75 * f1_val + 0.25 * diversity_score
 
                 # print("Avg. AUC:", avg_auc_clusters)
                 # print("Diversity score:", diversity_score)
@@ -274,27 +285,55 @@ class ClassifierSelector:
     def calc_fitness_solutions(self, solutions):
         """ Calculate the fitness value for all
         candidate solutions. """
-        costs = []
+        # costs = []
 
-        for solution in solutions:
-            # Prepare candidate solution for fitness function
-            classifiers = self.decode_candidate_solution(solution) 
+        # for solution in solutions:
+        #     # Prepare candidate solution for fitness function
+        #     classifiers = self.decode_candidate_solution(solution)
 
-            fitness_val = self.fitness_function(classifiers)
-            cost = 1 - fitness_val
-            costs.append(cost)
+        #     fitness_val = self.fitness_function(classifiers)
+        #     cost = 1 - fitness_val
+        #     costs.append(cost)
 
+        # print(costs)
+
+        # Wrap each function call in delayed
+        delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
+
+        # Compute in parallel
+        costs = compute(*delayed_costs)
         print(costs)
+
+        self.update_inertia()
+        print("PSO params:", self.pso.options)
         return costs
+
+    def calc_cost(self, solution):
+        classifiers = self.decode_candidate_solution(solution)
+
+        fitness_val = self.fitness_function(classifiers)
+        cost = 1 - fitness_val
+
+        return cost
+
+    def update_inertia(self):
+        self.current_iter += 1
+
+        w = self.pso.options['w']
+        w_min = 0.4
+        w_max = self.options_dict['w']
+        w = w_max - self.current_iter * (w_max - w_min) / self.n_iters
+        self.pso.options['w'] = w
 
     def run_pso(self):
         # Create pso
-        pso = ps.single.GlobalBestPSO(
+        self.pso = ps.single.GlobalBestPSO(
             n_particles=self.n_particles, dimensions=self.dims,
             options=self.options_dict, bounds=self.bounds
         )
+        self.current_iter = 0
         # Optimize pso
-        best_cost, best_solution = pso.optimize(
+        best_cost, best_solution = self.pso.optimize(
             self.calc_fitness_solutions, iters=self.n_iters)
         return best_solution
 

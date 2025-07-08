@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator
 from typing import Mapping, Optional, Callable
 from numpy.typing import NDArray
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, f1_score
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -89,7 +89,7 @@ class CBEG:
     n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
     min_mutual_info_percentage: float  = 100.0
-    cluster_selection_method: str = "clustering" # clustering | pso
+    classifier_selection_method: str = "clustering" # clustering | pso
     clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
     weights_dbc_silhouette = (0.5, 0.5) # ver isso depois TODO
     combination_strategy: str = "weighted_membership"
@@ -107,7 +107,7 @@ class CBEG:
             self.base_classifiers[cluster] = create_classifier(DEFAULT_CLASSIFIER)
         else:
             self.base_classifiers[cluster] = DummyClassifier(strategy="most_frequent")
-    
+
     def choose_best_classifier(
         self, X_cluster: NDArray, y_cluster: NDArray,
         classification_metrics: list, selected_base_classifiers: list,
@@ -150,7 +150,7 @@ class CBEG:
             # Default classifier is the Naive-Bayes
             selected_base_classifiers[cluster] = create_classifier(DEFAULT_CLASSIFIER)
             return
-            
+
         auc_by_classifier = self.crossval_classifiers_scores(
             classifiers, X_cluster, y_cluster, classification_metrics,
             n_folds)
@@ -173,7 +173,7 @@ class CBEG:
         return minority_class, n_minority_class
 
     def crossval_classifiers_scores(
-        self, classifiers: Mapping[str, BaseEstimator], X_train: NDArray, 
+        self, classifiers: Mapping[str, BaseEstimator], X_train: NDArray,
         y_train: NDArray, classification_metrics: list, n_folds: int
     ) -> dict[str, float]:
 
@@ -597,17 +597,19 @@ class CBEG:
         else:
             classification_metrics = ["roc_auc", "accuracy"]
 
-        if self.base_classifier_selection:
-            if self.verbose:
-                print("Performing classifier selection...")
+        if self.classifier_selection_method == "pso":
+            fusion_function = self.weighted_membership_outputs # TODO selecionar a função de fusão
 
-            fusion_function = self.weighted_membership_outputs
-
-            # self.base_classifiers = self.select_base_classifiers( classification_metrics )
             clf_selector = ClassifierSelector(
                 self.n_labels, n_clusters, self.samples_by_cluster,
                 self.labels_by_cluster, fusion_function)
             self.base_classifiers = clf_selector.select_base_classifiers()
+
+        elif self.base_classifier_selection:
+            if self.verbose:
+                print("Performing classifier selection...")
+
+            self.base_classifiers = self.select_base_classifiers( classification_metrics )
         else:
             self.base_classifiers = []
 
@@ -625,7 +627,7 @@ class CBEG:
         for c in range(n_clusters):
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
-            
+
             possible_classes = np.unique(y_cluster)
 
             if len(possible_classes) > 2:
@@ -639,19 +641,18 @@ class CBEG:
         if self.verbose:
             print("Performing pre-clustering...")
 
-        if self.cluster_selection_method == "clustering" \
-                and self.n_clusters == "compare":
+        # if self.n_clusters == "compare":
 
-            self.cluster_module = ClusteringModule(
-                    X, y,
-                    n_clusters=self.n_clusters,
-                    clustering_algorithm="kmeans++",
-                    evaluation_metric=self.clustering_evaluation_metric,
-            )
-            self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
+        self.cluster_module = ClusteringModule(
+                X, y,
+                n_clusters=self.n_clusters,
+                clustering_algorithm="kmeans++",
+                evaluation_metric=self.clustering_evaluation_metric,
+        )
+        self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
-        else: 
-            self.select_clusters_using_pso(X, y)
+        # else:
+        #    self.select_clusters_using_pso(X, y)
 
     def select_clusters_using_pso(self, X, y):
         self.cluster_module = ClusteringModule(
@@ -729,7 +730,7 @@ def save_data(args, cbeg: CBEG, prediction_results: PredictionResults, fold: int
     folder_test = os.path.join(folder_name, 'test_summary')
     os.makedirs(folder_test, exist_ok=True)
     cbeg.save_test_data(prediction_results, filename, folder_test)
-    
+
     print(f'{folder_test}/{filename} saved successfully.')
     print(50 * '-',"\n")
 
@@ -746,7 +747,7 @@ def get_folder_name(args):
     if args.smote_oversample:
         folder_name_suffix += '_oversampling'
 
-    if args.cluster_selection_method == "pso":
+    if args.classifier_selection_method == "pso":
         folder_name_suffix += '_pso'
 
     folder_name_prefix = os.path.join(
@@ -764,12 +765,11 @@ def main():
     parser.add_argument("-b", "--base_classifier_selection", type=bool, default=False,
                         action=argparse.BooleanOptionalAction, help = "")
     parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "")
-    parser.add_argument("-p", "--cluster_selection_method", default="clustering", help="")
+    parser.add_argument("-p", "--classifier_selection_method", default="crossval", help="")
     parser.add_argument("-e", "--clustering_evaluation_metric", default="dbc", help = "")
     parser.add_argument("-c", "--combination_strategy", default="majority_voting", help = "")
     parser.add_argument("-s", "--smote_oversample", default=False,
                         action=argparse.BooleanOptionalAction, help = "")
-    # cluster_selection_method: str = "clustering" # clustering | pso
 
     # Read arguments from command line
     args = parser.parse_args()
@@ -792,6 +792,9 @@ def main():
         print("Skipping experiment variation...")
         return
 
+    accuracy_values = []
+    f1_values = []
+
     for fold in range(1, N_FOLDS+1):
         X, y = dataset_loader.select_dataset_function(args.dataset)()
         # Break dataset in training and validation
@@ -800,7 +803,7 @@ def main():
 
         cbeg = CBEG(
             args.n_clusters, args.base_classifier_selection,
-            args.min_mutual_info_percentage, args.cluster_selection_method,
+            args.min_mutual_info_percentage, args.classifier_selection_method,
             args.clustering_evaluation_metric, args.combination_strategy,
             max_threads=7, verbose=True
         )
@@ -819,6 +822,13 @@ def main():
 
         save_data(args, cbeg, prediction_results, fold)
 
+        average = "weighted" if len(np.unique(y_val)) > 2 else "binary"
+
+        f1_values.append(f1_score(y_val, y_pred, average=average))
+        accuracy_values.append(accuracy_score(y_val, y_pred))
+
+    print("Accuracy:", np.mean(accuracy_values))
+    print("F1:", np.mean(f1_values))
 
 if __name__ == "__main__":
     main()
