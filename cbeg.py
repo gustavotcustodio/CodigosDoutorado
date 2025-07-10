@@ -89,7 +89,7 @@ class CBEG:
     n_clusters: str | int = "compare"
     base_classifier_selection: bool = True
     min_mutual_info_percentage: float  = 100.0
-    classifier_selection_method: str = "clustering" # clustering | pso
+    classifier_selection_method: str = "crossval" # none | crossval | pso
     clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
     weights_dbc_silhouette = (0.5, 0.5) # ver isso depois TODO
     combination_strategy: str = "weighted_membership"
@@ -232,6 +232,18 @@ class CBEG:
             threads[idx_thread].join()
 
         return selected_base_classifiers
+
+    def meta_classifier_function(
+            self, y_pred_by_clusters: list[NDArray], y_true: NDArray
+        ) -> tuple[NDArray, NDArray]:
+
+        dt = DecisionTreeClassifier()
+        X = np.array(y_pred_by_clusters).T
+
+        dt.fit(X, y_true)
+
+        pass
+
 
     def majority_vote_outputs(
             self, y_pred_by_clusters: list[NDArray]
@@ -634,6 +646,8 @@ class CBEG:
                 self.base_classifiers[c] = OneVsRestClassifier(self.base_classifiers[c])
 
             self.base_classifiers[c].fit(X_cluster, y_cluster)
+
+        # Adicionar treinamento do meta-classificador TODO
 
     def perform_clustering_step(self, X, y):
         # Perform the pre-clustering step in order to split the data
