@@ -52,13 +52,13 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     if "majority_voting" not in experiment_variation: # has_weighted_voting_fusion
         variation_number += "4"
 
-    if "_oversampling" in experiment_variation:  # has_oversampling
+    if "pso_" in experiment_variation:
         variation_number += "5"
 
-    if "_pso" in experiment_variation:
+    if "_oversampling" in experiment_variation:  # has_oversampling
         variation_number += "6"
 
-    accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 125, 1234, 1245, 12345, 1246]
+    accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 1234, 145]
     variation_number = int(variation_number)
 
     print(f"Variation {variation_number}...")

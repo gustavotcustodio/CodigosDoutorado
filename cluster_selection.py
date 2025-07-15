@@ -131,13 +131,12 @@ class ClusteringModule:
         # number of clusters and the best clustering algorithm
         if self.n_clusters == "compare":
             self.best_clusterer = self.compare_clusterers_and_select()
-
-            clusters = self.best_clusterer.fit_predict(self.X)
+            clusters = self.best_clusterer.predict(self.X)
         else:
             self.best_clusterer = self.create_clusterer(
                 self.clustering_algorithm, self.n_clusters)
 
-            clusters = self.best_clusterer.fit_predict(self.X)
+            clusters = self.best_clusterer.predict(self.X)
             self.best_evaluation_value = self.evaluation_function(clusters, self.best_clusterer.n_clusters)
 
         # Change the number of clusters to the optimal number found

@@ -19,7 +19,7 @@ from sklearn.model_selection import StratifiedKFold
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask import delayed, compute
 
-N_FOLDS = 15
+N_FOLDS = 10
 
 # Default classifier selected
 DEFAULT_CLASSIFIER = 'nb'
@@ -32,7 +32,7 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'dt': DecisionTreeClassifier,
                     #'rf': RandomForestClassifier,
                     #'gb': GradientBoostingClassifier,
-                    #'xb': XGBClassifier,
+                    'xb': XGBClassifier,
                     #'adaboost': AdaBoostClassifier,
                     }
 
@@ -207,12 +207,20 @@ class ClassifierSelector:
         clf.fit(X_train, y_train)
         return clf.predict_proba(X_val)
 
+    def train_meta_classifier(self, y_prob_by_clf, y_true):
+        meta_clf = XGBClassifier()
+        X = np.hstack(y_prob_by_clf)
+
+        meta_clf.fit(X, y_true)
+        return meta_clf
+
 
     def eval_base_classifiers(self, X_cluster_by_fold, X_val_by_fold,
                               y_cluster_by_fold, y_val_by_fold):
         def wrapper(selected_classifiers):
 
             eval_by_fold = []
+            n_clusters = len(selected_classifiers)
 
             for fold in range(N_FOLDS):
                 y_pred_by_clf = []
@@ -225,35 +233,22 @@ class ClassifierSelector:
                     y_cluster_by_fold[c][fold], X_val
                 ) for c, clf in enumerate(selected_classifiers)]
 
-                # y_prob_by_clf = Parallel(n_jobs=-1)(
-                #     delayed(self.train_clf_predict_proba) (
-                #         clf, X_cluster_by_fold[c][fold],
-                #         y_cluster_by_fold[c][fold], X_val)
-                #     for c, clf in enumerate(selected_classifiers)
-                # )
-
                 y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_by_clf]
 
-                # for c, classifier in enumerate(selected_classifiers):
-                #     # X_cluster_train = X_cluster_by_fold[c][fold]
-                #     # y_cluster_train = y_cluster_by_fold[c][fold]
+                if self.fusion_function.__name__ == 'meta_classifier_predict':
+                    X_train = np.vstack([ X_cluster_by_fold[c][fold] for c in range(n_clusters) ])
 
-                #     # classifier.fit(X_cluster_train, y_cluster_train)
+                    y_prob_clusters_train = [classifier.predict_proba(X_train)
+                                             for classifier in selected_classifiers]
+                    # y_prob_train_by_clf = np.array(y_prob_train_by_clf).T
+                    y_train = np.hstack([ y_cluster_by_fold[c][fold] for c in range(n_clusters) ])
 
-                #     # y_prob = classifier.predict_proba(X_val)
+                    self.meta_classifier = self.train_meta_classifier(y_prob_clusters_train, y_train)
 
-                #     # calc AUC score for this cluster
-                #     # if self.n_labels > 2:
-                #     #     auc_score = roc_auc_score(y_val, y_prob, multi_class='ovr')
-                #     # else:
-                #     #     auc_score = roc_auc_score(y_val, y_prob[:,1])
-
-                #     # auc_score_by_cluster.append(auc_score)
-
-                #     y_pred = y_prob.argmax(1)
-                #     y_pred_by_clf.append(y_pred)
-
-                y_prob, _ = self.fusion_function(X_val, y_pred_by_clf)
+                    y_prob, _ = self.fusion_function(y_prob_by_clf, self.meta_classifier)
+                # TODO elif para majority voting
+                else:
+                    y_prob, _ = self.fusion_function(X_val, y_pred_by_clf)
                 y_pred = y_prob.argmax(1)
 
                 if self.n_labels > 2:
