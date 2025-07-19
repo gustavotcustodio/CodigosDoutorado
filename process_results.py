@@ -116,7 +116,7 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
             for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
                 if "sc" in abbrev_classifier:
                     base_clf = abbrev_classifier.split("_")[1]
-                    path = (f'results/{dataset}/mutual_info_{mutual_info}/' + 
+                    path = (f'results/{dataset}/mutual_info_{mutual_info}/' +
                             f'supervised_clustering/supervised_clustering_base_classifier_{base_clf}')
                 else:
                     path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'

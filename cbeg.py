@@ -781,7 +781,7 @@ def get_folder_name(args):
     if args.classifier_selection_method == "pso":
         folder_name_suffix = 'pso_'
     elif args.classifier_selection_method == "crossval":
-        folder_name_suffix = 'classifier_selection'
+        folder_name_suffix = 'classifier_selection_'
     else:
         folder_name_suffix = 'naive_bayes_'
 
