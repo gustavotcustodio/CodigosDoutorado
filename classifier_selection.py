@@ -18,6 +18,8 @@ from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask import delayed, compute
+from feature_selection import FeatureSelectionModule
+from typing import Mapping, Optional, Callable
 
 N_FOLDS = 10
 
@@ -48,6 +50,7 @@ class ClassifierSelector:
     n_particles: int = 40
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
+    feature_selector: Optional[FeatureSelectionModule] = None
 
     def __post_init__(self):
         max_idx_clf = len(BASE_CLASSIFIERS.keys()) - 1
@@ -203,12 +206,20 @@ class ClassifierSelector:
 
         return X_cluster_by_fold, X_val_by_fold, y_cluster_by_fold, y_val_by_fold
 
-    def train_clf_predict_proba(self, clf, X_train, y_train, X_val):
+    def train_clf_predict_proba(self, clf, cluster, X_train, y_train, X_val):
+        # Select the correct features for the classifier
+
+        if self.feature_selector is not None:
+            features = self.feature_selector.selected_features[cluster]
+
+            X_train = X_train[:, features]
+            X_val = X_val[:, features]
+
         clf.fit(X_train, y_train)
         return clf.predict_proba(X_val)
 
     def train_meta_classifier(self, y_prob_by_clf, y_true):
-        meta_clf = XGBClassifier()
+        meta_clf = RandomForestClassifier()
         X = np.hstack(y_prob_by_clf)
 
         meta_clf.fit(X, y_true)
@@ -229,21 +240,24 @@ class ClassifierSelector:
                 y_val = y_val_by_fold[fold]
 
                 y_prob_by_clf = [self.train_clf_predict_proba(
-                    clf, X_cluster_by_fold[c][fold],
+                    clf, c, X_cluster_by_fold[c][fold],
                     y_cluster_by_fold[c][fold], X_val
                 ) for c, clf in enumerate(selected_classifiers)]
 
                 y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_by_clf]
 
                 if self.fusion_function.__name__ == 'meta_classifier_predict':
-                    X_train = np.vstack([ X_cluster_by_fold[c][fold] for c in range(n_clusters) ])
+                    X_train = np.vstack([ X_cluster_by_fold[c][fold]
+                                         for c in range(n_clusters) ])
 
                     y_prob_clusters_train = [classifier.predict_proba(X_train)
                                              for classifier in selected_classifiers]
                     # y_prob_train_by_clf = np.array(y_prob_train_by_clf).T
-                    y_train = np.hstack([ y_cluster_by_fold[c][fold] for c in range(n_clusters) ])
+                    y_train = np.hstack([ y_cluster_by_fold[c][fold]
+                                         for c in range(n_clusters) ])
 
-                    self.meta_classifier = self.train_meta_classifier(y_prob_clusters_train, y_train)
+                    self.meta_classifier = self.train_meta_classifier(
+                            y_prob_clusters_train, y_train)
 
                     y_prob, _ = self.fusion_function(y_prob_by_clf, self.meta_classifier)
                 # TODO elif para majority voting

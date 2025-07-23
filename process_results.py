@@ -58,7 +58,7 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     if "_oversampling" in experiment_variation:  # has_oversampling
         variation_number += "6"
 
-    accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 1234, 145]
+    accepted_variations = [0, 1, 2, 3, 4, 5, 12, 123, 124, 1234, 145]
     variation_number = int(variation_number)
 
     print(f"Variation {variation_number}...")
@@ -162,13 +162,13 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
-        #"australian_credit",
+        "australian_credit",
         "german_credit",
         "contraceptive", 
         #"heart",
         #"wine",
-        #"wdbc",
-        #"pima",
+        "wdbc",
+        "pima",
         #"iris",
     ]
     # datasets = ["contraceptive"]

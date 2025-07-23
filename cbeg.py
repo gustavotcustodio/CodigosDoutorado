@@ -32,9 +32,9 @@ from classifier_selection import ClassifierSelector
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
-# TODO opções para resolver o problema do FCM:
-    # - Diminuir para a quantidade de grupos encontrada realmente
-    # - pelo menos uma amostra em cada grupo. Usar o maior
+# TODO conciliar fuzzy-c-means com os métodos de meta-classificação
+# TODO resolver o problema do número de folhas
+# TODO resolver o problema de todos os y iguais (já resolvi?)
 
 # TODO consolidar bases do Jesus
 
@@ -58,7 +58,7 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'dt': DecisionTreeClassifier,
                     'rf': RandomForestClassifier,
                     'gb': GradientBoostingClassifier,
-                    'xb': XGBClassifier,
+                    # 'xb': XGBClassifier,
                     'adaboost': AdaBoostClassifier,
                     }
 
@@ -88,7 +88,7 @@ class CBEG:
     """Framework for ensemble creation."""
     n_clusters: str | int = "compare"
     min_mutual_info_percentage: float  = 100.0
-    classifier_selection_method: str = "crossval" # default | crossval | pso
+    classifier_selection_method: str = "default" # default | crossval | pso
     clustering_evaluation_metric: str = "dbc" # dbc_ss, silhoutte
     weights_dbc_silhouette = (0.5, 0.5) # ver isso depois TODO
     combination_strategy: str = "weighted_membership"
@@ -183,7 +183,6 @@ class CBEG:
         cv = StratifiedKFold(n_splits=n_folds, shuffle=True)
 
         for clf_name, classifier in classifiers.items():
-
             cv_results = cross_validate(classifier, X_train, y_train, cv=cv,
                                         scoring=classification_metrics)
             # Get the mean AUC of the classifier
@@ -194,6 +193,11 @@ class CBEG:
 
         # Return a dict with the format classifier_name -> mean_auc 
         return auc_by_classifier
+
+    def get_num_samples_by_cluster(self) -> list[int]:
+        n_clusters = int(self.cluster_module.n_clusters)
+        return [len(self.samples_by_cluster[c]) for c in range(n_clusters)]
+            
 
     def select_base_classifiers(self, classification_metrics: list) -> list[BaseEstimator]:
         """ Select base classifiers according to the results of cross-val.
@@ -236,7 +240,7 @@ class CBEG:
     def train_meta_classifier(
         self, y_prob_by_clusters: list[NDArray], y_true: NDArray
     ) -> tuple[NDArray, NDArray]:
-        meta_clf = XGBClassifier()
+        meta_clf = RandomForestClassifier()
         X = np.hstack(y_prob_by_clusters)
 
         meta_clf.fit(X, y_true)
@@ -345,14 +349,14 @@ class CBEG:
         return vote_sums, samples_weights
 
     def meta_classifier_predict(self, y_prob_by_clusters, meta_classifier=None):
-        X = np.hstack(y_prob_by_clusters)
+        X_test = np.hstack(y_prob_by_clusters)
 
         if meta_classifier is None:
             meta_classifier = self.meta_classifier
 
-        y_prob = meta_classifier.predict_proba(X)
+        y_prob = meta_classifier.predict_proba(X_test)
         # y_prob, _ = self.fusion_function(X_val, y_prob_by_clf, self.meta_classifier)
-        return y_prob, X
+        return y_prob, X_test
 
     def smote_oversampling(self):
         # Used to map which data points are synthetic
@@ -417,11 +421,12 @@ class CBEG:
 
             # Get the class for the current cluster
             y_prob_cluster = self.base_classifiers[c].predict_proba(X_test_cluster)  # .astype(np.int32)
-            y_pred_cluster = np.argmax(y_prob_cluster, axis=1)
-
             y_prob_by_clusters.append(y_prob_cluster)
+
+            y_pred_cluster = np.argmax(y_prob_cluster, axis=1)
             y_pred_by_clusters.append(y_pred_cluster)
 
+        # Used later
         self.y_pred_by_clusters = np.vstack(y_pred_by_clusters).T
 
         if self.combination_strategy == "weighted_membership":
@@ -589,6 +594,7 @@ class CBEG:
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
+
         self.n_labels = np.unique(y).shape[0]
 
         # Perform the pre-clustering step in order to split the data
@@ -638,7 +644,9 @@ class CBEG:
 
             clf_selector = ClassifierSelector(
                 self.n_labels, n_clusters, self.samples_by_cluster,
-                self.labels_by_cluster, fusion_function)
+                self.labels_by_cluster, fusion_function,
+                feature_selector=self.features_module
+            )
             self.base_classifiers = clf_selector.select_base_classifiers()
 
         elif self.classifier_selection_method == "crossval":
@@ -671,11 +679,22 @@ class CBEG:
 
             self.base_classifiers[c].fit(X_cluster, y_cluster)
 
-        # Adicionar treinamento do meta-classificador TODO
         if self.combination_strategy == "meta_classifier":
-            y_prob_by_clusters = [self.base_classifiers[c].predict_proba(X)
-                                  for c in range(n_clusters)]
-            self.meta_classifier = self.train_meta_classifier(y_prob_by_clusters, y)
+
+            y_train = y
+            y_prob_by_clusters = []
+
+            for c in self.samples_by_cluster.keys():
+                selected_features = self.features_module.features_by_cluster[c]
+
+                X_attrs = X[:, selected_features]
+
+                # y_prob_cluster = self.base_classifiers[c].predict_proba(X_attrs)
+                y_prob_cluster = self.base_classifiers[c].predict_proba(X_attrs)
+
+                y_prob_by_clusters.append(y_prob_cluster)
+
+            self.meta_classifier = self.train_meta_classifier(y_prob_by_clusters, y_train)
 
 
     def perform_clustering_step(self, X, y):
@@ -808,7 +827,7 @@ def main():
     parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
     parser.add_argument("-n", "--n_clusters", default="compare", help = "Number of clusters.")
     parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "")
-    parser.add_argument("-p", "--classifier_selection_method", default="crossval", help="")
+    parser.add_argument("-p", "--classifier_selection_method", default="default", help="")
     parser.add_argument("-e", "--clustering_evaluation_metric", default="dbc", help = "")
     parser.add_argument("-c", "--combination_strategy", default="majority_voting", help = "")
     parser.add_argument("-s", "--smote_oversample", default=False,
@@ -865,6 +884,7 @@ def main():
         )
         print("CBEG", classification_report(y_pred, y_val, zero_division=0.0))
         print("Selected Base Classifiers:", cbeg.base_classifiers)
+        print("Number of samples by cluster:", cbeg.get_num_samples_by_cluster())
         print("Selected clustering_algorithm:", cbeg.cluster_module.clustering_algorithm)
 
         save_data(args, cbeg, prediction_results, fold)

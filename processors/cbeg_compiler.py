@@ -72,6 +72,8 @@ class SingleCbegResult(BaseClassifierResult):
             self.fusion_strategy = "Weighted Membership"
         elif "weighted_membership_entropy_fusion" in folder_name:
             self.fusion_strategy = "W. Membership + Entropy"
+        elif "meta_classifier" in folder_name:
+            self.fusion_strategy = "Meta Classifier"
         else:
             self.fusion_strategy = "Majority Voting"
 

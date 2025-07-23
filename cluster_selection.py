@@ -13,7 +13,7 @@ from sklearn.metrics import adjusted_rand_score
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
-    # 'fcm': FuzzyCMeans,
+    'fcm': FuzzyCMeans,
 }
 
 
@@ -98,7 +98,6 @@ class ClusteringModule:
                 # We need to pass n_clusters as a param instead of c, because the number
                 # of clusters might change for Fuzzy C-means.
                 evaluation_value = self.evaluation_function(clusters, clusterer.n_clusters)
-                # print(clustering_algorithm, c, evaluation_value, clusterer)
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
@@ -108,7 +107,6 @@ class ClusteringModule:
 
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
         self.best_evaluation_value = evaluation_values[idx_best_clusterer]
-        # print(f"Best evaluation: {self.clustering_algorithm} - {self.best_evaluation_value}")
 
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
@@ -132,12 +130,14 @@ class ClusteringModule:
         if self.n_clusters == "compare":
             self.best_clusterer = self.compare_clusterers_and_select()
             clusters = self.best_clusterer.predict(self.X)
+
         else:
             self.best_clusterer = self.create_clusterer(
                 self.clustering_algorithm, self.n_clusters)
 
-            clusters = self.best_clusterer.predict(self.X)
-            self.best_evaluation_value = self.evaluation_function(clusters, self.best_clusterer.n_clusters)
+            clusters = self.best_clusterer.fit_predict(self.X)
+            self.best_evaluation_value = self.evaluation_function(
+                    clusters, self.best_clusterer.n_clusters)
 
         # Change the number of clusters to the optimal number found
         self.n_clusters = int(self.best_clusterer.n_clusters)
