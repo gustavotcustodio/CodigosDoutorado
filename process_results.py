@@ -165,16 +165,16 @@ def main():
         "australian_credit",
         "german_credit",
         "contraceptive", 
-        #"heart",
-        #"wine",
+        "wine",
         "wdbc",
         "pima",
-        #"iris",
+        "iris",
+        "heart",
     ]
     # datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
-    mutual_info_percentages = [100.0] #, 75.0, 50.0]
+    mutual_info_percentages = [100.0, 75.0, 50.0]
 
     process_cbeg_results(datasets, mutual_info_percentages)
     # process_ciel_results(datasets, mutual_info_percentages)

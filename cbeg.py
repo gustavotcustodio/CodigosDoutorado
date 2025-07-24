@@ -32,8 +32,8 @@ from classifier_selection import ClassifierSelector
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
-# TODO conciliar fuzzy-c-means com os métodos de meta-classificação
 # TODO resolver o problema do número de folhas
+# TODO resolver o problema do kfold no PSO
 # TODO resolver o problema de todos os y iguais (já resolvi?)
 
 # TODO consolidar bases do Jesus
@@ -704,12 +704,14 @@ class CBEG:
             print("Performing pre-clustering...")
 
         # if self.n_clusters == "compare":
+        allow_fcm = True if self.combination_strategy == "meta_classifier" else False
 
         self.cluster_module = ClusteringModule(
                 X, y,
                 n_clusters=self.n_clusters,
                 clustering_algorithm="kmeans++",
                 evaluation_metric=self.clustering_evaluation_metric,
+                allow_fcm=allow_fcm
         )
         self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
 
@@ -717,11 +719,13 @@ class CBEG:
         #    self.select_clusters_using_pso(X, y)
 
     def select_clusters_using_pso(self, X, y):
+        allow_fcm = True if self.combination_strategy == "meta_classifier" else False
         self.cluster_module = ClusteringModule(
                 X, y,
                 n_clusters='compare',
                 clustering_algorithm="kmeans++",
                 evaluation_metric=self.clustering_evaluation_metric,
+                allow_fcm=allow_fcm,
         )
         clustering_func = self.cluster_module.select_evaluation_function()
 

@@ -2,18 +2,18 @@ Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.4268577493341674
+Clustering evaluation value: 0.40942628217441496
 
 ========== Cluster 0 ==========
 
-Base classifier: LogisticRegression()
+Base classifier: GaussianNB()
 
 Minority Class: 0
 
-Selected Features: [21 24 28  4 25 23  3  8 22  1  5 20 18 29 16 15 17 27 19  0 14]
+Selected Features: [24 21 23  3 28  4  1 20 14  8 17 10 25 16 22 18 19 26  5  2]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1 0 1 0 0 1 0 1 1
- 1 1 1 1 1 0 1 1 1 1 0 0 1 1 0 0 0 0 0 1 1 0 0 1 0 0 1 1 1 0 0]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 1 1 0 1 1 1 0 0 1 1 1 1 1 1 1 1
+ 1 1 0 1 1 1 0 0 1 1 1 1 0 1 0 0 1 1 1]
 
 ========== Cluster 1 ==========
 
@@ -21,14 +21,11 @@ Base classifier: SVC(probability=True)
 
 Minority Class: 1
 
-Selected Features: [21 24  1  4 14 23  9  8 17  3  2 22 26 16 19 18  0]
+Selected Features: [ 0 23 22 24  4 27  2 21  1 28 20  7  3 16  5 30 18 25 12  9 19]
 
-Labels: [1 0 0 0 1 1 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 1 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0]
+Labels: [1 0 0 1 1 1 1 1 1 1 1 0 0 1 1 1 0 0 1 0 0 0 0 0 0 1 1 1 0 0 1 0 0 0 0 0 0
+ 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0
+ 1 0 0 0 0 1 0 0 0]
 
 ========== Cluster 2 ==========
 
@@ -38,18 +35,18 @@ Minority Class: 1
 
 Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 3 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: GaussianNB()
 
 Minority Class: 1
 
-Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
+Selected Features: [ 4  8  1 17 21 24  3 23  6  9 19]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1]
+Labels: [1 0 1 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 4 ==========
 
@@ -57,12 +54,34 @@ Base classifier: DummyClassifier(strategy='most_frequent')
 
 Minority Class: 1
 
-Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
+Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+ 24 25 26 27 28 29 30]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 5 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0]
+
+========== Cluster 6 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 1
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 7 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -73,6 +92,16 @@ Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 
 
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0]
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 8 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 1
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1]
 

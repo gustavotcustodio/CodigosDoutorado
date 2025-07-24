@@ -25,6 +25,7 @@ class ClusteringModule:
     clustering_algorithm: str = "kmeans++"
     evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss, dbc_rand
     weights_dbc_external = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
+    allow_fcm: bool = False
 
     def __post_init__(self):
         self.n_labels = len(np.unique(self.y))
@@ -85,6 +86,9 @@ class ClusteringModule:
         max_clusters = int(np.sqrt(n_samples) / 2)
 
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
+            if clustering_algorithm == "fcm" and not(self.allow_fcm):
+                continue
+
             for c in range(2, max_clusters):
                 # dbscan = DBSCAN(eps=3, min_samples=2)
 

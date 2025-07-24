@@ -13,11 +13,11 @@ Precision: 1.0
 F1: 0.5217391304347826
 
 ====== Cluster 1 ======
-Base classifier: SVC(probability=True)
-Accuracy: 0.5882352941176471
-Recall: 0.5882352941176471
-Precision: 0.9117647058823529
-F1: 0.6666666666666666
+Base classifier: RandomForestClassifier()
+Accuracy: 0.6470588235294118
+Recall: 0.6470588235294118
+Precision: 0.9019607843137254
+F1: 0.7340275823247959
 
 ====== Cluster 2 ======
 Base classifier: DummyClassifier(strategy='most_frequent')
@@ -46,7 +46,7 @@ Recall: 0.4117647058823529
 Precision: 0.8991596638655462
 F1: 0.5303454715219421
 
-AUC: 0.7476190476190476
+AUC: 0.7523809523809524
 
 Clustering evaluation metric: dbc_rand
 Clustering evaluation value: 0.41741565772166517
@@ -54,7 +54,7 @@ Clustering evaluation value: 0.41741565772166517
 ========= Predictions by sample =========
 
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0], Weights: [0.07 0.13 0.72 0.04 0.05]
-Prediction: 0, Real label: 0, Votes by cluster: [0 1 0 1 0], Weights: [0.08 0.13 0.68 0.05 0.06]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0], Weights: [0.08 0.13 0.68 0.05 0.06]
 Prediction: 0, Real label: 0, Votes by cluster: [0 1 0 1 0], Weights: [0.13 0.24 0.46 0.07 0.09]
 Prediction: 0, Real label: 0, Votes by cluster: [0 1 0 1 0], Weights: [0.08 0.14 0.68 0.04 0.05]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0], Weights: [0.09 0.16 0.62 0.06 0.07]
@@ -69,4 +69,4 @@ Prediction: 0, Real label: 1, Votes by cluster: [0 1 0 1 0], Weights: [0.2  0.31
 Prediction: 0, Real label: 2, Votes by cluster: [0 1 0 1 0], Weights: [0.15 0.07 0.05 0.42 0.31]
 Prediction: 0, Real label: 2, Votes by cluster: [0 1 0 1 0], Weights: [0.1  0.06 0.05 0.37 0.41]
 Prediction: 0, Real label: 2, Votes by cluster: [0 1 0 1 0], Weights: [0.08 0.06 0.06 0.3  0.51]
-Prediction: 1, Real label: 2, Votes by cluster: [0 1 0 1 0], Weights: [0.08 0.06 0.06 0.55 0.25]
+Prediction: 1, Real label: 2, Votes by cluster: [0 0 0 1 0], Weights: [0.08 0.06 0.06 0.55 0.25]

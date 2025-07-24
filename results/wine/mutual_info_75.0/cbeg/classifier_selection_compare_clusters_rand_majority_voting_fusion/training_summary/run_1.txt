@@ -2,29 +2,28 @@ Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.40404279867398896
+Clustering evaluation value: 0.39981004943064724
 
 ========== Cluster 0 ==========
 
-Base classifier: SVC(probability=True)
-
-Minority Class: 1
-
-Selected Features: [ 5  4  6  9 11  0  1]
-
-Labels: [1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2]
-
-========== Cluster 1 ==========
-
 Base classifier: DummyClassifier(strategy='most_frequent')
 
-Minority Class: 0
+Minority Class: 2
 
 Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
+
+========== Cluster 1 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 1
+
+Selected Features: [ 0  9  1 12  4  3  7  8 10  6]
+
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0]
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1]
 
 ========== Cluster 2 ==========
 
@@ -35,15 +34,15 @@ Minority Class: 1
 Selected Features: [12 11 10  9  8  7  6  5  4  3]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 3 ==========
 
-Base classifier: SVC(probability=True)
+Base classifier: RandomForestClassifier()
 
-Minority Class: 0
+Minority Class: 1
 
-Selected Features: [ 6 12  9  0  5  7 10  8  4 11]
+Selected Features: [ 6 11  9  0  7  3 12 10  8  5]
 
-Labels: [0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
 

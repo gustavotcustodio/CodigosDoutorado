@@ -1,8 +1,8 @@
-Clustering algorithm selected: kmeans
+Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.4009148599951627
+Clustering evaluation value: 0.4593691205033148
 
 ========== Cluster 0 ==========
 
@@ -14,8 +14,7 @@ Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 
 
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ 0 0 0 0 0 0 0 0]
 
 ========== Cluster 1 ==========
 
@@ -25,36 +24,10 @@ Minority Class: 1
 
 Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 19 20 21 22]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 2 ==========
-
-Base classifier: AdaBoostClassifier()
-
-Minority Class: 1
-
-Selected Features: [24  4  1 21 14  0 23  3  8  2 11 28 27 22  9  7 13 26 30 16 18 25  5 20]
-
-Labels: [1 1 1 1 1 1 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 1
- 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0]
-
-========== Cluster 3 ==========
-
-Base classifier: SVC(probability=True)
-
-Minority Class: 0
-
-Selected Features: [28 21 24 20 23  1  8  4 25  3 10 22  5  2 16 29 19 18 15 27 26 17 14  9
- 11]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 0 0 1 0 1 1 1 1 1 1 1 0 1
- 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1 1 0 1 1 0 0 1 0 1 0 0 1 0 0 1 1 1 0 0 1]
-
-========== Cluster 4 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -64,5 +37,61 @@ Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1]
+ 1 1 1 1 1 1]
+
+========== Cluster 3 ==========
+
+Base classifier: SVC(probability=True)
+
+Minority Class: 1
+
+Selected Features: [ 0 17  8 24  4 21  1 16 23  3 10  9 28 13 14 27 18  7 19 20 11  6]
+
+Labels: [1 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 4 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 19 20 21 22]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0]
+
+========== Cluster 5 ==========
+
+Base classifier: SVC(probability=True)
+
+Minority Class: 1
+
+Selected Features: [ 0 23 24 21 22  4  2  1 20 28 27 25 16 18  3  5 30 10  7  9 14 12 13 11]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 0 1 0 0 1 0 0 0 0 1 1 1 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0
+ 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1
+ 0 0 0 0 1 0 0 0]
+
+========== Cluster 6 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 1
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 19 20 21 22]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 7 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [30 14  1  2  3  4  5  6  7  8  9 10 11 12 13 15 29 16 17 18 19 20 21 22]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 

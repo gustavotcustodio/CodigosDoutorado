@@ -54,6 +54,7 @@ class ClassifierSelector:
 
     def __post_init__(self):
         max_idx_clf = len(BASE_CLASSIFIERS.keys()) - 1
+        # min_samples_split: position 5
         min_bounds = [0,           1e-4, 1e-4, 0.1,   1,  2,  1,  1] * self.n_clusters
         max_bounds = [max_idx_clf, 1000, 1000,   1, 500, 10, 10, 10] * self.n_clusters
         self.bounds = (min_bounds, max_bounds)
@@ -191,6 +192,8 @@ class ClassifierSelector:
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
 
+            # TODO consertar prolema com número de instâncias em cada cluster
+
             for train_index, val_index in skf.split(X_cluster, y_cluster):
 
                 X_val_by_fold[fold] += X_cluster[val_index].tolist()
@@ -208,6 +211,9 @@ class ClassifierSelector:
 
     def train_clf_predict_proba(self, clf, cluster, X_train, y_train, X_val):
         # Select the correct features for the classifier
+        n_samples_cluster = len(y_train)
+
+        self.set_max_samples_split(clf, cluster, n_samples_cluster)
 
         if self.feature_selector is not None:
             features = self.feature_selector.selected_features[cluster]
@@ -294,17 +300,6 @@ class ClassifierSelector:
     def calc_fitness_solutions(self, solutions):
         """ Calculate the fitness value for all
         candidate solutions. """
-        # costs = []
-
-        # for solution in solutions:
-        #     # Prepare candidate solution for fitness function
-        #     classifiers = self.decode_candidate_solution(solution)
-
-        #     fitness_val = self.fitness_function(classifiers)
-        #     cost = 1 - fitness_val
-        #     costs.append(cost)
-
-        # print(costs)
 
         # Wrap each function call in delayed
         delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
@@ -334,6 +329,16 @@ class ClassifierSelector:
         w = w_max - self.current_iter * (w_max - w_min) / self.n_iters
         self.pso.options['w'] = w
 
+    def set_max_samples_split(self, clf, cluster, n_samples_cluster):
+        # max_bounds = [max_idx_clf, 1000, 1000,   1, 500, 10, 10, 10] * self.n_clusters
+        max_samples_split = self.bounds[1][cluster * 8 + 5]
+
+        if hasattr(clf, "min_samples_split") and n_samples_cluster < max_samples_split:
+            self.bounds[1][cluster * 8 + 5] = n_samples_cluster
+            clf.min_samples_split = n_samples_cluster
+
+        #self.bounds = (min_bounds, max_bounds)
+
     def run_pso(self):
         # Create pso
         self.pso = ps.single.GlobalBestPSO(
@@ -349,6 +354,8 @@ class ClassifierSelector:
     def select_base_classifiers(self):
         X_cluster_by_fold, X_val_by_fold, y_cluster_by_fold, y_val_by_fold = \
             self.split_clusters_in_train_and_val()
+
+        # Fix the maximum number of leaves for each classifier
 
         fitness_function = self.eval_base_classifiers(
             X_cluster_by_fold, X_val_by_fold, y_cluster_by_fold, y_val_by_fold
