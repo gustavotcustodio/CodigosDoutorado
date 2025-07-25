@@ -47,7 +47,7 @@ class FuzzyCMeans:
         # centroids, u_membership, _, _, _, _, _ = cmeans(
         #         X.T, c=self.n_clusters, m=2, maxiter=1000, error=1e-6)
 
-        self.fcm = FCM(n_clusters=self.n_clusters)
+        self.fcm = FCM(n_clusters=self.n_clusters, random_state=42)
         self.fcm.fit(X)
         clusters = self.fcm.predict(X)
         # clusters = np.argmax(u_membership, axis=0)

@@ -16,8 +16,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dask import delayed, compute
+# from concurrent.futures import ThreadPoolExecutor, as_completed
+from dask.base import compute
+from dask.delayed import delayed
 from feature_selection import FeatureSelectionModule
 from typing import Mapping, Optional, Callable
 
@@ -32,10 +33,10 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    #'rf': RandomForestClassifier,
-                    #'gb': GradientBoostingClassifier,
-                    'xb': XGBClassifier,
-                    #'adaboost': AdaBoostClassifier,
+                    'rf': RandomForestClassifier,
+                    'gb': GradientBoostingClassifier,
+                    #'xb': XGBClassifier,
+                    'adaboost': AdaBoostClassifier,
                     }
 
 @dataclass
@@ -216,7 +217,7 @@ class ClassifierSelector:
         self.set_max_samples_split(clf, cluster, n_samples_cluster)
 
         if self.feature_selector is not None:
-            features = self.feature_selector.selected_features[cluster]
+            features = self.feature_selector.features_by_cluster[cluster]
 
             X_train = X_train[:, features]
             X_val = X_val[:, features]

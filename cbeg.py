@@ -58,7 +58,7 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'dt': DecisionTreeClassifier,
                     'rf': RandomForestClassifier,
                     'gb': GradientBoostingClassifier,
-                    # 'xb': XGBClassifier,
+                    #'xb': XGBClassifier,
                     'adaboost': AdaBoostClassifier,
                     }
 

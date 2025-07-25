@@ -13,7 +13,8 @@ from sklearn.metrics import adjusted_rand_score
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
-    'fcm': FuzzyCMeans,
+    #'fcm': FuzzyCMeans,
+    'spectral': SpectralClustering,
 }
 
 
@@ -31,11 +32,16 @@ class ClusteringModule:
         self.n_labels = len(np.unique(self.y))
         # Calculate the average cosine distance between samples
         self.distances_between_samples = cosine_distances(self.X, self.X)
+        self.allow_fcm = True
 
     def get_clusters_by_centroids(self, centroids):
         dist_matrix = distance_matrix(self.X, centroids)
         assigned_clusters = np.argmin(dist_matrix, axis=1)
 
+        clusters = self.fix_cluster_sequence(assigned_clusters)
+        return clusters
+
+    def fix_cluster_sequence(self, assigned_clusters):
         unique_clusters = np.unique(assigned_clusters)
 
         cluster_correspondence = {
@@ -75,12 +81,13 @@ class ClusteringModule:
         else: # DBC combined with silhouette
             return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhouette())
 
-    def compare_clusterers_and_select(self) -> "Clusterer":
+    def compare_clusterers_and_select(self) -> tuple["Clusterer", NDArray]:
         """ Compare multiple different clusterers and select the best
         according to some metric.
         """
         evaluation_values = []
         possible_clusterers = []
+        candidate_clusters = []
 
         n_samples = self.X.shape[0]
         max_clusters = int(np.sqrt(n_samples) / 2)
@@ -99,24 +106,98 @@ class ClusteringModule:
                 clusterer = self.create_clusterer(clustering_algorithm, c)
                 clusters = clusterer.fit_predict(self.X)
 
+                # Merge clusters with very few instances
+                clusters = self.merge_small_clusters(clusters)
+                clusters = self.fix_cluster_sequence(clusters)
+
+                n_clusters = len(np.unique(clusters))
+
                 # We need to pass n_clusters as a param instead of c, because the number
                 # of clusters might change for Fuzzy C-means.
-                evaluation_value = self.evaluation_function(clusters, clusterer.n_clusters)
+                evaluation_value = self.evaluation_function(clusters, n_clusters)
+                #print(clustering_algorithm, c)
+                #print(evaluation_value)
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
+
+                candidate_clusters.append(clusters)
 
         # Select the best clusterer according to an evaluation value
         idx_best_clusterer = np.argmax(evaluation_values)
 
         self.clustering_algorithm = possible_clusterers[idx_best_clusterer][0]
         self.best_evaluation_value = evaluation_values[idx_best_clusterer]
+        best_clusters = candidate_clusters[idx_best_clusterer]
 
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
         print("Best clusterer:", possible_clusterers[idx_best_clusterer])
         print("Best evaluation:", self.best_evaluation_value)
-        return clusterer
+        return clusterer, best_clusters
+
+    def merge_small_clusters(self, clusters: NDArray):
+        # Choose to merge this cluster with the one that increases the clustering metric
+        n_clusters = len(np.unique(clusters))
+        n_clusters_non_zero = n_clusters
+
+        indexes_clusters = [
+            np.where(clusters == c)[0] for c in range(n_clusters)
+        ]
+        empty_clusters = []
+
+        for current_c in range(n_clusters):
+
+            if len(indexes_clusters[current_c]) < 10:
+                best_eval = float("-inf")
+                best_c = current_c  # (current_c + 1) % n_clusters
+                best_clusters = clusters
+
+                # Try different clusters combinations and select
+                # the one with best metric
+                # print("Problema no", current_c)
+
+                n_clusters_non_zero -= 1
+
+                for c in range(n_clusters):
+                    # print("current_c:", current_c, " - c:", c)
+                    if current_c == c or c in empty_clusters:
+                        continue
+                    copy_clusters = np.copy(clusters)
+
+                    copy_clusters[indexes_clusters[current_c]] = c
+
+                    eval_cluster = self.evaluation_function(
+                        copy_clusters, n_clusters_non_zero)
+                    # if current_c == (n_clusters - 1):
+                    #     print(f"Num. samples {current_c}:", len(indexes_clusters[current_c]))
+                    #     print(f"Num. samples {c}:", len(indexes_clusters[c]))
+                    #     print("Empty clusters:", empty_clusters)
+                    #     print("Eval cluster:", eval_cluster)
+                    #     print("Best eval:", best_eval)
+
+                    # print(eval_cluster)
+                    if eval_cluster > best_eval:
+                        best_clusters = copy_clusters
+                        best_eval = eval_cluster
+                        best_c = c
+
+                clusters = best_clusters
+                indexes_clusters[best_c] = np.hstack(
+                    (indexes_clusters[current_c], indexes_clusters[best_c])
+                )
+
+                indexes_clusters[current_c] = np.array([])
+
+                empty_clusters.append(current_c)
+
+                # print(best_c)
+        # print([len(idx_cl) for idx_cl in indexes_clusters])
+        # print(np.unique(clusters))
+
+        # print("*******************************************")
+        return clusters
+
 
     def cluster_data(self):
         """ Try different clustering algorithms and select the best one
@@ -132,10 +213,21 @@ class ClusteringModule:
         # If the number of clusters is 'compare', select the optimal
         # number of clusters and the best clustering algorithm
         if self.n_clusters == "compare":
-            self.best_clusterer = self.compare_clusterers_and_select()
-            clusters = self.best_clusterer.predict(self.X)
+            self.best_clusterer, clusters = self.compare_clusterers_and_select()
+
+            #if isinstance(self.best_clusterer, SpectralClustering):
+            #    clusters = self.best_clusterer.fit_predict(self.X)
+            #else:
+            #    clusters = self.best_clusterer.predict(self.X)
+
+            #clusters = self.merge_small_clusters(clusters)
+            #clusters = self.fix_cluster_sequence(clusters)
+
+            self.n_clusters = len(np.unique(clusters))
+            print(self.evaluation_function(clusters, self.n_clusters))
 
         else:
+            # self.clustering_algorithm is kmeans++ as default
             self.best_clusterer = self.create_clusterer(
                 self.clustering_algorithm, self.n_clusters)
 
@@ -143,8 +235,8 @@ class ClusteringModule:
             self.best_evaluation_value = self.evaluation_function(
                     clusters, self.best_clusterer.n_clusters)
 
-        # Change the number of clusters to the optimal number found
-        self.n_clusters = int(self.best_clusterer.n_clusters)
+            # Change the number of clusters to the optimal number found
+            self.n_clusters = int(self.best_clusterer.n_clusters)
 
         # Define the centroids for the best clusterer
         # If it's Spectral Clustering, the centroids need to be calculated.
