@@ -6,7 +6,7 @@ set DATASETS=australian_credit german_credit contraceptive wine pima wdbc iris h
 set EVALUATION_METRIC=dbc dbc_rand rand
 set COMBINATION_METHODS=meta_classifier weighted_membership majority_voting
 set POSSIBLE_N_CLUSTERS=2 3
-set CLASSIFIERS_SELECTION=pso crossval default
+set CLASSIFIERS_SELECTION=pso
 
 REM Loop through datasets
 for %%D in (%DATASETS%) do (

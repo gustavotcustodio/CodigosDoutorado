@@ -1,3 +1,4 @@
+# TODO problemao preciso recalcular a matriz de distancias????
 import numpy as np
 import sys
 from dataclasses import dataclass
@@ -13,7 +14,7 @@ from sklearn.metrics import adjusted_rand_score
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
-    #'fcm': FuzzyCMeans,
+    'fcm': FuzzyCMeans,
     'spectral': SpectralClustering,
 }
 
@@ -81,6 +82,40 @@ class ClusteringModule:
         else: # DBC combined with silhouette
             return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhouette())
 
+    def add_class_samples_in_cluster(self, clusters):
+        classes = np.unique(self.y)
+        new_X = self.X
+        new_y = self.y
+
+        new_clusters = clusters
+        for c in np.unique(clusters):
+            idx_clusters = np.where(clusters == c)[0]
+            X_cluster = self.X[idx_clusters]
+            y_cluster = self.y[idx_clusters]
+
+            for lbl in classes:
+                # If a cluster has more than 0, but less than
+                # 10 samples of a class, resample it until it gets to 10.
+                n_samples_class_cluster = np.sum(y_cluster == lbl)
+
+                if n_samples_class_cluster > 0 and n_samples_class_cluster < 10:
+                    n_samples_to_select = 10 - n_samples_class_cluster
+                    idx_class_cluster = np.where(y_cluster == lbl)[0]
+
+                    idx_selected_samples = np.random.choice(
+                        idx_class_cluster, size=n_samples_to_select, replace=True
+                    )
+                    X_class = X_cluster[idx_selected_samples]
+                    y_class = y_cluster[idx_selected_samples]
+
+                    new_X = np.vstack((new_X, X_class))
+                    new_y = np.hstack((new_y, y_class))
+
+                    new_clusters = np.hstack(
+                        (new_clusters, np.full(n_samples_to_select, c))
+                    )
+        return new_clusters, new_X, new_y
+
     def compare_clusterers_and_select(self) -> tuple["Clusterer", NDArray]:
         """ Compare multiple different clusterers and select the best
         according to some metric.
@@ -88,6 +123,8 @@ class ClusteringModule:
         evaluation_values = []
         possible_clusterers = []
         candidate_clusters = []
+
+        best_X, best_y = self.X, self.y
 
         n_samples = self.X.shape[0]
         max_clusters = int(np.sqrt(n_samples) / 2)
@@ -120,7 +157,6 @@ class ClusteringModule:
 
                 evaluation_values.append(evaluation_value)
                 possible_clusterers.append((clustering_algorithm, clusterer))
-
                 candidate_clusters.append(clusters)
 
         # Select the best clusterer according to an evaluation value
@@ -132,8 +168,15 @@ class ClusteringModule:
 
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
+        # Update samples with the new generated ones
+        best_clusters, self.X, self.y = \
+            self.add_class_samples_in_cluster(best_clusters
+        )
+        self.distances_between_samples = cosine_distances(self.X, self.X)
+
         print("Best clusterer:", possible_clusterers[idx_best_clusterer])
         print("Best evaluation:", self.best_evaluation_value)
+
         return clusterer, best_clusters
 
     def merge_small_clusters(self, clusters: NDArray):
@@ -348,7 +391,8 @@ class ClusteringModule:
                         samples_lbl2 = np.intersect1d(samples_lbl2, samples_c)
 
                         n_distances += len(samples_lbl1) * len(samples_lbl2)
-                        avg_distance_cluster += self.distances_between_samples[samples_lbl1, :][:, samples_lbl2].sum()
+                        avg_distance_cluster += \
+                            self.distances_between_samples[samples_lbl1, :][:, samples_lbl2].sum()
 
                 if n_distances > 0:
                     dists_centroids_cluster[c] = avg_distance_cluster / n_distances

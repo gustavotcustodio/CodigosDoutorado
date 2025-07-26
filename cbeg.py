@@ -32,6 +32,7 @@ from classifier_selection import ClassifierSelector
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
+# TODO ideia: visualizar a separação dimensional no meta classificador
 # TODO resolver o problema do número de folhas
 # TODO resolver o problema do kfold no PSO
 # TODO resolver o problema de todos os y iguais (já resolvi?)
@@ -58,7 +59,7 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'dt': DecisionTreeClassifier,
                     'rf': RandomForestClassifier,
                     'gb': GradientBoostingClassifier,
-                    #'xb': XGBClassifier,
+                    # 'xb': XGBClassifier,
                     'adaboost': AdaBoostClassifier,
                     }
 
@@ -240,7 +241,7 @@ class CBEG:
     def train_meta_classifier(
         self, y_prob_by_clusters: list[NDArray], y_true: NDArray
     ) -> tuple[NDArray, NDArray]:
-        meta_clf = RandomForestClassifier()
+        meta_clf = SVC(probability=True)
         X = np.hstack(y_prob_by_clusters)
 
         meta_clf.fit(X, y_true)
@@ -599,7 +600,8 @@ class CBEG:
 
         # Perform the pre-clustering step in order to split the data
         # between the different classifiers
-        self.perform_clustering_step(X, y)
+        self.samples_by_cluster, self.labels_by_cluster = \
+            self.perform_clustering_step(X, y)
 
         ############ SMOTE ###############
         n_clusters = int(self.cluster_module.n_clusters)
@@ -648,6 +650,12 @@ class CBEG:
                 feature_selector=self.features_module
             )
             self.base_classifiers = clf_selector.select_base_classifiers()
+
+            for c in range(n_clusters):
+                y_cluster = self.labels_by_cluster[c]
+
+                if np.all(y_cluster == y_cluster[0]):
+                    self.base_classifiers[c] = DummyClassifier(strategy="most_frequent")
 
         elif self.classifier_selection_method == "crossval":
             if self.verbose:
@@ -713,7 +721,8 @@ class CBEG:
                 evaluation_metric=self.clustering_evaluation_metric,
                 allow_fcm=allow_fcm
         )
-        self.samples_by_cluster, self.labels_by_cluster = self.cluster_module.cluster_data()
+        samples_by_cluster, labels_by_cluster = self.cluster_module.cluster_data()
+        return samples_by_cluster, labels_by_cluster
 
         # else:
         #    self.select_clusters_using_pso(X, y)

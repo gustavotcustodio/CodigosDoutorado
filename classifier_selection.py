@@ -1,9 +1,11 @@
 import numpy as np
 import sys
 import random
+from pydantic.type_adapter import P
 import pyswarms as ps
 from typing import Callable
 from deslib.util.diversity import disagreement_measure
+from sklearn.dummy import DummyClassifier
 from xgboost import XGBClassifier
 from dataclasses import dataclass
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
@@ -47,7 +49,7 @@ class ClassifierSelector:
     samples_by_cluster: dict
     labels_by_cluster: dict
     fusion_function: Callable
-    n_iters: int = 10
+    n_iters: int = 2
     n_particles: int = 40
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
@@ -226,11 +228,26 @@ class ClassifierSelector:
         return clf.predict_proba(X_val)
 
     def train_meta_classifier(self, y_prob_by_clf, y_true):
-        meta_clf = RandomForestClassifier()
+        meta_clf = SVC(probability=True)
         X = np.hstack(y_prob_by_clf)
 
         meta_clf.fit(X, y_true)
         return meta_clf
+
+    def replace_single_class_classifier(self, classifiers, y_by_classifier):
+        """Replace the classifiers in clusters with samples of
+        a single class for Dummy Classifiers
+        """
+        fold_classifiers = []
+
+        for c, clf in enumerate(classifiers):
+            if np.all(y_by_classifier[c] == y_by_classifier[c][0]):
+                dummy = DummyClassifier(strategy="most_frequent")
+                fold_classifiers.append(dummy)
+            else:
+                fold_classifiers.append(clf)
+        return fold_classifiers
+
 
 
     def eval_base_classifiers(self, X_cluster_by_fold, X_val_by_fold,
@@ -246,10 +263,19 @@ class ClassifierSelector:
                 X_val = X_val_by_fold[fold]
                 y_val = y_val_by_fold[fold]
 
+                y_by_classifier = [y_cluster_by_fold[c][fold]
+                                   for c in range(n_clusters)]
+                #print(selected_classifiers)
+                fold_classifiers = self.replace_single_class_classifier(
+                    selected_classifiers, y_by_classifier
+                )
+                #print(fold_classifiers)
+                #print("======================================")
+
                 y_prob_by_clf = [self.train_clf_predict_proba(
                     clf, c, X_cluster_by_fold[c][fold],
                     y_cluster_by_fold[c][fold], X_val
-                ) for c, clf in enumerate(selected_classifiers)]
+                ) for c, clf in enumerate(fold_classifiers)]
 
                 y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_by_clf]
 
@@ -258,7 +284,7 @@ class ClassifierSelector:
                                          for c in range(n_clusters) ])
 
                     y_prob_clusters_train = [classifier.predict_proba(X_train)
-                                             for classifier in selected_classifiers]
+                                             for classifier in fold_classifiers]
                     # y_prob_train_by_clf = np.array(y_prob_train_by_clf).T
                     y_train = np.hstack([ y_cluster_by_fold[c][fold]
                                          for c in range(n_clusters) ])
@@ -307,6 +333,8 @@ class ClassifierSelector:
 
         # Compute in parallel
         costs = compute(*delayed_costs)
+
+        # costs = [self.calc_cost(solution) for solution in solutions]
         print(costs)
 
         self.update_inertia()
@@ -366,4 +394,5 @@ class ClassifierSelector:
         # Run PSO
         best_solution = self.run_pso()
         base_classifiers = self.decode_candidate_solution(best_solution)
+
         return base_classifiers
