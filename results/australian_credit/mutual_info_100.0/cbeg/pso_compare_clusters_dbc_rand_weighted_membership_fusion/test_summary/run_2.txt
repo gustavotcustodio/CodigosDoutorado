@@ -6,22 +6,13 @@ Clustering algorithm selected: kmeans
 ------------------------------------
 
 ====== Cluster 0 ======
-Base classifier: XGBClassifier(base_score=None, booster=None, callbacks=None,
-              colsample_bylevel=None, colsample_bynode=None,
-              colsample_bytree=None, device=None, early_stopping_rounds=None,
-              enable_categorical=False, eval_metric=None, feature_types=None,
-              feature_weights=None, gamma=None, grow_policy=None,
-              importance_type=None, interaction_constraints=None,
-              learning_rate=0.8444894888369804, max_bin=None,
-              max_cat_threshold=None, max_cat_to_onehot=None,
-              max_delta_step=None, max_depth=3, max_leaves=None,
-              min_child_weight=None, missing=nan, monotone_constraints=None,
-              multi_strategy=None, n_estimators=162, n_jobs=None,
-              num_parallel_tree=None, ...)
-Accuracy: 0.8260869565217391
-Recall: 0.8064516129032258
-Precision: 0.8064516129032258
-F1: 0.8064516129032258
+Base classifier: GradientBoostingClassifier(learning_rate=0.7575773683037008, max_depth=6,
+                           min_samples_leaf=4, min_samples_split=9,
+                           n_estimators=136)
+Accuracy: 0.855072463768116
+Recall: 0.8387096774193549
+Precision: 0.8387096774193549
+F1: 0.8387096774193549
 
 ====== Cluster 1 ======
 Base classifier: LogisticRegression()
@@ -32,11 +23,11 @@ F1: 0.8615384615384616
 
 ====== Total ======
 Accuracy: 0.855072463768116
-Recall: 0.8620689655172413
-Precision: 0.8064516129032258
-F1: 0.8333333333333334
+Recall: 0.8888888888888888
+Precision: 0.7741935483870968
+F1: 0.8275862068965517
 
-AUC: 0.8870967741935485
+AUC: 0.9180814940577251
 
 Clustering evaluation metric: dbc_rand
 Clustering evaluation value: 0.30795664998351474
@@ -62,7 +53,7 @@ Prediction: 0, Real label: 0, Votes by cluster: [0 1], Weights: [0.61 0.39]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.65 0.35]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.38 0.62]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.6 0.4]
-Prediction: 1, Real label: 0, Votes by cluster: [1 1], Weights: [0.62 0.38]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1], Weights: [0.62 0.38]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.64 0.36]
 Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.37 0.63]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.66 0.34]
@@ -71,10 +62,10 @@ Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.65 0.35]
 Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.39 0.61]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.6 0.4]
 Prediction: 1, Real label: 0, Votes by cluster: [1 0], Weights: [0.63 0.37]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0], Weights: [0.37 0.63]
+Prediction: 0, Real label: 1, Votes by cluster: [1 0], Weights: [0.37 0.63]
 Prediction: 0, Real label: 0, Votes by cluster: [0 1], Weights: [0.59 0.41]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.63 0.37]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.68 0.32]
+Prediction: 0, Real label: 1, Votes by cluster: [0 1], Weights: [0.68 0.32]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.67 0.33]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.63 0.37]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0], Weights: [0.61 0.39]
@@ -111,4 +102,4 @@ Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.69 0.31]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.62 0.38]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.38 0.62]
 Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.64 0.36]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0], Weights: [0.37 0.63]
+Prediction: 0, Real label: 1, Votes by cluster: [1 0], Weights: [0.37 0.63]

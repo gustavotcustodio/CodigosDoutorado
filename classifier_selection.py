@@ -49,7 +49,7 @@ class ClassifierSelector:
     samples_by_cluster: dict
     labels_by_cluster: dict
     fusion_function: Callable
-    n_iters: int = 2
+    n_iters: int = 10
     n_particles: int = 40
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
@@ -293,9 +293,13 @@ class ClassifierSelector:
                             y_prob_clusters_train, y_train)
 
                     y_prob, _ = self.fusion_function(y_prob_by_clf, self.meta_classifier)
-                # TODO elif para majority voting
-                else:
+
+                elif self.fusion_function.__name__ == 'weighted_membership_outputs':
                     y_prob, _ = self.fusion_function(X_val, y_pred_by_clf)
+
+                else:
+                    y_prob, _ = self.fusion_function(y_pred_by_clf)
+
                 y_pred = y_prob.argmax(1)
 
                 if self.n_labels > 2:
