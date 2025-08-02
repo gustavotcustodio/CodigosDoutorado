@@ -18,6 +18,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
+from sklearn.neural_network import MLPClassifier
 # from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask.base import compute
 from dask.delayed import delayed
@@ -35,10 +36,10 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    'rf': RandomForestClassifier,
-                    'gb': GradientBoostingClassifier,
+                    #'rf': RandomForestClassifier,
+                    #'gb': GradientBoostingClassifier,
                     #'xb': XGBClassifier,
-                    'adaboost': AdaBoostClassifier,
+                    #'adaboost': AdaBoostClassifier,
                     }
 
 @dataclass
@@ -49,8 +50,8 @@ class ClassifierSelector:
     samples_by_cluster: dict
     labels_by_cluster: dict
     fusion_function: Callable
-    n_iters: int = 10
-    n_particles: int = 40
+    n_iters: int = 25
+    n_particles: int = 30
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
     feature_selector: Optional[FeatureSelectionModule] = None

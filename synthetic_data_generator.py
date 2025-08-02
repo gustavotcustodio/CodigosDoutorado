@@ -57,16 +57,16 @@ def generate_normal_distributed_data():
     # np.savetxt("./datasets/circles.dat", dados, delimiter=",")
 
 def create_elipse(width=1, height=1, shift_x=0.0, shift_y=0.0, label=0):
-    n_samples = 1000
+    n_samples_class = 150
 
-    t = np.random.random(size=n_samples)
-    u = np.random.random(size=n_samples)
+    t = np.random.random(size=n_samples_class)
+    u = np.random.random(size=n_samples_class)
 
     x1 = width  * np.sqrt(t) * np.cos(2 * math.pi * u) + shift_x
     x2 = height *  np.sqrt(t) * np.sin(2 * math.pi * u) + shift_y
 
     X = np.vstack((x1, x2)).T
-    y = np.array([label] * n_samples)
+    y = np.array([label] * n_samples_class)
 
     return X, y
 
@@ -87,12 +87,12 @@ def create_multiple_elipses(widths:list, heights:list,
 
 
 def create_rectangle(width=1, height=1, shift_x=0.0, shift_y=0.0, label=0):
-    n_samples = 1000
-    x1 = 2 * np.random.random(size=n_samples) * width + shift_x - 1
-    x2 = 2 * np.random.random(size=n_samples) * height + shift_y - 1
+    n_samples_class = 500
+    x1 = 2 * np.random.random(size=n_samples_class) * width + shift_x - 1
+    x2 = 2 * np.random.random(size=n_samples_class) * height + shift_y - 1
 
     X = np.vstack((x1, x2)).T
-    y = np.array([label] * n_samples)
+    y = np.array([label] * n_samples_class)
 
     return X, y
 

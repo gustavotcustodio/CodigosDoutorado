@@ -57,10 +57,10 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     'knn7': KNeighborsClassifier,
                     'lr': LogisticRegression,
                     'dt': DecisionTreeClassifier,
-                    'rf': RandomForestClassifier,
-                    'gb': GradientBoostingClassifier,
-                    # 'xb': XGBClassifier,
-                    'adaboost': AdaBoostClassifier,
+                    #'rf': RandomForestClassifier,
+                    #'gb': GradientBoostingClassifier,
+                    #'xb': XGBClassifier,
+                    #'adaboost': AdaBoostClassifier,
                     }
 
 def create_classifier(classifier_name: str) -> BaseEstimator:

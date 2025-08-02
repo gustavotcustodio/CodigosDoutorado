@@ -1,4 +1,3 @@
-# TODO problemao preciso recalcular a matriz de distancias????
 import numpy as np
 import sys
 from dataclasses import dataclass
@@ -14,8 +13,8 @@ from sklearn.metrics import adjusted_rand_score
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
-    'fcm': FuzzyCMeans,
-    'spectral': SpectralClustering,
+    #'fcm': FuzzyCMeans,
+    #'spectral': SpectralClustering,
 }
 
 
@@ -144,8 +143,8 @@ class ClusteringModule:
                 clusters = clusterer.fit_predict(self.X)
 
                 # Merge clusters with very few instances
-                clusters = self.merge_small_clusters(clusters)
-                clusters = self.fix_cluster_sequence(clusters)
+                # clusters = self.merge_small_clusters(clusters)
+                # clusters = self.fix_cluster_sequence(clusters)
 
                 n_clusters = len(np.unique(clusters))
 
@@ -169,10 +168,11 @@ class ClusteringModule:
         clusterer = possible_clusterers[idx_best_clusterer][1]
 
         # Update samples with the new generated ones
-        best_clusters, self.X, self.y = \
-            self.add_class_samples_in_cluster(best_clusters
-        )
-        self.distances_between_samples = cosine_distances(self.X, self.X)
+        # TODO
+        # best_clusters, self.X, self.y = \
+        #     self.add_class_samples_in_cluster(best_clusters
+        # )
+        # self.distances_between_samples = cosine_distances(self.X, self.X)
 
         print("Best clusterer:", possible_clusterers[idx_best_clusterer])
         print("Best evaluation:", self.best_evaluation_value)

@@ -6,54 +6,54 @@ Clustering algorithm selected: kmeans++
 ------------------------------------
 
 ====== Cluster 0 ======
-Base classifier: DummyClassifier(strategy='most_frequent')
-Accuracy: 0.3333333333333333
-Recall: 0.3333333333333333
-Precision: 1.0
-F1: 0.5
+Base classifier: GaussianNB()
+Accuracy: 0.5555555555555556
+Recall: 0.5555555555555556
+Precision: 0.9047619047619047
+F1: 0.6282828282828282
 
 ====== Cluster 1 ======
-Base classifier: GaussianNB()
-Accuracy: 0.5
-Recall: 0.5
-Precision: 0.9047619047619047
-F1: 0.5761904761904761
-
-====== Cluster 2 ======
 Base classifier: GaussianNB()
 Accuracy: 0.3333333333333333
 Recall: 0.3333333333333333
 Precision: 0.8095238095238095
 F1: 0.4722222222222222
 
-====== Total ======
-Accuracy: 0.4444444444444444
-Recall: 0.4444444444444444
-Precision: 0.7222222222222222
-F1: 0.542483660130719
+====== Cluster 2 ======
+Base classifier: GaussianNB()
+Accuracy: 0.3333333333333333
+Recall: 0.3333333333333333
+Precision: 1.0
+F1: 0.5
 
-AUC: 0.6818181818181818
+====== Total ======
+Accuracy: 0.5
+Recall: 0.5
+Precision: 0.746031746031746
+F1: 0.5944444444444444
+
+AUC: 0.6904761904761904
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.41229901121635026
+Clustering evaluation value: 0.4116108901186653
 
 ========= Predictions by sample =========
 
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.13 0.79 0.08]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.14 0.77 0.09]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.15 0.74 0.1 ]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.12 0.82 0.06]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.12 0.8  0.08]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 1], Weights: [0.18 0.71 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 1], Weights: [0.42 0.43 0.14]
-Prediction: 0, Real label: 1, Votes by cluster: [0 1 0], Weights: [0.64 0.22 0.14]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 1], Weights: [0.38 0.26 0.36]
-Prediction: 1, Real label: 1, Votes by cluster: [0 1 1], Weights: [0.43 0.37 0.21]
-Prediction: 1, Real label: 1, Votes by cluster: [0 1 1], Weights: [0.41 0.17 0.42]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 1], Weights: [0.42 0.43 0.16]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 1], Weights: [0.55 0.22 0.24]
-Prediction: 1, Real label: 2, Votes by cluster: [0 0 1], Weights: [0.18 0.1  0.71]
-Prediction: 1, Real label: 2, Votes by cluster: [0 0 1], Weights: [0.21 0.12 0.67]
-Prediction: 1, Real label: 2, Votes by cluster: [0 0 1], Weights: [0.24 0.14 0.62]
-Prediction: 1, Real label: 2, Votes by cluster: [0 0 1], Weights: [0.15 0.09 0.76]
-Prediction: 1, Real label: 2, Votes by cluster: [0 0 1], Weights: [0.28 0.13 0.59]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.78 0.09 0.13]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.77 0.09 0.14]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.74 0.11 0.15]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.82 0.06 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.8  0.08 0.12]
+Prediction: 0, Real label: 0, Votes by cluster: [0 1 0], Weights: [0.71 0.12 0.18]
+Prediction: 0, Real label: 1, Votes by cluster: [0 1 0], Weights: [0.44 0.14 0.42]
+Prediction: 0, Real label: 1, Votes by cluster: [1 0 0], Weights: [0.22 0.14 0.64]
+Prediction: 1, Real label: 1, Votes by cluster: [1 1 0], Weights: [0.26 0.36 0.38]
+Prediction: 1, Real label: 1, Votes by cluster: [1 1 0], Weights: [0.37 0.21 0.42]
+Prediction: 1, Real label: 1, Votes by cluster: [1 1 0], Weights: [0.17 0.41 0.41]
+Prediction: 0, Real label: 1, Votes by cluster: [0 1 0], Weights: [0.43 0.16 0.41]
+Prediction: 0, Real label: 1, Votes by cluster: [0 1 0], Weights: [0.22 0.24 0.54]
+Prediction: 1, Real label: 2, Votes by cluster: [0 1 0], Weights: [0.1  0.71 0.19]
+Prediction: 1, Real label: 2, Votes by cluster: [0 1 0], Weights: [0.12 0.67 0.21]
+Prediction: 1, Real label: 2, Votes by cluster: [0 1 0], Weights: [0.14 0.62 0.24]
+Prediction: 1, Real label: 2, Votes by cluster: [0 1 0], Weights: [0.09 0.76 0.16]
+Prediction: 1, Real label: 2, Votes by cluster: [0 1 0], Weights: [0.13 0.59 0.28]

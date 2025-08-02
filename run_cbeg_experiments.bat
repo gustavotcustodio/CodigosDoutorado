@@ -2,12 +2,12 @@
 setlocal enabledelayedexpansion
 
 REM Define variable lists
-REM set DATASETS=australian_credit german_credit contraceptive wine pima wdbc iris heart
-set DATASETS=contraceptive wine pima wdbc iris heart
+set DATASETS=elipses rectangles australian_credit german_credit contraceptive wine pima wdbc iris heart
+REM set DATASETS=contraceptive wine pima wdbc iris heart
 set EVALUATION_METRIC=dbc dbc_rand rand
-set COMBINATION_METHODS=meta_classifier weighted_membership majority_voting
+set COMBINATION_METHODS=weighted_membership majority_voting meta_classifier
 set POSSIBLE_N_CLUSTERS=2 3
-set CLASSIFIERS_SELECTION=pso
+set CLASSIFIERS_SELECTION=crossval default
 
 REM Loop through datasets
 for %%D in (%DATASETS%) do (

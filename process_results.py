@@ -28,7 +28,8 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     found_numbers_clusters = re.findall(r"[0-9]+_clusters", experiment_variation)
 
     if found_numbers_clusters:
-        if ("dbc" in experiment_variation or "ext" in experiment_variation):
+        if ("dbc_" in experiment_variation or "ext_" in experiment_variation \
+                or "rand_" in experiment_variation):
             return {}
 
         found_n_clusters = int(found_numbers_clusters[0].split("_")[0])

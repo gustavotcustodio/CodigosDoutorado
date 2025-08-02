@@ -1,30 +1,10 @@
-Clustering algorithm selected: fcm
+Clustering algorithm selected: kmeans
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.5198551780484884
+Clustering evaluation value: 0.5195578284339674
 
 ========== Cluster 0 ==========
-
-Base classifier: RandomForestClassifier()
-
-Minority Class: 2
-
-Selected Features: [0 1 2 3]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 2 1]
-
-========== Cluster 1 ==========
-
-Base classifier: GaussianNB()
-
-Minority Class: 2
-
-Selected Features: [0 1 2 3]
-
-Labels: [1 1 1 2 2 1 1 2 1 2 2 2 2 1 2 1 1 2 1 1 1 2 1 1 1 1 1 2 2 1 2 2]
-
-========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -35,7 +15,17 @@ Selected Features: [0 1 2 3]
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
  0 0 0 0 0 0 0 0]
 
-========== Cluster 3 ==========
+========== Cluster 1 ==========
+
+Base classifier: SVC(probability=True)
+
+Minority Class: 2
+
+Selected Features: [0 1 2 3]
+
+Labels: [1 1 1 1 2 2 1 1 2 1 2 2 2 1 2 1 2 1 1 2 1 1 1 2 1 1 1 1 1 2 2 1 2 2]
+
+========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -44,4 +34,14 @@ Minority Class: 2
 Selected Features: [0 1 2 3]
 
 Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
+
+========== Cluster 3 ==========
+
+Base classifier: LogisticRegression()
+
+Minority Class: 2
+
+Selected Features: [0 1 2 3]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 2 1]
 

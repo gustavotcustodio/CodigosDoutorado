@@ -38,7 +38,7 @@ def read_australian_credit_dataset():
     return X, y
 
 def read_elipses_dataset():
-    X = np.loadtxt("./datasets/circles.dat", delimiter=",")
+    X = np.loadtxt("./datasets/elipses.dat", delimiter=",")
     np.random.seed(42)
     np.random.shuffle(X)
     y = X[:,-1].astype(int)
@@ -201,6 +201,8 @@ DATASETS_INFO = {
     "pima": {"function": read_pima_dataset, "nlabels": 2},
     "heart": {"function": read_heart_dataset, "nlabels": 2},
     "iris": {"function": read_iris_dataset, "nlabels": 3},
+    "elipses": {"function": read_elipses_dataset, "nlabels": 3},
+    "rectangles": {"function": read_rectangles_dataset, "nlabels": 2},
 }
 
 
