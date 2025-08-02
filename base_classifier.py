@@ -14,6 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from feature_selection import FeatureSelectionModule
 from logger import Logger, PredictionResults
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, f1_score
 
 N_FOLDS = 10
 RESULTS_FOLDER = "results"
@@ -94,6 +95,8 @@ def main():
     # Read arguments from command line
     args = parser.parse_args()
 
+    accuracy_values, f1_values = [], []
+
     for fold in range(1, N_FOLDS+1):
         X, y = dataset_loader.select_dataset_function(args.dataset)()
         # Break dataset in training and validation
@@ -127,7 +130,13 @@ def main():
         log.save_data_fold_baseline(fold, args.classifier,
                                     args.min_mutual_info_percentage)
 
-        # print(classification_report(y_val, y_pred, zero_division=0.0))
+        average = "weighted" if len(np.unique(y_val)) > 2 else "binary"
+
+        f1_values.append(f1_score(y_val, y_pred, average=average))
+        accuracy_values.append(accuracy_score(y_val, y_pred))
+
+    print("Accuracy:", np.mean(accuracy_values))
+    print("F1:", np.mean(f1_values))
 
 
 if __name__ == "__main__":

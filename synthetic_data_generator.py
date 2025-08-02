@@ -57,7 +57,7 @@ def generate_normal_distributed_data():
     # np.savetxt("./datasets/circles.dat", dados, delimiter=",")
 
 def create_elipse(width=1, height=1, shift_x=0.0, shift_y=0.0, label=0):
-    n_samples = 1000
+    n_samples = 250
 
     t = np.random.random(size=n_samples)
     u = np.random.random(size=n_samples)
@@ -87,7 +87,7 @@ def create_multiple_elipses(widths:list, heights:list,
 
 
 def create_rectangle(width=1, height=1, shift_x=0.0, shift_y=0.0, label=0):
-    n_samples = 1000
+    n_samples = 400
     x1 = 2 * np.random.random(size=n_samples) * width + shift_x - 1
     x2 = 2 * np.random.random(size=n_samples) * height + shift_y - 1
 

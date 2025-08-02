@@ -52,9 +52,13 @@ class SingleCbegResult(BaseClassifierResult):
         elif 'silhouette' in folder_name:
             self.cluster_selection_strategy = "SS"
         elif 'dbc_rand' in folder_name:
-            self.cluster_selection_strategy = "DBC + Rand"
+            self.cluster_selection_strategy = "DBC + Ext."
         elif 'rand' in folder_name:
-            self.cluster_selection_strategy = "Rand"
+            self.cluster_selection_strategy = "External"
+        elif 'dbc_ext' in folder_name:
+            self.cluster_selection_strategy = "DBC + Ext."
+        elif '_ext' in folder_name:
+            self.cluster_selection_strategy = "External"
         elif 'dbc' in folder_name:
             self.cluster_selection_strategy = "DBC"
         else:
@@ -68,6 +72,8 @@ class SingleCbegResult(BaseClassifierResult):
             self.fusion_strategy = "Weighted Membership"
         elif "weighted_membership_entropy_fusion" in folder_name:
             self.fusion_strategy = "W. Membership + Entropy"
+        elif "meta_classifier" in folder_name:
+            self.fusion_strategy = "Meta Classifier"
         else:
             self.fusion_strategy = "Majority Voting"
 

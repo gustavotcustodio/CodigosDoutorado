@@ -28,8 +28,8 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     found_numbers_clusters = re.findall(r"[0-9]+_clusters", experiment_variation)
 
     if found_numbers_clusters:
-        if ("dbc" in experiment_variation or "silhouette" in experiment_variation):
-            print("dbc" or "silhouette")
+        if ("dbc_" in experiment_variation or "ext_" in experiment_variation or
+            'rand_' in experiment_variation):
             return {}
 
         found_n_clusters = int(found_numbers_clusters[0].split("_")[0])
@@ -53,13 +53,13 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     if "majority_voting" not in experiment_variation: # has_weighted_voting_fusion
         variation_number += "4"
 
-    if "_oversampling" in experiment_variation:  # has_oversampling
+    if "pso_" in experiment_variation:
         variation_number += "5"
 
-    if "_pso" in experiment_variation:
+    if "_oversampling" in experiment_variation:  # has_oversampling
         variation_number += "6"
 
-    accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 125, 1234, 1245, 12345, 1246]
+    accepted_variations = [0, 1, 2, 3, 4, 5, 12, 123, 124, 1234, 145]
     variation_number = int(variation_number)
 
     print(f"Variation {variation_number}...")
@@ -117,7 +117,7 @@ def process_base_results(datasets: list[str], mutual_info_percentages: list[floa
             for abbrev_classifier, classifier_name in CLASSIFIERS_FULLNAMES.items():
                 if "sc" in abbrev_classifier:
                     base_clf = abbrev_classifier.split("_")[1]
-                    path = (f'results/{dataset}/mutual_info_{mutual_info}/' + 
+                    path = (f'results/{dataset}/mutual_info_{mutual_info}/' +
                             f'supervised_clustering/supervised_clustering_base_classifier_{base_clf}')
                 else:
                     path = f'results/{dataset}/mutual_info_{mutual_info}/baselines/{abbrev_classifier}'
@@ -163,19 +163,18 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
-        #"australian_credit",
+        "australian_credit",
         "german_credit",
         "contraceptive", 
-        #"heart",
-        #"wine",
-        #"wdbc",
-        #"pima",
-        #"iris",
+        "wine",
+        "wdbc",
+        "pima",
+        "iris",
+        "heart",
     ]
-    # datasets = ["contraceptive"]
     datasets = filter_no_experim_datasets(datasets)
 
-    mutual_info_percentages = [100.0] #, 75.0, 50.0]
+    mutual_info_percentages = [100.0, 75.0, 50.0]
 
     process_cbeg_results(datasets, mutual_info_percentages)
     # process_ciel_results(datasets, mutual_info_percentages)
