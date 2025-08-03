@@ -40,14 +40,16 @@ from fcmeans import FCM
 
 
 class FuzzyCMeans:
-    def __init__(self, n_clusters: int):
+    def __init__(self, n_clusters: int, random_state=42):
         self.n_clusters = n_clusters
+        self.random_state = random_state
 
     def fit_predict(self, X):
         # centroids, u_membership, _, _, _, _, _ = cmeans(
         #         X.T, c=self.n_clusters, m=2, maxiter=1000, error=1e-6)
 
-        self.fcm = FCM(n_clusters=self.n_clusters, random_state=42)
+        self.fcm = FCM(n_clusters=self.n_clusters, max_iter=1000, m=2,
+                       error=1e-6, n_jobs=1, random_state=self.random_state)
         self.fcm.fit(X)
         clusters = self.fcm.predict(X)
         # clusters = np.argmax(u_membership, axis=0)

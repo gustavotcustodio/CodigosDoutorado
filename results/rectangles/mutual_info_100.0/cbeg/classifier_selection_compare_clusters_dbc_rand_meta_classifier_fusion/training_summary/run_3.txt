@@ -1,35 +1,10 @@
-Clustering algorithm selected: spectral
+Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.4683378323051326
+Clustering evaluation value: 0.45986722625304416
 
 ========== Cluster 0 ==========
-
-Base classifier: DecisionTreeClassifier()
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [0 1 0 0 1 1 0 1 0 0 0 1 0 1 0 0 0 0 1 0 1 0 1 1 0 1 0 0 1 1 1 1 0 0 1 0 1
- 1 0 1 0 1 0 1 1 0 1 1 0 1 0 0 1 0 1 0 0 1 0 1 1 1 1 1 0 1 1 0 1 0 1 1 0 0
- 1 0 0 1 0 0 1 1 0 0 0 0 0 1 1 0 1 1 0 1 1 0 0 1 0 0 1 1 0 0 0 1 1 0 0 0 1
- 0]
-
-========== Cluster 1 ==========
-
-Base classifier: KNeighborsClassifier()
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [0 1 0 1 1 0 0 1 1 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 1 1 0 0 1 0 1
- 1 1 0 1 1 0 0 0 1 1 0 0 1 1 1 0 0 0 1 1 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 1 0
- 0 1 1 1 0 0 1 1 0 1 0 1 0 1 1 0 1 1 1 0 0 1 0 0 1 0 0 0 1 0 1 1 1 1 1 0]
-
-========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -38,7 +13,31 @@ Minority Class: 1
 Selected Features: [0 1]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 1 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 0
+
+Selected Features: [0 1]
+
+Labels: [1 0 1 1 1 1 0 0 0 0 1 1 1 1 1 0 1 0 0 0 1 1 1 1 0 1 0 1 0 0 0 0 0 1 0 0 1
+ 0 1 1 0 0 1 1 1 1 1 1 0 1 1 0 1 0 1 1 1 0 0 1 1 1 0 1 1 0 0 0 1 0 1 1 1 1
+ 0 0 1 1 0 1 0]
+
+========== Cluster 2 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 1 1 1 1 0 1 1 0 1 1 0 0 1 0 0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1 0 0 0 0
+ 0 1 0 0 1 1 1 0 0 1 0 1 0 1 0 1 1 1 0 1 0 1 1 0 1 1 0 0 1 0 1 1 1 0 0 1 0
+ 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 1 0 0 1 0 0 0 0]
 
 ========== Cluster 3 ==========
 
@@ -49,20 +48,9 @@ Minority Class: 0
 Selected Features: [0 1]
 
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0]
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 4 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 5 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -71,9 +59,9 @@ Minority Class: 1
 Selected Features: [0 1]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
-========== Cluster 6 ==========
+========== Cluster 5 ==========
 
 Base classifier: GaussianNB()
 
@@ -81,13 +69,19 @@ Minority Class: 1
 
 Selected Features: [0 1]
 
-Labels: [0 1 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 1 1 1 1 0 0 1 1 1 1 0 1 1 1 0 1 0
- 1 0 1 0 0 1 1 0 1 0 1 1 1 0 0 1 0 0 0 0 0 1 0 0 1 0 1 1 0 0 0 0 1 1 0 0 0
- 0 1 0 1 0 0 0 1 0 1 1 1 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 1 0 0 0 1 0 0 1
- 1 0 0 1 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 0 0 1 1 0 1 1 0 1 1 1
- 1 0 0 0 0 0 0 0 1 0 1 1 1 1 1 0 1 1 0 0 1 1 1 0 1 1 0 0 0 0 1 1 1 0 0 1 0
- 1 1 0 1 0 1 1 1 0 0 1 1 0 1 1 1 0 0 0 1 0 0 1 0 1 1 0 1 1 0 0 0 0 0 1 1 1
- 0 0 0 1 0 0 1 0 0 0 1 0 1 1 1 0 1 0 1 0 0 0 0 1 0 0 0 0 1 0 0]
+Labels: [1 0 1 0 1 0 1 0 0 0 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 1 0 1 0 1 1 0 1 0 1 1 1
+ 0 0 0 1 1 0 1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 6 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [0 1]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 7 ==========
 
@@ -98,5 +92,39 @@ Minority Class: 1
 Selected Features: [0 1]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 8 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [0 1]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0]
+
+========== Cluster 9 ==========
+
+Base classifier: KNeighborsClassifier(n_neighbors=7)
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 0 0 1 0 0 0 1 0 0 1 0 1 1 0 1 0 0 0 0 1 1 1 0 1 0 0 0 1 0 0 1 1 0 0 1 0
+ 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 0 1 0 0 0 1 1 0
+ 1 1 1 0 0 0 1 0 0 1 0 0 0 1 0 1 0 0 1 1]
+
+========== Cluster 10 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 0
+
+Selected Features: [0 1]
+
+Labels: [1 1 0 1 1 1 1 1 1 1 1 0 0 1 1 0 0 0 1 1 1 0 0 1 1 0 1 1 0 0 1 1 1 1 1 0 0
+ 1 1 1 0 1 1 0 1 1 1 0 1 0 1 1 0 0]
 

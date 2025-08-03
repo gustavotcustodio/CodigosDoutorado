@@ -58,11 +58,11 @@ class ClusteringModule:
 
         if algorithm == "kmeans++":
             kmeans_pp_init = kmeans_plusplus(self.X, n_clusters=n_clusters)
-            return KMeans(n_clusters, init=kmeans_pp_init[0])
+            return KMeans(n_clusters, init=kmeans_pp_init[0], random_state=42)
         elif algorithm == "kmeans":
             return KMeans(n_clusters, init="random", random_state=42)
         else:
-            return CLUSTERING_ALGORITHMS[algorithm](n_clusters)
+            return CLUSTERING_ALGORITHMS[algorithm](n_clusters, random_state=42)
 
     def select_evaluation_function(self) -> Callable:
         if self.evaluation_metric == "dbc":

@@ -163,6 +163,8 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
+        "elipses",
+        "rectangles",
         "australian_credit",
         "german_credit",
         "contraceptive", 

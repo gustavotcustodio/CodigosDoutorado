@@ -29,13 +29,12 @@ from logger import PredictionResults
 from xgboost import XGBClassifier
 from pso_optimizator import PsoOptimizator
 from classifier_selection import ClassifierSelector
+from utils.matrix import fix_predict_prob
+from meta_classifier import MetaClassifier
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
 # TODO ideia: visualizar a separação dimensional no meta classificador
-# TODO resolver o problema do número de folhas
-# TODO resolver o problema do kfold no PSO
-# TODO resolver o problema de todos os y iguais (já resolvi?)
 
 # TODO consolidar bases do Jesus
 
@@ -132,10 +131,10 @@ class CBEG:
         # If the number is lower than 10, the number of folds is reduced
         _, n_minority_class = self.count_minority_class(y_cluster)
 
-        if n_minority_class < 10:
+        if n_minority_class < N_FOLDS:
             n_folds = n_minority_class
         else:
-            n_folds = 10
+            n_folds = N_FOLDS
 
         # If there are instances of a single class in the cluster or
         # there is only a single instance in the minority class,
@@ -238,14 +237,14 @@ class CBEG:
 
         return selected_base_classifiers
 
-    def train_meta_classifier(
-        self, y_prob_by_clusters: list[NDArray], y_true: NDArray
-    ) -> tuple[NDArray, NDArray]:
-        meta_clf = SVC(probability=True)
-        X = np.hstack(y_prob_by_clusters)
+    # def train_meta_classifier(
+    #     self, y_prob_by_clusters: list[NDArray], y_true: NDArray
+    # ) -> tuple[NDArray, NDArray]:
+    #     meta_clf = SVC(probability=True)
+    #     X = np.hstack(y_prob_by_clusters)
 
-        meta_clf.fit(X, y_true)
-        return meta_clf
+    #     meta_clf.fit(X, y_true)
+    #     return meta_clf
 
 
     def majority_vote_outputs(
@@ -350,14 +349,24 @@ class CBEG:
         return vote_sums, samples_weights
 
     def meta_classifier_predict(self, y_prob_by_clusters, meta_classifier=None):
-        X_test = np.hstack(y_prob_by_clusters)
+
+        # for c, y_prob_cluster in enumerate(y_prob_by_clusters):
+        #     y_prob_cluster_allclasses = fix_predict_prob(
+        #         y_prob_cluster, self.labels_by_cluster[c], self.n_labels
+        #     )
+        #     y_prob_by_clusters[c] = y_prob_cluster_allclasses
+
+        # X = np.hstack(y_prob_by_clusters)
 
         if meta_classifier is None:
             meta_classifier = self.meta_classifier
 
-        y_prob = meta_classifier.predict_proba(X_test)
+        # y_prob = meta_classifier.predict_proba(X)
         # y_prob, _ = self.fusion_function(X_val, y_prob_by_clf, self.meta_classifier)
-        return y_prob, X_test
+
+        y_prob = meta_classifier.predict_proba(y_prob_by_clusters)
+        clusters_weights = meta_classifier.X
+        return y_prob, clusters_weights
 
     def smote_oversampling(self):
         # Used to map which data points are synthetic
@@ -422,9 +431,21 @@ class CBEG:
 
             # Get the class for the current cluster
             y_prob_cluster = self.base_classifiers[c].predict_proba(X_test_cluster)  # .astype(np.int32)
-            y_prob_by_clusters.append(y_prob_cluster)
+            y_prob_cluster_allclasses = fix_predict_prob(
+                    y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
 
-            y_pred_cluster = np.argmax(y_prob_cluster, axis=1)
+            # y_prob_cluster[:, 0] = np.nan_to_num(y_prob_cluster[:, 0], nan=1.0)
+            # y_prob_cluster = np.nan_to_num(y_prob_cluster, nan=0.0)
+
+            # possible_labels = np.unique(self.labels_by_cluster[c])
+
+            # y_prob_cluster_allclasses = np.zeros((X_test.shape[0], self.n_labels))
+
+            # for i, lbl in enumerate(possible_labels):
+            #     y_prob_cluster_allclasses[:, lbl] = y_prob_cluster[:, i]
+            y_prob_by_clusters.append(y_prob_cluster_allclasses)
+
+            y_pred_cluster = np.argmax(y_prob_cluster_allclasses, axis=1)
             y_pred_by_clusters.append(y_pred_cluster)
 
         # Used later
@@ -638,7 +659,7 @@ class CBEG:
 
         if self.classifier_selection_method == "pso":
             if self.combination_strategy == "meta_classifier":
-                fusion_function = self.meta_classifier_predict # TODO
+                fusion_function = self.meta_classifier_predict
             elif self.combination_strategy == "weighted_membership":
                 fusion_function = self.weighted_membership_outputs
             else:
@@ -697,12 +718,24 @@ class CBEG:
 
                 X_attrs = X[:, selected_features]
 
-                # y_prob_cluster = self.base_classifiers[c].predict_proba(X_attrs)
                 y_prob_cluster = self.base_classifiers[c].predict_proba(X_attrs)
 
-                y_prob_by_clusters.append(y_prob_cluster)
+                y_prob_cluster_allclasses = fix_predict_prob(
+                        y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
 
-            self.meta_classifier = self.train_meta_classifier(y_prob_by_clusters, y_train)
+                # possible_classes = np.unique(self.labels_by_cluster[c])
+                # y_prob_cluster[:, 0] = np.nan_to_num(y_prob_cluster[:, 0], nan=1.0)
+                # y_prob_cluster = np.nan_to_num(y_prob_cluster, nan=0.0)
+
+                # y_prob_cluster_allclasses = np.zeros((X_attrs.shape[0], self.n_labels))
+                # for i, lbl in enumerate(possible_classes):
+                #     y_prob_cluster_allclasses[:, lbl] = y_prob_cluster[:, i]
+
+                y_prob_by_clusters.append(y_prob_cluster_allclasses)
+
+            # self.meta_classifier = self.train_meta_classifier(y_prob_by_clusters, y_train)
+            self.meta_classifier = MetaClassifier(y_prob_by_clusters, y_train)
+            self.meta_classifier.train()
 
 
     def perform_clustering_step(self, X, y):

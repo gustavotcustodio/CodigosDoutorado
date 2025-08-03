@@ -23,6 +23,8 @@ from dask.base import compute
 from dask.delayed import delayed
 from feature_selection import FeatureSelectionModule
 from typing import Mapping, Optional, Callable
+from meta_classifier import MetaClassifier
+from utils.matrix import fix_predict_prob
 
 N_FOLDS = 10
 
@@ -41,6 +43,7 @@ BASE_CLASSIFIERS = {'nb': GaussianNB,
                     # 'adaboost': AdaBoostClassifier,
                     }
 
+
 @dataclass
 class ClassifierSelector:
 
@@ -49,7 +52,7 @@ class ClassifierSelector:
     samples_by_cluster: dict
     labels_by_cluster: dict
     fusion_function: Callable
-    n_iters: int = 15
+    n_iters: int = 25
     n_particles: int = 30
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
@@ -195,8 +198,6 @@ class ClassifierSelector:
             X_cluster = self.samples_by_cluster[c]
             y_cluster = self.labels_by_cluster[c]
 
-            # TODO consertar prolema com número de instâncias em cada cluster
-
             for train_index, val_index in skf.split(X_cluster, y_cluster):
 
                 X_val_by_fold[fold] += X_cluster[val_index].tolist()
@@ -225,7 +226,9 @@ class ClassifierSelector:
             X_val = X_val[:, features]
 
         clf.fit(X_train, y_train)
-        return clf.predict_proba(X_val)
+        y_prob_cluster = clf.predict_proba(X_val)
+        return fix_predict_prob(
+            y_prob_cluster, self.labels_by_cluster[cluster], self.n_labels)
 
     def train_meta_classifier(self, y_prob_by_clf, y_true):
         meta_clf = SVC(probability=True)
@@ -249,6 +252,16 @@ class ClassifierSelector:
         return fold_classifiers
 
 
+    def newmethod135(self, y_prob_train_by_clf, y_train, y_prob_val_by_clf):
+        # self.meta_classifier = self.train_meta_classifier(
+        #         y_prob_train_by_clf, y_train)
+        meta_classifier = MetaClassifier(y_prob_train_by_clf, y_train)
+        meta_classifier.train()
+
+        y_prob_final, _ = self.fusion_function(
+                y_prob_val_by_clf, meta_classifier)
+
+        return y_prob_final
 
     def eval_base_classifiers(self, X_cluster_by_fold, X_val_by_fold,
                               y_cluster_by_fold, y_val_by_fold):
@@ -272,37 +285,54 @@ class ClassifierSelector:
                 #print(fold_classifiers)
                 #print("======================================")
 
-                y_prob_by_clf = [self.train_clf_predict_proba(
+                y_prob_val_by_clf = [self.train_clf_predict_proba(
                     clf, c, X_cluster_by_fold[c][fold],
                     y_cluster_by_fold[c][fold], X_val
                 ) for c, clf in enumerate(fold_classifiers)]
 
-                y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_by_clf]
+                y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_val_by_clf]
 
                 if self.fusion_function.__name__ == 'meta_classifier_predict':
                     X_train = np.vstack([ X_cluster_by_fold[c][fold]
                                          for c in range(n_clusters) ])
 
-                    y_prob_clusters_train = [classifier.predict_proba(X_train)
-                                             for classifier in fold_classifiers]
+                    y_prob_train_by_clf = []
+
+                    for c, classifier in enumerate(fold_classifiers):
+                        y_prob_cluster = classifier.predict_proba(X_train)
+                        y_prob_cluster = fix_predict_prob(
+                            y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
+                        y_prob_train_by_clf.append(y_prob_cluster)
+
+                    # y_prob_clusters_train = [classifier.predict_proba(X_train)
+                    #                          for classifier in fold_classifiers]
+                    # y_prob_clusters_train = [fix_predict_prob(y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
+                    #                          for c, y_prob_cluster in enumerate(y_prob_clusters_train)]
                     # y_prob_train_by_clf = np.array(y_prob_train_by_clf).T
-                    y_train = np.hstack([ y_cluster_by_fold[c][fold]
+                    y_train = np.hstack([y_cluster_by_fold[c][fold]
                                          for c in range(n_clusters) ])
 
-                    self.meta_classifier = self.train_meta_classifier(
-                            y_prob_clusters_train, y_train)
+                    # self.meta_classifier = self.train_meta_classifier(
+                    #         y_prob_train_by_clf, y_train)
+                    meta_classifier = MetaClassifier(y_prob_train_by_clf, y_train)
+                    meta_classifier.train()
 
-                    y_prob, _ = self.fusion_function(y_prob_by_clf, self.meta_classifier)
-                # TODO elif para majority voting
-                else:
-                    y_prob, _ = self.fusion_function(X_val, y_pred_by_clf)
-                y_pred = y_prob.argmax(1)
+                    y_prob_final, _ = self.fusion_function(
+                            y_prob_val_by_clf, meta_classifier)
+
+                elif self.fusion_function.__name__ == 'weighted_membership_outputs':
+                    y_prob_final, _ = self.fusion_function(X_val, y_pred_by_clf)
+
+                else: # majority_voting
+                    y_prob_final, _ = self.fusion_function(y_pred_by_clf)
+
+                y_pred = y_prob_final.argmax(1)
 
                 if self.n_labels > 2:
-                    auc_score = roc_auc_score(y_val, y_prob, multi_class='ovr')
+                    auc_score = roc_auc_score(y_val, y_prob_final, multi_class='ovr')
                     f1_val = f1_score(y_val, y_pred, average='weighted')
                 else:
-                    auc_score = roc_auc_score(y_val, y_prob[:,1])
+                    auc_score = roc_auc_score(y_val, y_prob_final[:,1])
                     f1_val = f1_score(y_val, y_pred)
 
                 # print("fold:", fold)
@@ -322,16 +352,17 @@ class ClassifierSelector:
                 eval_by_fold.append(eval_fold)
             # Get the average value for all folds
             return sum(eval_by_fold) / N_FOLDS
+
         return wrapper
 
     def calc_fitness_solutions(self, solutions):
         """ Calculate the fitness value for all
         candidate solutions. """
 
-        # Wrap each function call in delayed
+        # # Wrap each function call in delayed
         delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
 
-        # Compute in parallel
+        # # Compute in parallel
         costs = compute(*delayed_costs)
 
         # costs = [self.calc_cost(solution) for solution in solutions]
