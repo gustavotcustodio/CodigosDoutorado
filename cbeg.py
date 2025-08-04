@@ -36,6 +36,8 @@ from meta_classifier import MetaClassifier
 
 # TODO ideia: visualizar a separação dimensional no meta classificador
 
+# TODO descobrir o problema do wine
+
 # TODO consolidar bases do Jesus
 
 # TODO tentar adicionar a parte com GA

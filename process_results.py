@@ -167,12 +167,12 @@ def main():
         "rectangles",
         "australian_credit",
         "german_credit",
-        "contraceptive", 
-        "wine",
-        "wdbc",
+        "contraceptive",
         "pima",
-        "iris",
-        "heart",
+        "wdbc",
+        #"wine",
+        #"iris",
+        #"heart",
     ]
     datasets = filter_no_experim_datasets(datasets)
 
