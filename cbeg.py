@@ -34,6 +34,9 @@ from meta_classifier import MetaClassifier
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
 
+# TODO: problema no supervised clustering lr elipses
+# TODO deveria ter 10 amostras no pso, mas não tem. Erro misterioso no wine
+
 # TODO ideia: visualizar a separação dimensional no meta classificador
 
 # TODO consolidar bases do Jesus

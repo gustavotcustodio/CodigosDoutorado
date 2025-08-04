@@ -2,6 +2,8 @@
 # Quantos indivídios tem nesse PSO?
 # pág 17
 import pyswarms as ps
+from multiprocessing.pool import ThreadPool
+import dask
 import argparse
 import numpy as np
 import dataset_loader
@@ -17,7 +19,7 @@ from dask.delayed import delayed
 
 class Ciel:
 
-    def __init__(self, n_iters=10, n_particles=30, ftol_iter=5):
+    def __init__(self, n_iters=10, n_particles=30, ftol_iter=4):
         self.n_iters = n_iters
         self.n_particles = n_particles
         self.ftol_iter = ftol_iter
@@ -82,14 +84,15 @@ class Ciel:
                 # cost_values.append(cost)
 
                 # Convert PSO particle to the parameters
-            # cost_values = [self.calc_cost(solution, kf)
-            #                for solution in possible_solutions]
+            #cost_values = [self.calc_cost(solution, kf, X, y)
+            #               for solution in possible_solutions]
 
             delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
                              for solution in possible_solutions]
 
-            # # Compute in parallel
-            cost_values = compute(*delayed_costs)
+            with dask.config.set(pool=ThreadPool(4)):
+                # Compute in parallel
+                cost_values = compute(*delayed_costs, scheduler="threads")
 
             return cost_values
 
@@ -122,7 +125,6 @@ class Ciel:
             auc_values.append(auc_val)
 
         cost = 1 - np.mean(auc_values)
-        print("Cost solution:", cost)
         return cost
 
     def fit(self, X, y):
