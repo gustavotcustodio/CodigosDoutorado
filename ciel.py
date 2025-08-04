@@ -4,9 +4,7 @@
 import pyswarms as ps
 import argparse
 import numpy as np
-from sklearn.model_selection import train_test_split
 import dataset_loader
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, roc_auc_score
 from ciel_optimizer import CielOptimizer
 from ciel_optimizer import N_FOLDS
@@ -14,12 +12,15 @@ from sklearn.model_selection import StratifiedKFold
 from logger import PredictionResults
 from logger import Logger
 from dataset_loader import normalize_data
+from dask.base import compute
+from dask.delayed import delayed
 
 class Ciel:
 
-    def __init__(self, n_iters: int, n_particles: int):
+    def __init__(self, n_iters=10, n_particles=30, ftol_iter=5):
         self.n_iters = n_iters
         self.n_particles = n_particles
+        self.ftol_iter = ftol_iter
         self.max_n_clusters = 10
                         # n_clusters + svm_params + extra_tree_params + grad_boost_params + weights
         lower_bounds = [2] + ([1e-4, 1e-4] + [1, 1, 2, 1] + [1, 1, 2, 1, 0.1]
@@ -74,41 +75,55 @@ class Ciel:
     def fitness_eval(self, X, y):
         def wrapper(possible_solutions):
             kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True)
-            # The function receives (n_particles x n_dims)
-            cost_values = []
+            # cost_values = []
 
-            for solution in possible_solutions:
+            # for solution in possible_solutions:
+                # cost = self.calc_cost(solution, kf, X, y)
+                # cost_values.append(cost)
+
                 # Convert PSO particle to the parameters
-                params = self.unwrap_solution(solution)
+            # cost_values = [self.calc_cost(solution, kf)
+            #                for solution in possible_solutions]
 
-                ciel_opt = CielOptimizer(
-                    params['n_clusters'], params['svm_params'],
-                    params['extra_tree_params'], params['grad_boost_params'],
-                    params['weights'])
+            delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
+                             for solution in possible_solutions]
 
-                auc_values = []
-                folds_splits = kf.split(X, y)
-
-                for _, (train_indexes, test_indexes) in enumerate(folds_splits):
-                    X_train, y_train = X[train_indexes], y[train_indexes]
-                    X_test, y_test = X[test_indexes], y[test_indexes]
-
-                    ciel_opt.fit(X_train, y_train)
-                    # Predict probability
-                    y_score, _, _ = ciel_opt.predict_proba(X_test)
-
-                    if self.n_labels == 2:
-                        auc_val = roc_auc_score(y_test, y_score[:,1])
-                    else:
-                        auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
-
-                    auc_values.append(auc_val)
-
-                cost = 1 - np.mean(auc_values)
-                cost_values.append(cost)
+            # # Compute in parallel
+            cost_values = compute(*delayed_costs)
 
             return cost_values
+
         return wrapper
+
+    def calc_cost(self, solution, kf, X, y):
+        params = self.unwrap_solution(solution)
+
+        ciel_opt = CielOptimizer(
+            params['n_clusters'], params['svm_params'],
+            params['extra_tree_params'], params['grad_boost_params'],
+            params['weights'])
+
+        auc_values = []
+        folds_splits = kf.split(X, y)
+
+        for _, (train_indexes, test_indexes) in enumerate(folds_splits):
+            X_train, y_train = X[train_indexes], y[train_indexes]
+            X_test, y_test = X[test_indexes], y[test_indexes]
+
+            ciel_opt.fit(X_train, y_train)
+            # Predict probability
+            y_score, _, _ = ciel_opt.predict_proba(X_test)
+
+            if self.n_labels == 2:
+                auc_val = roc_auc_score(y_test, y_score[:,1])
+            else:
+                auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
+
+            auc_values.append(auc_val)
+
+        cost = 1 - np.mean(auc_values)
+        print("Cost solution:", cost)
+        return cost
 
     def fit(self, X, y):
         self.n_labels = len(np.unique(y))
@@ -116,7 +131,8 @@ class Ciel:
         dimensions = len(self.bounds[0])
         pso = ps.single.GlobalBestPSO(
             n_particles=self.n_particles, dimensions=dimensions,
-            options=self.options, bounds=self.bounds
+            options=self.options, bounds=self.bounds,
+            ftol_iter=self.ftol_iter, ftol = 1e-4
         )
         fitness_func = self.fitness_eval(X, y)
         cost, solution = pso.optimize(fitness_func, iters=self.n_iters)
@@ -140,7 +156,8 @@ class Ciel:
         return y_pred, voting_weights, y_pred_by_cluster
 
     def predict_proba(self, X):
-        y_score, voting_weights, y_pred_by_cluster  = self.best_opt.predict_proba(X)
+        y_score, voting_weights, y_pred_by_cluster = \
+                self.best_opt.predict_proba(X)
         return y_score, voting_weights, y_pred_by_cluster
 
 
@@ -148,8 +165,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
-    parser.add_argument("-n", "--num_iters", type=int, required=True, help = "Number of PSO iters.")
-    parser.add_argument("-p", "--num_particles", type=int, required=True, help = "Number of PSO particles")
+    parser.add_argument("-n", "--num_iters", type=int, default=10, help = "Number of PSO iters.")
+    parser.add_argument("-p", "--num_particles", type=int, default=30, help = "Number of PSO particles")
     args = parser.parse_args()
 
     X, y = dataset_loader.select_dataset_function(args.dataset)()

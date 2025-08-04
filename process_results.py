@@ -167,10 +167,10 @@ def main():
         "rectangles",
         "australian_credit",
         "german_credit",
-        "contraceptive",
-        "pima",
-        "wdbc",
+        "contraceptive", 
         "wine",
+        "wdbc",
+        "pima",
         "iris",
         "heart",
     ]
@@ -178,9 +178,9 @@ def main():
 
     mutual_info_percentages = [100.0, 75.0, 50.0]
 
-    # process_cbeg_results(datasets, mutual_info_percentages)
+    process_cbeg_results(datasets, mutual_info_percentages)
     # process_ciel_results(datasets, mutual_info_percentages)
-    process_base_results(datasets, mutual_info_percentages)
+    # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
     main()
