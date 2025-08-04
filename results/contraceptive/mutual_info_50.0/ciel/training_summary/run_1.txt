@@ -1,5 +1,5 @@
 ============== Classifiers Parameters ==============
-{'svm': [{'cost': np.float64(210.0887876950476), 'gamma': np.float64(716.6359496061773)}, {'cost': np.float64(770.9836767242266), 'gamma': np.float64(538.760476927218)}, {'cost': np.float64(774.5152933252772), 'gamma': np.float64(363.75227893802213)}], 'extra_tree': [{'n_estimators': 421, 'max_depth': 7, 'min_samples_split': 3, 'min_samples_leaf': 3}, {'n_estimators': 362, 'max_depth': 7, 'min_samples_split': 10, 'min_samples_leaf': 6}, {'n_estimators': 360, 'max_depth': 8, 'min_samples_split': 2, 'min_samples_leaf': 2}], 'grad_boost': [{'n_estimators': 156, 'max_depth': 6, 'min_samples_split': 5, 'min_samples_leaf': 8, 'learning_rate': np.float64(0.555940070097588)}, {'n_estimators': 177, 'max_depth': 2, 'min_samples_split': 7, 'min_samples_leaf': 9, 'learning_rate': np.float64(0.30554426124006806)}, {'n_estimators': 42, 'max_depth': 2, 'min_samples_split': 7, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.6228486166370377)}]}
+{'svm': [{'cost': 640.8263506075748, 'gamma': 216.03826090578136}, {'cost': 695.0352593550302, 'gamma': 983.678926895521}, {'cost': 813.9702881089919, 'gamma': 615.2194767090671}], 'extra_tree': [{'n_estimators': 310, 'max_depth': 7, 'min_samples_split': 3, 'min_samples_leaf': 2}, {'n_estimators': 120, 'max_depth': 2, 'min_samples_split': 3, 'min_samples_leaf': 4}, {'n_estimators': 154, 'max_depth': 7, 'min_samples_split': 6, 'min_samples_leaf': 5}], 'grad_boost': [{'n_estimators': 391, 'max_depth': 5, 'min_samples_split': 2, 'min_samples_leaf': 10, 'learning_rate': 0.15200250489672998}, {'n_estimators': 51, 'max_depth': 7, 'min_samples_split': 2, 'min_samples_leaf': 6, 'learning_rate': 0.9970271684676791}, {'n_estimators': 66, 'max_depth': 9, 'min_samples_split': 6, 'min_samples_leaf': 3, 'learning_rate': 0.4309834157895607}]}
 
 Optimal clusterer: kmeans
 
@@ -14,25 +14,8 @@ silhouette: 0.27440604640563304
 davies_bouldin: 1.3692952343108267
 calinski_harabasz_score: 250.66739034759794
 
-Base classifier: gb
+Base classifier: extra_tree
 ========== Cluster 0 ==========
-
-Labels: [0 1 0 0 1 0 0 2 0 1 0 2 1 1 0 0 2 1 1 0 0 1 1 2 1 2 1 2 2 2 1 1 2 1 0 2 2
- 0 0 2 1 2 2 1 2 2 1 1 2 2 1 1 0 0 2 1 1 1 2 0 1 0 2 1 2 2 2 0 2 0 0 2 2 1
- 1 0 1 0 2 0 1 0 0 1 2 0 2 0 0 2 1 1 1 0 2 1 0 0 0 1 0 0 1 2 1 1 1 2 2 2 1
- 1 1 2 0 1 1 1 0 1 1 1 1 2 2 2 1 0 0 1 0 1 2 2 0 2 2 1 0 1 2 2 0 0 2 0 1 2
- 0 1 2 0 2 0 0 0 2 1 2 2 1 0 2 0 0 2 0 2 1 0 1 0 2 0 2 1 1 2 2 1 2 1 2 0 0
- 0 0 0 2 1 1 2 1 0 0 1 2 0 1 0 0 0 1 2 0 1 1 0 0 0 0 2 0 1 2 0 0 0 1 2 0 2
- 1 2 1 2 2 0 0 0 0 0 2 1 2 0 0 1 2 2 0 1 2 2 2 0 2 2 0 0 0 0 2 0 1 0 2 2 1
- 2 2 1 2 2 0 2 1 0 1 2 2 0 1 0 0 1 2 2 2 1 2 2 1 0 2 0 1 1 2 1 1 0 1 0 0 1
- 0 2 1 1 0 0 2 1 2 1 1 2 2 1 2 2 2 2 0 0 1 2 1 2 1 2 2 2 2 1 2 2 1 0 0 1 1
- 0 0 2 0 1 1 1 1 1 2 2 2 2 2 2 0 2 2 1 0 0 2 0 2 2 0 2 0 1 2 0 0 2 1 1 1 1
- 1 1 1 1 1 1 0 2 2 2 1 1 2 2 1 2 2 2 0 1 0 1 0 0 2 1 0 1 0 1 2 2 0 1 0 1 1
- 0 2 2 0 0 0 0 2 1 0 2 2 1 0 1 2 2 2 1 1 2 1 2 0 1 0 1 1 0 0 2 1 2 2 2 2 2
- 2 0 0 0 1 0 0 0 1 2 0 2 2 0 2 2 0 0 1 0 1 2 0 2 2 2 1 0 1 0 2 1 1 2 2 1 1
- 2 1 0 1 2 0 2 0 0 0]
-
-========== Cluster 1 ==========
 
 Labels: [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 2 0 2 0 2 2 2 1 0 2 0 1 2 2 0 0 0 2 2 1 0
  2 2 1 0 0 0 2 0 2 0 0 1 1 2 2 1 0 0 2 2 1 2 2 0 0 2 2 2 2 2 0 0 2 0 2 2 2
@@ -48,6 +31,23 @@ Labels: [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 2 0 2 0 2 2 2 1 0 2 0 1 2 2 0 0 0 2 2 1
  1 2 0 0 2 0 0 1 1 2 1 2 1 0 0 2 2 0 2 2 0 0 2 2 0 0 2 0 2 2 2 1 2 2 2 2 0
  0 1 2 0 0 2 2 0 2 0 2 0 1 0 0 0 0 0 0 0 0 1 0 0 0 2 0 1 2 0 0 0 0 0 2 1 2
  0 2 2 2 0 2 0 0 2 2 0 2 0 1 0 0 2]
+
+========== Cluster 1 ==========
+
+Labels: [0 1 0 0 1 0 0 2 0 1 0 2 1 1 0 0 2 1 1 0 0 1 1 2 1 2 1 2 2 2 1 1 2 1 0 2 2
+ 0 0 2 1 2 2 1 2 2 1 1 2 2 1 1 0 0 2 1 1 1 2 0 1 0 2 1 2 2 2 0 2 0 0 2 2 1
+ 1 0 1 0 2 0 1 0 0 1 2 0 2 0 0 2 1 1 1 0 2 1 0 0 0 1 0 0 1 2 1 1 1 2 2 2 1
+ 1 1 2 0 1 1 1 0 1 1 1 1 2 2 2 1 0 0 1 0 1 2 2 0 2 2 1 0 1 2 2 0 0 2 0 1 2
+ 0 1 2 0 2 0 0 0 2 1 2 2 1 0 2 0 0 2 0 2 1 0 1 0 2 0 2 1 1 2 2 1 2 1 2 0 0
+ 0 0 0 2 1 1 2 1 0 0 1 2 0 1 0 0 0 1 2 0 1 1 0 0 0 0 2 0 1 2 0 0 0 1 2 0 2
+ 1 2 1 2 2 0 0 0 0 0 2 1 2 0 0 1 2 2 0 1 2 2 2 0 2 2 0 0 0 0 2 0 1 0 2 2 1
+ 2 2 1 2 2 0 2 1 0 1 2 2 0 1 0 0 1 2 2 2 1 2 2 1 0 2 0 1 1 2 1 1 0 1 0 0 1
+ 0 2 1 1 0 0 2 1 2 1 1 2 2 1 2 2 2 2 0 0 1 2 1 2 1 2 2 2 2 1 2 2 1 0 0 1 1
+ 0 0 2 0 1 1 1 1 1 2 2 2 2 2 2 0 2 2 1 0 0 2 0 2 2 0 2 0 1 2 0 0 2 1 1 1 1
+ 1 1 1 1 1 1 0 2 2 2 1 1 2 2 1 2 2 2 0 1 0 1 0 0 2 1 0 1 0 1 2 2 0 1 0 1 1
+ 0 2 2 0 0 0 0 2 1 0 2 2 1 0 1 2 2 2 1 1 2 1 2 0 1 0 1 1 0 0 2 1 2 2 2 2 2
+ 2 0 0 0 1 0 0 0 1 2 0 2 2 0 2 2 0 0 1 0 1 2 0 2 2 2 1 0 1 0 2 1 1 2 2 1 1
+ 2 1 0 1 2 0 2 0 0 0]
 
 ========== Cluster 2 ==========
 

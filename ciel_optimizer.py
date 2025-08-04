@@ -1,7 +1,10 @@
+import sys
+import warnings
 from numpy.typing import NDArray
 import numpy as np
 import math
 import time
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.cluster import DBSCAN, AffinityPropagation, AgglomerativeClustering, Birch, KMeans, MeanShift, MiniBatchKMeans, SpectralClustering
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
 from sklearn.svm import SVC
@@ -33,7 +36,8 @@ POSSIBLE_CLUSTERERS = [
 
 BASE_CLASSIFIERS = [
     'gb',
-    'extra_tree'
+    'extra_tree',
+    'svm'
 ]
 
 external_metrics = {
@@ -54,6 +58,7 @@ class CielOptimizer:
                  extra_tree_params=None, grad_boost_params=None, weights=None,
                  combination_strategy='dynamic_weighted_prob'):
         self.n_clusters = n_clusters
+        warnings.filterwarnings('ignore', category=ConvergenceWarning)
 
         self.svm_params = svm_params
         self.extra_tree_params = extra_tree_params
@@ -84,7 +89,7 @@ class CielOptimizer:
         elif clusterer_name == 'dbscan':
             return DBSCAN(eps=0.3)
         elif clusterer_name == 'birch':
-            return Birch(n_clusters=self.n_clusters)
+            return Birch(n_clusters=self.n_clusters, threshold=0.5)
         elif clusterer_name == 'spectral_clustering':
             return SpectralClustering(n_clusters=self.n_clusters)
         elif clusterer_name == 'agglomerative_clustering':
@@ -95,11 +100,13 @@ class CielOptimizer:
             return KMeans(self.n_clusters, random_state=42)
 
     def create_classifier(self, classifier_name: str, cluster=None):
+        # return SVC(probability=True) # TODO tirar
         if classifier_name == 'svm':
             if self.svm_params is None or cluster is None:
-                return SVC()
+                return SVC(probability=True)
             else:
-                return SVC(C=self.svm_params[cluster]['cost'],
+                return SVC(probability=True,
+                           C=self.svm_params[cluster]['cost'],
                            gamma=self.svm_params[cluster]['gamma'])
 
         elif classifier_name == 'extra_tree':
@@ -111,7 +118,7 @@ class CielOptimizer:
                                             max_depth=et_params[cluster]['max_depth'],
                                             min_samples_split=et_params[cluster]['min_samples_split'],
                                             min_samples_leaf=et_params[cluster]['min_samples_leaf'])
-        else:  # classifier_name == 'gb'
+        elif classifier_name == 'gb':
             if self.grad_boost_params is None or cluster is None:
                 return GradientBoostingClassifier()
             else:
@@ -121,6 +128,9 @@ class CielOptimizer:
                                                   min_samples_split=gb_params[cluster]['min_samples_split'],
                                                   min_samples_leaf=gb_params[cluster]['min_samples_leaf'],
                                                   learning_rate=gb_params[cluster]['learning_rate'])
+        else:
+            print(f"Error: invalid base classifier: {classifier_name}")
+            sys.exit(1)
 
     def calc_metrics_clustering(self, clusters_pred: NDArray,
                                 X_val: NDArray, y_val: NDArray) -> tuple[dict, dict]:
@@ -200,6 +210,7 @@ class CielOptimizer:
     def select_optimal_clustering_algorithm(self, X: NDArray, y: NDArray):
         best_clusterer = 'kmeans'
         best_clustering_metrics = {}
+        best_clusters = np.array([])
 
         # External indicators are the main ones
         for clusterer_name in POSSIBLE_CLUSTERERS:
@@ -208,20 +219,26 @@ class CielOptimizer:
 
             clusterer = self.create_clusterer(clusterer_name)
             clusters = clusterer.fit_predict(X)
+
             external_metrics_evals, internal_metrics_evals = \
                     self.calc_metrics_clustering(clusters, X, y)
+
+            # if clusterer_name == "birch":
+            # print(external_metrics_evals)
 
             clustering_metrics['external'] = external_metrics_evals
             clustering_metrics['internal'] = internal_metrics_evals
 
-            clusterer_updated = self.update_best_clusterer(clustering_metrics, best_clustering_metrics)
+            clusterer_updated = self.update_best_clusterer(
+                    clustering_metrics, best_clustering_metrics)
 
             if clusterer_updated:
                 best_clusterer = clusterer_name
+                best_clusters = clusters
 
         self.best_clustering_metrics = best_clustering_metrics
         # print(f'Selected clusterer: {best_clusterer}')
-        return best_clusterer
+        return best_clusterer, best_clusters
 
     def crossval_classifiers_scores(self, classifiers: dict, X_train: NDArray, y_train: NDArray):
         if self.n_classes > 2:
@@ -290,13 +307,26 @@ class CielOptimizer:
 
         return samples_by_cluster, labels_by_cluster
 
+    def split_clusters_in_lists(self, clusters, X, y):
+        # Split the samples according to the cluster they are assigned
+        samples_by_cluster = []
+        labels_by_cluster = []
+
+        for c in range(self.n_clusters):
+            indexes_c = np.where(clusters == c)[0]
+            samples_by_cluster.append( X[indexes_c] )
+            labels_by_cluster.append( y[indexes_c] )
+
+        return samples_by_cluster, labels_by_cluster
+
     def fit(self, X, y):
         self.n_classes = len(np.unique(y))
 
         #print('Selecting best clustering algorithm...')
         #inicio = time.time()
         # Traverse all clustering algorithms and select the optimal one
-        name_best_clusterer = self.select_optimal_clustering_algorithm(X, y)
+        name_best_clusterer, clusters = \
+                self.select_optimal_clustering_algorithm(X, y)
         #print("Time:",time.time() - inicio)
 
         #print('Selecting best classifier...')
@@ -306,10 +336,14 @@ class CielOptimizer:
         self.base_classifier = name_best_classifier
         #print("Time:",time.time() - inicio)
 
-        optimal_clusterer = self.create_clusterer(name_best_clusterer)
+        # optimal_clusterer, clusters = self.create_clusterer(name_best_clusterer)
         self.optimal_clusterer = name_best_clusterer
 
-        samples_by_cluster, self.labels_by_cluster = self.cluster_samples(X, y, optimal_clusterer)
+        # samples_by_cluster, self.labels_by_cluster = \
+        #         self.cluster_samples(X, y, optimal_clusterer)
+        samples_by_cluster, self.labels_by_cluster = \
+                self.split_clusters_in_lists(clusters, X, y)
+        # print("Num. clusters:", len(samples_by_cluster))
 
         # Generate and train classifiers
         self.train_classifiers(
@@ -319,8 +353,9 @@ class CielOptimizer:
     def predict_labels_by_cluster(self, X) -> NDArray:
         y_pred_by_clusters = []
 
-        for _, classifier in enumerate(self.classifiers):
-            y_pred_cluster = classifier.predict(X)
+        for c, classifier in enumerate(self.classifiers):
+            offset = min(self.labels_by_cluster[c])
+            y_pred_cluster = classifier.predict(X) + offset
             y_pred_by_clusters.append(y_pred_cluster)
 
         return np.array(y_pred_by_clusters).T
