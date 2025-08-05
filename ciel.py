@@ -134,7 +134,7 @@ class Ciel:
         pso = ps.single.GlobalBestPSO(
             n_particles=self.n_particles, dimensions=dimensions,
             options=self.options, bounds=self.bounds,
-            ftol_iter=self.ftol_iter, ftol = 1e-4
+            ftol_iter=self.ftol_iter, ftol=1e-4
         )
         fitness_func = self.fitness_eval(X, y)
         cost, solution = pso.optimize(fitness_func, iters=self.n_iters)

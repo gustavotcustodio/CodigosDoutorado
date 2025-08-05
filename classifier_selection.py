@@ -57,6 +57,7 @@ class ClassifierSelector:
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
     options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
     feature_selector: Optional[FeatureSelectionModule] = None
+    ftol_iter: int = 8
 
     def __post_init__(self):
         max_idx_clf = len(BASE_CLASSIFIERS.keys()) - 1
@@ -359,13 +360,13 @@ class ClassifierSelector:
         """ Calculate the fitness value for all
         candidate solutions. """
 
-        # # Wrap each function call in delayed
-        #delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
+        # Wrap each function call in delayed
+        delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
 
-        # # Compute in parallel
-        #costs = compute(*delayed_costs)
+        # Compute in parallel
+        costs = compute(*delayed_costs)
 
-        costs = [self.calc_cost(solution) for solution in solutions]
+        # costs = [self.calc_cost(solution) for solution in solutions]
         print(costs)
 
         self.update_inertia()
@@ -403,7 +404,8 @@ class ClassifierSelector:
         # Create pso
         self.pso = ps.single.GlobalBestPSO(
             n_particles=self.n_particles, dimensions=self.dims,
-            options=self.options_dict, bounds=self.bounds
+            options=self.options_dict, bounds=self.bounds,
+            ftol_iter=self.ftol_iter, ftol=1e-4
         )
         self.current_iter = 0
         # Optimize pso
