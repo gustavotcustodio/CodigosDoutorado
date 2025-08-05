@@ -100,7 +100,7 @@ class CielOptimizer:
             return KMeans(self.n_clusters, random_state=42)
 
     def create_classifier(self, classifier_name: str, cluster=None):
-        # return SVC(probability=True) # TODO tirar
+        # return SVC(probability=True)
         if classifier_name == 'svm':
             if self.svm_params is None or cluster is None:
                 return SVC(probability=True)
