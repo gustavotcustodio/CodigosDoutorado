@@ -29,7 +29,7 @@ from logger import PredictionResults
 from xgboost import XGBClassifier
 from pso_optimizator import PsoOptimizator
 from classifier_selection import ClassifierSelector
-from utils.matrix import fix_predict_prob
+from utils.clusters import fix_predict_prob
 from meta_classifier import MetaClassifier
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
@@ -748,7 +748,7 @@ class CBEG:
             print("Performing pre-clustering...")
 
         # if self.n_clusters == "compare":
-        allow_fcm = True if self.combination_strategy == "meta_classifier" else False
+        allow_fcm = (self.combination_strategy == "meta_classifier")
 
         self.cluster_module = ClusteringModule(
                 X, y,

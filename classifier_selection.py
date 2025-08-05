@@ -24,7 +24,7 @@ from dask.delayed import delayed
 from feature_selection import FeatureSelectionModule
 from typing import Mapping, Optional, Callable
 from meta_classifier import MetaClassifier
-from utils.matrix import fix_predict_prob
+from utils.clusters import fix_predict_prob
 
 N_FOLDS = 10
 
@@ -360,12 +360,12 @@ class ClassifierSelector:
         candidate solutions. """
 
         # # Wrap each function call in delayed
-        delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
+        #delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
 
         # # Compute in parallel
-        costs = compute(*delayed_costs)
+        #costs = compute(*delayed_costs)
 
-        # costs = [self.calc_cost(solution) for solution in solutions]
+        costs = [self.calc_cost(solution) for solution in solutions]
         print(costs)
 
         self.update_inertia()

@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
 from scipy.spatial import distance_matrix
 from sklearn.metrics import adjusted_rand_score
+from utils.clusters import show_samples_by_cluster
 
 CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
@@ -274,11 +275,17 @@ class ClusteringModule:
                 self.clustering_algorithm, self.n_clusters)
 
             clusters = self.best_clusterer.fit_predict(self.X)
+            print(self.evaluation_function(clusters, self.n_clusters))
+            # Update samples with the new generated ones
+            clusters, self.X, self.y = \
+                self.add_class_samples_in_cluster(clusters
+            )
+            self.distances_between_samples = cosine_distances(self.X, self.X)
             self.best_evaluation_value = self.evaluation_function(
                     clusters, self.best_clusterer.n_clusters)
-
+            print(self.evaluation_function(clusters, self.n_clusters))
             # Change the number of clusters to the optimal number found
-            self.n_clusters = int(self.best_clusterer.n_clusters)
+            # self.n_clusters = int(self.best_clusterer.n_clusters)
 
         # Define the centroids for the best clusterer
         # If it's Spectral Clustering, the centroids need to be calculated.
@@ -300,6 +307,7 @@ class ClusteringModule:
             samples_by_cluster[c] = self.X[indexes_c]
             labels_by_cluster[c] = self.y[indexes_c]
 
+        show_samples_by_cluster(labels_by_cluster)
         return samples_by_cluster, labels_by_cluster
 
     def calc_centroids(self, X, clusters, n_clusters):
