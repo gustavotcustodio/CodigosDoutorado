@@ -14,7 +14,6 @@ from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
 from ciel_optimizer import CielOptimizer, create_clusterer
 from ciel_optimizer import N_FOLDS
-from sklearn.model_selection import StratifiedKFold
 from logger import PredictionResults
 from logger import Logger
 from dataset_loader import normalize_data
@@ -29,10 +28,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
-# TODO fazer a seleção do clusterer geral e do classificador geral fora do fitness
-# TODO random_state fixo no StratifiedKFold
 # TODO colocar o restart de solução no PSO
-# TODO limitar o crossval ao número de amostras da classe min
 
 
 POSSIBLE_CLUSTERERS = [
@@ -249,7 +245,7 @@ class Ciel:
 
     def fitness_eval(self, X, y):
         def wrapper(possible_solutions):
-            kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True)
+            kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
             # cost_values = []
 
             # for solution in possible_solutions:
@@ -317,7 +313,7 @@ class Ciel:
 
         auc_by_classifier = {}
 
-        cv = StratifiedKFold(n_splits=N_FOLDS, shuffle=True)
+        cv = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
 
         for clf_name, classifier in classifiers.items():
 
@@ -405,6 +401,21 @@ class Ciel:
         y_score, voting_weights, y_pred_by_cluster = \
                 self.best_opt.predict_proba(X)
         return y_score, voting_weights, y_pred_by_cluster
+
+    def random_restart(self, optimizer, particle_indices):
+        """Resets given particles to random positions in bounds."""
+        lb, ub = optimizer.bounds
+        optimizer.swarm.position[particle_indices] = np.random.uniform(
+            low=lb, high=ub,
+            size=(len(particle_indices),optimizer.dimensions)
+        )
+        optimizer.swarm.velocity[particle_indices] = np.random.uniform(
+            low=-abs(ub - lb), high=abs(ub - lb), 
+            size=(len(particle_indices), optimizer.dimensions)
+        )
+        optimizer.swarm.pbest_pos[
+                particle_indices] = optimizer.swarm.position[particle_indices]
+        optimizer.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
 
 
 def main():

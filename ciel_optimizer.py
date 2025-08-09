@@ -56,9 +56,9 @@ internal_metrics = {
 
 def create_clusterer(clusterer_name: str, n_clusters: int):
     if clusterer_name == 'kmeans':
-        return KMeans(n_clusters=n_clusters, init='random')
+        return KMeans(n_clusters=n_clusters, init='random', random_state=42)
     elif clusterer_name == 'mini_batch_kmeans':
-        return MiniBatchKMeans(n_clusters=n_clusters)
+        return MiniBatchKMeans(n_clusters=n_clusters, random_state=42)
     elif clusterer_name == 'mean_shift':
         return MeanShift()
     elif clusterer_name == 'dbscan':
@@ -66,11 +66,11 @@ def create_clusterer(clusterer_name: str, n_clusters: int):
     elif clusterer_name == 'birch':
         return Birch(n_clusters=n_clusters, threshold=0.5)
     elif clusterer_name == 'spectral_clustering':
-        return SpectralClustering(n_clusters=n_clusters)
+        return SpectralClustering(n_clusters=n_clusters, random_state=42)
     elif clusterer_name == 'agglomerative_clustering':
         return AgglomerativeClustering(n_clusters=n_clusters)
     elif clusterer_name == 'affinity_propagation':
-        return AffinityPropagation(damping=0.5)
+        return AffinityPropagation(damping=0.5, random_state=42)
     else:
         return KMeans(n_clusters, random_state=42)
 

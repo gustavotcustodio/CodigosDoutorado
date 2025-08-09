@@ -223,12 +223,13 @@ class SupervisedClustering:
                 y_selection = self.y[indexes_closest]
 
                 y_pred_selection = clf.predict(X_selection)
-
                 # Calc the accuracy for the M closest samples
-                classifiers_weights[c, i] = accuracy_score(y_selection, y_pred_selection)
+                classifiers_weights[c, i] = accuracy_score(
+                        y_selection, y_pred_selection)
         # Process votes 
         # y_pred = process_votes(y_pred_clusters, classifiers_weights)
-        classifiers_weights = classifiers_weights / classifiers_weights.sum(axis=0)
+        classifiers_weights += 1e-100
+        classifiers_weights  = classifiers_weights / classifiers_weights.sum(axis=0)
         y_score = self.combine_votes(y_pred_by_clusters, classifiers_weights)
 
         self.y_pred_by_clusters = y_pred_by_clusters.T
