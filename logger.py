@@ -53,15 +53,16 @@ class Logger:
 
         with open(fullpath, "w") as file_output:
 
+            base_classifier = self.classifier.base_classifier
             if isinstance(self.classifier, CielOptimizer):
                 print("============== Classifiers Parameters ==============",
                       file=file_output)
-                print(f"{self.classifier.classifiers_params}\n", file=file_output)
+                print(f"{self.classifier.classifiers_params}\n",
+                      file=file_output)
 
             # Save clustering information 
             self.save_clustering_metric(file_output)
 
-            base_classifier = self.classifier.base_classifier
             if isinstance(base_classifier, OneVsRestClassifier):
                 base_classifier = base_classifier.estimator
 

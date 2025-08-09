@@ -6,7 +6,7 @@ Clustering algorithm selected: spectral
 ------------------------------------
 
 ====== Cluster 0 ======
-Base classifier: LogisticRegression()
+Base classifier: DummyClassifier(strategy='most_frequent')
 Accuracy: 0.3333333333333333
 Recall: 0.3333333333333333
 Precision: 1.0
@@ -20,7 +20,7 @@ Precision: 1.0
 F1: 0.5
 
 ====== Cluster 2 ======
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: LogisticRegression()
 Accuracy: 0.3333333333333333
 Recall: 0.3333333333333333
 Precision: 1.0
@@ -42,22 +42,22 @@ F1: 1.0
 AUC: 1.0
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.579410413856064
+Clustering evaluation value: 0.5803249019471823
 
 ========= Predictions by sample =========
 
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0], Weights: [0.95 0.05 1.   1.   1.  ]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0], Weights: [0.95 0.05 1.   1.   1.  ]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0], Weights: [0.93 0.07 1.   1.   1.  ]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0], Weights: [0.94 0.06 1.   1.   1.  ]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0], Weights: [0.94 0.06 1.   1.   1.  ]
-Prediction: 1, Real label: 1, Votes by cluster: [0 0 0 0], Weights: [0.79 0.21 1.   1.   1.  ]
-Prediction: 1, Real label: 1, Votes by cluster: [0 0 0 0], Weights: [0.77 0.23 1.   1.   1.  ]
-Prediction: 2, Real label: 2, Votes by cluster: [0 0 0 0], Weights: [0.61 0.39 1.   1.   1.  ]
-Prediction: 2, Real label: 2, Votes by cluster: [0 0 0 0], Weights: [0.67 0.33 1.   1.   1.  ]
-Prediction: 2, Real label: 2, Votes by cluster: [0 0 0 0], Weights: [0.63 0.37 1.   1.   1.  ]
-Prediction: 1, Real label: 1, Votes by cluster: [0 0 0 0], Weights: [0.81 0.19 1.   1.   1.  ]
-Prediction: 1, Real label: 1, Votes by cluster: [0 0 0 0], Weights: [0.74 0.26 1.   1.   1.  ]
-Prediction: 2, Real label: 2, Votes by cluster: [0 0 0 0], Weights: [0.54 0.46 1.   1.   1.  ]
-Prediction: 1, Real label: 1, Votes by cluster: [0 0 0 0], Weights: [0.77 0.23 1.   1.   1.  ]
-Prediction: 2, Real label: 2, Votes by cluster: [0 0 0 0], Weights: [0.61 0.39 1.   1.   1.  ]
+Prediction: 0, Real label: 0, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.77 0.23 1.   0.   0.  ]
+Prediction: 0, Real label: 0, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.94 0.06 1.   0.   0.  ]
+Prediction: 0, Real label: 0, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.44 0.56 1.   0.   0.  ]
+Prediction: 0, Real label: 0, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.74 0.26 1.   0.   0.  ]
+Prediction: 0, Real label: 0, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.73 0.27 1.   0.   0.  ]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.94 0.06 1.   0.   0.  ]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.81 0.19 1.   0.   0.  ]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.57 0.43 1.   0.   0.  ]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.72 0.28 1.   0.   0.  ]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1 0], Weights: [0.  0.  1.  1.  0.  0.  0.  0.8 0.2 1.  0.  0. ]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.63 0.37 1.   0.   0.  ]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.95 0.05 1.   0.   0.  ]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.95 0.05 1.   0.   0.  ]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.95 0.05 1.   0.   0.  ]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1 0], Weights: [0.   0.   1.   1.   0.   0.   0.   0.94 0.06 1.   0.   0.  ]

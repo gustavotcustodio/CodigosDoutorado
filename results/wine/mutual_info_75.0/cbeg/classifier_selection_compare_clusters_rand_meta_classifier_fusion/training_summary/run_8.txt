@@ -1,8 +1,8 @@
-Clustering algorithm selected: kmeans++
+Clustering algorithm selected: kmeans
 =====================================
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.41588326272498843
+Clustering evaluation value: 0.40270077911004565
 
 ========== Cluster 0 ==========
 
@@ -10,22 +10,11 @@ Base classifier: GaussianNB()
 
 Minority Class: 0
 
-Selected Features: [12  9  0  6 10  2  5  7 11  4  1]
+Selected Features: [10 12  6  9  2  0  4  7  5  1 11]
 
-Labels: [0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0]
+Labels: [0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0]
 
 ========== Cluster 1 ==========
-
-Base classifier: GaussianNB()
-
-Minority Class: 1
-
-Selected Features: [ 9  3 10  4  6  1  2  8 11  0]
-
-Labels: [1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1]
-
-========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -34,7 +23,18 @@ Minority Class: 0
 Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0]
+ 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 2 ==========
+
+Base classifier: SVC(probability=True)
+
+Minority Class: 1
+
+Selected Features: [ 2  3  9 12  0  6  4 10  1  5]
+
+Labels: [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1]
 
 ========== Cluster 3 ==========
 
@@ -42,8 +42,8 @@ Base classifier: DummyClassifier(strategy='most_frequent')
 
 Minority Class: 1
 
-Selected Features: [12 11 10  9  8  7  6  5  4  3]
+Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1]
+ 1]
 

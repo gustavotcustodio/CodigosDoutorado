@@ -2,18 +2,17 @@ Clustering algorithm selected: spectral
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.7564247419812524
+Clustering evaluation value: 0.7566067439735392
 
 ========== Cluster 0 ==========
 
-Base classifier: GaussianNB()
+Base classifier: DummyClassifier(strategy='most_frequent')
 
 Minority Class: 2
 
 Selected Features: [0 1 2 3]
 
-Labels: [1 1 1 1 1 1 1 1 1 2 2 1 2 1 2 1 1 1 2 2 1 1 1 1 1 2 1 1 1 1 2 1 1 1 2 1 2
- 1 1 1 2 1 1 2 1 1 1 1 1 1 1 1 2 1 2 1 1 2 2 1 2 1]
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
 
 ========== Cluster 1 ==========
 
@@ -23,9 +22,20 @@ Minority Class: 0
 
 Selected Features: [0 1 2 3]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 2 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 2
+
+Selected Features: [0 1 2 3]
+
+Labels: [1 1 1 1 1 1 1 1 1 2 2 1 2 1 2 1 1 1 2 2 1 1 1 1 1 2 1 1 1 1 2 1 1 1 2 1 2
+ 1 1 1 2 1 1 1 1 1 1 1 1 1 1 2 1 2 1 1 2 2 1 2 1]
+
+========== Cluster 3 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -33,15 +43,5 @@ Minority Class: 0
 
 Selected Features: [0 1 2 3]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 3 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 2
-
-Selected Features: [0 1 2 3]
-
-Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 

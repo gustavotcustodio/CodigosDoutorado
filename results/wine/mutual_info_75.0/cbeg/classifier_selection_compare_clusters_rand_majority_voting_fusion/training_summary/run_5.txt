@@ -1,31 +1,20 @@
-Clustering algorithm selected: kmeans
+Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.4313735364661639
+Clustering evaluation value: 0.43415758935419974
 
 ========== Cluster 0 ==========
 
 Base classifier: GaussianNB()
 
-Minority Class: 1
-
-Selected Features: [ 6  9  2  3 11  8 10  5  0 12]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2]
-
-========== Cluster 1 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
 Minority Class: 0
 
-Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
+Selected Features: [ 9  0 12  4  8  1  6  3  5 10]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0]
+Labels: [0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0]
 
-========== Cluster 2 ==========
+========== Cluster 1 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -35,7 +24,7 @@ Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
 Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2]
 
-========== Cluster 3 ==========
+========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -43,15 +32,27 @@ Minority Class: 1
 
 Selected Features: [12 11 10  9  8  7  6  5  4  3]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1]
 
-========== Cluster 4 ==========
+========== Cluster 3 ==========
 
-Base classifier: SVC(probability=True)
+Base classifier: DummyClassifier(strategy='most_frequent')
 
 Minority Class: 0
 
-Selected Features: [ 9  0 11  6  5  3 12  7 10  1  8]
+Selected Features: [12 11 10  9  8  7  6  5  4  3]
 
-Labels: [0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 4 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 1
+
+Selected Features: [ 6  9  2 11  4  3  8 12 10  5]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2]
 
