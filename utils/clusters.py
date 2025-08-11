@@ -2,8 +2,8 @@ import numpy as np
 from collections import Counter
 
 def fix_predict_prob(y_prob_cluster, labels_in_cluster, total_labels):
-    y_prob_cluster[:, 0] = np.nan_to_num(y_prob_cluster[:, 0], nan=1.0)
-    y_prob_cluster = np.nan_to_num(y_prob_cluster, nan=0.0)
+    # y_prob_cluster[:, 0] = np.nan_to_num(y_prob_cluster[:, 0], nan=1.0)
+    y_prob_cluster = np.nan_to_num(y_prob_cluster, nan=1/3)
 
     possible_labels = np.unique(labels_in_cluster)
 

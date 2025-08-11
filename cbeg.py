@@ -26,7 +26,6 @@ from collections import Counter
 from imblearn.over_sampling import SMOTE
 from process_results import filter_cbeg_experiments_configs, experiment_already_performed
 from logger import PredictionResults
-from xgboost import XGBClassifier
 from pso_optimizator import PsoOptimizator
 from classifier_selection import ClassifierSelector
 from utils.clusters import fix_predict_prob
@@ -295,10 +294,14 @@ class CBEG:
                     and function_to_combine == self.calc_training_entropy:
 
                 entropy_cluster = function_to_combine(self.labels_by_cluster[c]) 
+
                 vote_sums[idx_samples, y_pred_cluster
                           ] += u_membership[idx_samples, c] + entropy_cluster
             else:
-                vote_sums[idx_samples, y_pred_cluster] += u_membership[idx_samples, c]
+                vote_sums[idx_samples, y_pred_cluster] += \
+                        u_membership[idx_samples, c] 
+                        # (u_membership[idx_samples, c] * len(self.labels_by_cluster[c]))
+                         # TODO ver se vale a pena multiplicar pelo número de labels
 
         vote_sums /= vote_sums.sum(axis=1)[:, np.newaxis]
         return vote_sums, u_membership

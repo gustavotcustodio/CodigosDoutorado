@@ -52,9 +52,9 @@ class SingleCbegResult(BaseClassifierResult):
         elif 'silhouette' in folder_name:
             self.cluster_selection_strategy = "SS"
         elif 'dbc_rand' in folder_name:
-            self.cluster_selection_strategy = "DBC + Ext."
+            self.cluster_selection_strategy = "DBC + Rand"
         elif 'rand' in folder_name:
-            self.cluster_selection_strategy = "External"
+            self.cluster_selection_strategy = "Rand Score"
         elif 'dbc_ext' in folder_name:
             self.cluster_selection_strategy = "DBC + Ext."
         elif '_ext' in folder_name:
