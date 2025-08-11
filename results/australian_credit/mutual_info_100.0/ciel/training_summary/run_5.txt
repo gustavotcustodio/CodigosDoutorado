@@ -1,30 +1,35 @@
 ============== Classifiers Parameters ==============
-{'svm': [{'cost': np.float64(548.0832126395618), 'gamma': np.float64(799.5846488460725)}, {'cost': np.float64(288.0188041092979), 'gamma': np.float64(525.303903805785)}, {'cost': np.float64(51.63887910844517), 'gamma': np.float64(806.8002746322261)}], 'extra_tree': [{'n_estimators': 188, 'max_depth': 9, 'min_samples_split': 4, 'min_samples_leaf': 7}, {'n_estimators': 309, 'max_depth': 5, 'min_samples_split': 10, 'min_samples_leaf': 5}, {'n_estimators': 167, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 4}], 'grad_boost': [{'n_estimators': 71, 'max_depth': 2, 'min_samples_split': 7, 'min_samples_leaf': 4, 'learning_rate': np.float64(0.525292530824652)}, {'n_estimators': 102, 'max_depth': 5, 'min_samples_split': 7, 'min_samples_leaf': 6, 'learning_rate': np.float64(0.10032725263016076)}, {'n_estimators': 166, 'max_depth': 5, 'min_samples_split': 6, 'min_samples_leaf': 8, 'learning_rate': np.float64(0.1901658389161559)}]}
+[{'n_estimators': 321, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 6, 'learning_rate': 0.585692896014932}, {'n_estimators': 141, 'max_depth': 9, 'min_samples_split': 10, 'min_samples_leaf': 6, 'learning_rate': 0.3745882318818804}, {'n_estimators': 235, 'max_depth': 2, 'min_samples_split': 9, 'min_samples_leaf': 3, 'learning_rate': 0.30779959224350073}, {'n_estimators': 464, 'max_depth': 1, 'min_samples_split': 5, 'min_samples_leaf': 4, 'learning_rate': 0.8344679930720983}]
 
 Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.2577791099764658
-normalized_mutual_info_score: 0.22140515651224502
-v_measure_score: 0.22140515651224504
-fowlkes_mallows_score: 0.573543620231899
+adjusted_rand_score: 0.34061268645978654
+normalized_mutual_info_score: 0.27966258057223886
+v_measure_score: 0.2796625805722389
+fowlkes_mallows_score: 0.6723992315585748
 
 Internal clustering metrics:
-silhouette: 0.11922028446069204
-davies_bouldin: 2.523270353299179
-calinski_harabasz_score: 78.11031428340746
+silhouette: 0.11018488603480334
+davies_bouldin: 2.8230223723106507
+calinski_harabasz_score: 76.02085596285262
 
 Base classifier: gb
 ========== Cluster 0 ==========
 
-Labels: [1 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 1 0 0 1 0 1 0 0
- 1 0 1 1 0 1 1 1 1 0 0 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1
- 1 0 1 0 0 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1
- 1 1 0 0 1 1 1 1 1 1 1 1 1 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 1 0 0 0 1 0 0 1 0
- 1 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1 0 1
- 0 1 1 0 1 0]
+Labels: [1 1 1 1 1 0 0 0 1 1 1 1 1 1 0 1 1 1 1 1 0 1 0 0 1 0 1 1 0 1 0 1 0 1 1 0 0
+ 1 1 0 0 1 0 1 1 0 1 1 1 1 0 1 1 1 1 1 1 1 1 1 0 0 1 1 0 1 1 1 0 0 1 1 0 0
+ 0 0 1 1 1 1 0 0 1 1 1 0 1 1 1 1 1 1 0 1 1 0 1 1 1 0 1 1 0 1 1 1 1 1 1 1 1
+ 0 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 1 1 1 0 1 1 1 1 0 1 1 1 1 1]
 
 ========== Cluster 1 ==========
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 1 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0
+ 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 1 0 0 0 1 0 0 0 1 1 0 0 1 0 1 0 0 0 0
+ 1 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 0]
+
+========== Cluster 2 ==========
 
 Labels: [1 0 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 0 0
  0 1 0 0 0 0 0 0 1 0 0 1 1 0 0 0 0 0 0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 1 0
@@ -32,14 +37,12 @@ Labels: [1 0 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 0
  0 1 1 0 0 1 0 0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 1 1 0 0 0 1 0 0 0 1
  0 0]
 
-========== Cluster 2 ==========
+========== Cluster 3 ==========
 
-Labels: [1 1 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 0 1
- 0 1 1 0 1 1 1 0 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 1 0 0 0 0 1 0 1 0
- 0 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 1 0 1 0 1 1 0 1 0 0 1 0 0 1 0 1 0 1 1 0 1
- 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 1 0 1 0 1 0 0 0 0 0 0
- 1 0 0 0 1 0 0 0 0 0 0 1 1 1 0 0 1 0 0 1 0 0 1 1 1 0 0 0 1 0 1 1 0 0 1 1 0
- 0 1 1 1 1 1 0 1 1 0 0 1 0 1 1 0 0 1 1 1 1 0 1 0 1 0 1 0 0 1 1 0 1 1 1 0 1
- 1 1 0 0 1 1 0 1 0 1 0 0 1 1 0 1 1 1 1 0 1 0 0 1 1 0 0 1 1 0 0 1 1 0 0 0 1
- 0 1 1 0 1 0 1 1 0 1 1 1 0 0 1 1 1 1 0 1 1]
+Labels: [1 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 1 0 0 1 0 1 0 0
+ 1 0 1 1 0 1 1 1 1 0 0 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1
+ 1 0 1 0 0 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1
+ 1 1 0 0 1 1 1 1 1 1 1 1 1 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 1 0 0 0 1 0 0 1 0
+ 1 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1 0 1
+ 0 1 1 0 1 0]
 

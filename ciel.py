@@ -266,7 +266,7 @@ class Ciel:
 
             # with dask.config.set(pool=ThreadPool(4)):
             # Compute in parallel
-            # compute(*delayed_costs)  #, scheduler="threads")
+            # cost_values = compute(*delayed_costs)  #, scheduler="threads")
             print("Tempo solução:", time.time() - inicio)
 
             return cost_values

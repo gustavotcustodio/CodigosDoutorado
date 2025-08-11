@@ -1,21 +1,30 @@
 ============== Classifiers Parameters ==============
-{'svm': [{'cost': np.float64(289.92824980074977), 'gamma': np.float64(380.4284796995735)}, {'cost': np.float64(3.4592429751943032), 'gamma': np.float64(376.4905826499943)}, {'cost': np.float64(256.1222766822352), 'gamma': np.float64(806.5831083858333)}], 'extra_tree': [{'n_estimators': 183, 'max_depth': 3, 'min_samples_split': 7, 'min_samples_leaf': 3}, {'n_estimators': 104, 'max_depth': 1, 'min_samples_split': 8, 'min_samples_leaf': 10}, {'n_estimators': 386, 'max_depth': 5, 'min_samples_split': 7, 'min_samples_leaf': 2}], 'grad_boost': [{'n_estimators': 198, 'max_depth': 7, 'min_samples_split': 10, 'min_samples_leaf': 8, 'learning_rate': np.float64(0.37087413035883765)}, {'n_estimators': 327, 'max_depth': 8, 'min_samples_split': 4, 'min_samples_leaf': 9, 'learning_rate': np.float64(0.30230239864126085)}, {'n_estimators': 73, 'max_depth': 6, 'min_samples_split': 8, 'min_samples_leaf': 7, 'learning_rate': np.float64(0.22534295884871675)}]}
+[{'n_estimators': 396, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 9, 'learning_rate': 0.7980159575738783}, {'n_estimators': 55, 'max_depth': 3, 'min_samples_split': 5, 'min_samples_leaf': 5, 'learning_rate': 0.3456530424868899}, {'n_estimators': 88, 'max_depth': 7, 'min_samples_split': 4, 'min_samples_leaf': 5, 'learning_rate': 0.9523546616230769}]
 
 Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.2820012548653955
-normalized_mutual_info_score: 0.24904982468218745
-v_measure_score: 0.24904982468218748
-fowlkes_mallows_score: 0.5884292090565636
+adjusted_rand_score: 0.3636222178394165
+normalized_mutual_info_score: 0.29733211856121705
+v_measure_score: 0.29733211856121705
+fowlkes_mallows_score: 0.6835503538845611
 
 Internal clustering metrics:
-silhouette: 0.121811780909288
-davies_bouldin: 2.502445757385045
-calinski_harabasz_score: 79.62788616177636
+silhouette: 0.1145604745915622
+davies_bouldin: 2.7565588646334547
+calinski_harabasz_score: 79.79416679395916
 
 Base classifier: gb
 ========== Cluster 0 ==========
+
+Labels: [1 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 1 0 0 1 0 1 0 0
+ 1 0 1 1 0 1 1 1 1 0 0 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1
+ 1 0 1 0 0 1 1 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 1 0 1 0 1
+ 0 1 1 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1 1 1 0 0 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1
+ 1 0 0 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1
+ 0 1 0 1 1 0 1 0]
+
+========== Cluster 1 ==========
 
 Labels: [1 0 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 0 0
  0 1 0 0 0 0 0 0 1 0 0 1 1 0 0 0 0 0 0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 1 0
@@ -23,7 +32,7 @@ Labels: [1 0 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 0
  0 1 1 0 0 1 0 0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 1 1 0 0 0 1 0 0 0 1
  0 0]
 
-========== Cluster 1 ==========
+========== Cluster 2 ==========
 
 Labels: [1 1 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 0 1
  0 1 1 0 1 1 1 0 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 1 0 0 0 0 1 0 1 0
@@ -33,13 +42,4 @@ Labels: [1 1 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 1 1 1 0 0 0 0
  0 0 0 1 0 0 0 0 0 0 1 1 1 0 0 1 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0
  0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 1 1 0 1 0 0 1 1 0 0 1 1 0 0 1 1 0 0 0 1 0 1
  1 0 1 0 1 1 0 1 1 1 0 0 1 1 1 1 0 1 1]
-
-========== Cluster 2 ==========
-
-Labels: [1 0 1 0 0 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 1 0 0 1 0 1 0 0
- 1 0 1 1 0 1 1 1 1 0 0 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1
- 1 0 1 0 0 1 1 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 1 0 1 0 1
- 0 1 1 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1 1 1 0 0 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1
- 1 0 0 0 0 0 0 0 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1
- 0 1 0 1 1 0 1 0]
 

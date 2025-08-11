@@ -1,48 +1,45 @@
 ============== Classifiers Parameters ==============
-{'svm': [{'cost': np.float64(265.7696971621648), 'gamma': np.float64(229.71083229085346)}, {'cost': np.float64(977.2363835400412), 'gamma': np.float64(396.6318143227612)}, {'cost': np.float64(437.321742867756), 'gamma': np.float64(846.7652951306542)}, {'cost': np.float64(309.8424930099636), 'gamma': np.float64(771.2228442825077)}, {'cost': np.float64(272.0173313154237), 'gamma': np.float64(368.54507450239555)}], 'extra_tree': [{'n_estimators': 371, 'max_depth': 5, 'min_samples_split': 5, 'min_samples_leaf': 10}, {'n_estimators': 103, 'max_depth': 2, 'min_samples_split': 9, 'min_samples_leaf': 9}, {'n_estimators': 295, 'max_depth': 7, 'min_samples_split': 4, 'min_samples_leaf': 3}, {'n_estimators': 94, 'max_depth': 7, 'min_samples_split': 9, 'min_samples_leaf': 5}, {'n_estimators': 201, 'max_depth': 7, 'min_samples_split': 6, 'min_samples_leaf': 5}], 'grad_boost': [{'n_estimators': 444, 'max_depth': 5, 'min_samples_split': 9, 'min_samples_leaf': 10, 'learning_rate': np.float64(0.36489997477325187)}, {'n_estimators': 167, 'max_depth': 6, 'min_samples_split': 2, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.8737248712075344)}, {'n_estimators': 275, 'max_depth': 7, 'min_samples_split': 9, 'min_samples_leaf': 7, 'learning_rate': np.float64(0.6098431804774181)}, {'n_estimators': 275, 'max_depth': 6, 'min_samples_split': 6, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.7931189145571758)}, {'n_estimators': 379, 'max_depth': 7, 'min_samples_split': 6, 'min_samples_leaf': 6, 'learning_rate': np.float64(0.7375641303094359)}]}
+[{'cost': 220.0316227610646, 'gamma': 525.5731097328021}, {'cost': 644.6569801565545, 'gamma': 432.5232904160126}, {'cost': 21.398572477176256, 'gamma': 416.11536078387826}, {'cost': 613.7879317881334, 'gamma': 15.961596500935215}]
 
 Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.6007898943733032
-normalized_mutual_info_score: 0.48711009782769277
-v_measure_score: 0.4871100978276928
-fowlkes_mallows_score: 0.7881977187707148
+adjusted_rand_score: 0.7499096215388179
+normalized_mutual_info_score: 0.6431198411014726
+v_measure_score: 0.6431198411014726
+fowlkes_mallows_score: 0.8854424895147797
 
 Internal clustering metrics:
-silhouette: 0.2099335594865992
-davies_bouldin: 1.6543854071005246
-calinski_harabasz_score: 120.84698683248185
+silhouette: 0.36839288061612674
+davies_bouldin: 1.1813705055598707
+calinski_harabasz_score: 300.1101084424855
 
-Base classifier: extra_tree
+Base classifier: svm
 ========== Cluster 0 ==========
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 1 ==========
-
-Labels: [1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 2 ==========
-
-Labels: [1 1 0 0 0 1 1 0 1 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 1 0 0 0 0 0 0 0 0 0 0
- 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
- 0]
-
-========== Cluster 3 ==========
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
-========== Cluster 4 ==========
+========== Cluster 1 ==========
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 1 1 1 0 0 1 0 1 1 1 1
- 1 1 1 1 1 0 0 0 0 1 1 0 1 1 1 0 1 0 1 0 0 1 1 1]
+Labels: [1 1 0 0 0 0 1 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0
+ 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 2 ==========
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 1 0 0 1 1 1 0 1 1 0 1 0
+ 0 1 0 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 0 1 0 1 0 1 1 1 1 0 0 0 1 0 0 1 0 0 1
+ 1 1 0 0 0 1]
+
+========== Cluster 3 ==========
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
 
