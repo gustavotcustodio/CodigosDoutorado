@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from typing import Callable, Optional
-from sklearn.cluster import DBSCAN, KMeans, SpectralClustering, kmeans_plusplus
+from sklearn.cluster import DBSCAN, AffinityPropagation, AgglomerativeClustering, Birch, KMeans, MeanShift, MiniBatchKMeans, SpectralClustering, kmeans_plusplus
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
 from sklearn.metrics.pairwise import cosine_distances
 from fuzzy_cmeans import FuzzyCMeans
@@ -16,6 +16,8 @@ CLUSTERING_ALGORITHMS = {
     'kmeans++': KMeans,
     'fcm': FuzzyCMeans,
     'spectral': SpectralClustering,
+    #'agglomerative_clustering': AgglomerativeClustering
+    #'mini_batch_kmeans': MiniBatchKMeans,
 }
 
 
@@ -26,14 +28,14 @@ class ClusteringModule:
     n_clusters: str | int = "compare"
     clustering_algorithm: str = "kmeans++"
     evaluation_metric: str = "dbc"  # Possible values: dbc, silhouette, dbc_ss, dbc_rand
-    weights_dbc_external = (0.5, 0.5) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
+    weights_dbc_external = (0.50, 0.50) # This attribute weights each part of the metric when using DBC combined with the silhoutte score
     allow_fcm: bool = False
 
     def __post_init__(self):
         self.n_labels = len(np.unique(self.y))
         # Calculate the average cosine distance between samples
         self.distances_between_samples = cosine_distances(self.X, self.X)
-        # self.allow_fcm = True
+        self.allow_fcm = True
 
     def get_clusters_by_centroids(self, centroids):
         dist_matrix = distance_matrix(self.X, centroids)
@@ -76,11 +78,21 @@ class ClusteringModule:
         elif self.evaluation_metric == "dbc_ext":
             return self.get_DBC_external(self.get_DBC_distance(), self.get_external_score())
 
+        elif self.evaluation_metric == "rand":
+            return self.get_rand_score()
+
+        elif self.evaluation_metric == "dbc_rand":
+            return self.get_DBC_rand(self.get_DBC_distance(), self.get_rand_score())
+
         elif self.evaluation_metric == "silhouette":
             return self.get_silhouette()
 
-        else: # DBC combined with silhouette
+        elif self.evaluation_metric == "dbc_ss": 
             return self.get_DBC_silhouette(self.get_DBC_distance(), self.get_silhouette())
+
+        else:
+            print("Error: invalid evaluation metric.")
+            sys.exit()
 
     def add_class_samples_in_cluster(self, clusters):
         classes = np.unique(self.y)
@@ -252,6 +264,7 @@ class ClusteringModule:
 
         # Select the clustering evaluation function
         self.evaluation_function = self.select_evaluation_function()
+        print("Evaluation function:", self.evaluation_function)
 
         # If the number of clusters is 'compare', select the optimal
         # number of clusters and the best clustering algorithm
@@ -344,6 +357,27 @@ class ClusteringModule:
 
             avg_external = float(rand + mi + vm + fm) / 4
             return avg_external
+        return wrapper
+
+    def get_rand_score(self) -> Callable[[NDArray, int], float]:
+        def wrapper(clusters: NDArray[np.int32], _: Optional[int]) -> float:
+            if np.all(clusters == clusters[0]):
+                return 0
+            return adjusted_rand_score(self.y, clusters)
+        return wrapper
+
+    def get_DBC_rand(self, func_DBC: Callable, func_rand_score: Callable
+                           ) -> Callable[[NDArray, int], float]:
+        def wrapper(clusters: NDArray[np.int32], n_clusters: int) -> float:
+            w1 = self.weights_dbc_external[0]
+            w2 = self.weights_dbc_external[1]
+
+            dbc = func_DBC(clusters, n_clusters)
+            rand_score_val = func_rand_score(clusters, n_clusters)
+
+            # print("DBC:", dbc)
+            # print("External:", external_score_val)
+            return w1 * dbc + w2 * rand_score_val
         return wrapper
 
     def get_DBC_external(self, func_DBC: Callable, func_external_score: Callable

@@ -22,25 +22,22 @@ from dask.base import compute
 from dask.delayed import delayed
 from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
-# TODO colocar o restart de solução no PSO
-
-
 POSSIBLE_CLUSTERERS = [
     'kmeans',
     'kmeans++',
     'mini_batch_kmeans',
-    # 'mean_shift',
-    # 'dbscan',
+    'mean_shift',
+    'dbscan',
     'birch',
     'spectral_clustering',
     'agglomerative_clustering',
-    # 'affinity_propagation'
+    'affinity_propagation'
 ]
 
 BASE_CLASSIFIERS = [
@@ -64,7 +61,7 @@ internal_metrics = {
 
 
 class Ciel:
-    def __init__(self, n_iters=10, n_particles=30, ftol_iter=4):
+    def __init__(self, n_iters=10, n_particles=30, ftol_iter=10):
         self.n_iters = n_iters
         self.n_particles = n_particles
         self.ftol_iter = ftol_iter
@@ -265,9 +262,23 @@ class Ciel:
             # compute(*delayed_costs)  #, scheduler="threads")
             print("Tempo solução:", time.time() - inicio)
 
+            # self.update_inertia()
+
+            self.random_restart()
+            print("PSO params:", self.pso.options)
+
             return cost_values
 
         return wrapper
+
+    def update_inertia(self):
+        self.current_iter += 1
+
+        w = self.pso.options['w']
+        w_min = 0.4
+        w_max = self.options['w']
+        w = w_max - self.current_iter * (w_max - w_min) / self.n_iters
+        self.pso.options['w'] = w
 
     # @dask.delayed
     def calc_cost(self, solution, kf, X, y):
@@ -298,9 +309,11 @@ class Ciel:
             else:
                 auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
 
+            # acc = (accuracy_score(y_test, y_score.argmax(axis=1))
             auc_values.append(auc_val)
-
+        
         cost = 1 - np.mean(auc_values)
+
         return cost
 
     def crossval_classifiers_scores(
@@ -368,13 +381,15 @@ class Ciel:
         dimensions = len(self.bounds[0])
 
         print("Searching for best ensemble...")
-        pso = ps.single.GlobalBestPSO(
+
+        self.current_iter = 0
+        self.pso = ps.single.GlobalBestPSO(
             n_particles=self.n_particles, dimensions=dimensions,
             options=self.options, bounds=self.bounds,
             ftol_iter=self.ftol_iter, ftol=1e-4
         )
         fitness_func = self.fitness_eval(X, y)
-        cost, solution = pso.optimize(fitness_func, iters=self.n_iters)
+        cost, solution = self.pso.optimize(fitness_func, iters=self.n_iters)
 
         self.best_solution = solution
         self.best_cost = cost
@@ -402,20 +417,24 @@ class Ciel:
                 self.best_opt.predict_proba(X)
         return y_score, voting_weights, y_pred_by_cluster
 
-    def random_restart(self, optimizer, particle_indices):
+    def random_restart(self):
+        prob_particles = np.random.rand(self.n_particles)
+        particle_indices = np.where(prob_particles < 0.1)[0]
+
         """Resets given particles to random positions in bounds."""
-        lb, ub = optimizer.bounds
-        optimizer.swarm.position[particle_indices] = np.random.uniform(
+        lb, ub = self.pso.bounds
+        self.pso.swarm.position[particle_indices] = np.random.uniform(
             low=lb, high=ub,
-            size=(len(particle_indices),optimizer.dimensions)
+            size=(len(particle_indices), self.pso.dimensions)
         )
-        optimizer.swarm.velocity[particle_indices] = np.random.uniform(
+        lb, ub = np.array(lb), np.array(ub)
+        self.pso.swarm.velocity[particle_indices] = np.random.uniform(
             low=-abs(ub - lb), high=abs(ub - lb), 
-            size=(len(particle_indices), optimizer.dimensions)
+            size=(len(particle_indices), self.pso.dimensions)
         )
-        optimizer.swarm.pbest_pos[
-                particle_indices] = optimizer.swarm.position[particle_indices]
-        optimizer.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
+        self.pso.swarm.pbest_pos[
+                particle_indices] = self.pso.swarm.position[particle_indices]
+        self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
 
 
 def main():
@@ -445,6 +464,8 @@ def main():
         )
         log = Logger(ciel.best_opt, args.dataset, prediction_results)
         log.save_data_fold_ciel(fold)
+        print("Best clustering algorithm:", ciel.best_clusterer)
+        print("Best base classsifier:", ciel.best_classifier)
         print(classification_report(y_val, y_pred, zero_division=0.0))
 
 if __name__ == "__main__":

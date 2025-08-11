@@ -15,44 +15,13 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from utils.clusters import fix_predict_prob
 
 N_FOLDS = 10
 
 # (eps = 0.3, k = 2, damping = 0.5, bandwidth = 0.1)
 # (eps = 0.5, k = 2, damping = 0.5, bandwidth = auto)
 # Agglomerative, MS, Birch, WHC, MB, Kmeans, DBScan(eps0.3), SpectralClustering
-
-POSSIBLE_CLUSTERERS = [
-    'kmeans',
-    'kmeans++',
-    'mini_batch_kmeans',
-    # 'mean_shift',
-    # 'dbscan',
-    'birch',
-    'spectral_clustering',
-    'agglomerative_clustering',
-    # 'affinity_propagation'
-]
-
-BASE_CLASSIFIERS = [
-    'gb',
-    'extra_tree',
-    'svm'
-]
-
-external_metrics = {
-    'adjusted_rand_score': adjusted_rand_score,
-    'normalized_mutual_info_score': normalized_mutual_info_score,
-    'v_measure_score': v_measure_score,
-    'fowlkes_mallows_score': fowlkes_mallows_score,
-}
-
-internal_metrics = {
-    'silhouette': silhouette_score,
-    'davies_bouldin': davies_bouldin_score, # Min
-    'calinski_harabasz_score': calinski_harabasz_score
-}
-
 
 def create_clusterer(clusterer_name: str, n_clusters: int):
     if clusterer_name == 'kmeans':
@@ -152,6 +121,7 @@ class CielOptimizer:
                 clf = OneVsRestClassifier(clf)
 
             clf.fit(samples_by_cluster[c], labels_by_cluster[c])
+
             self.classifiers.append( clf )
 
     def cluster_samples(self, X, y, optimal_clusterer):
@@ -182,6 +152,7 @@ class CielOptimizer:
         return samples_by_cluster, labels_by_cluster
 
     def fit(self, X, y):
+
         self.n_classes = len(np.unique(y))
 
         clusterer = create_clusterer(self.best_clusterer, self.n_clusters)
@@ -201,32 +172,37 @@ class CielOptimizer:
         y_pred_by_clusters = []
 
         for c, classifier in enumerate(self.classifiers):
-            offset = min(self.labels_by_cluster[c])
-            y_pred_cluster = classifier.predict(X) + offset
+            #offset = min(self.labels_by_cluster[c])
+            y_pred_cluster = classifier.predict(X) #+ offset
             y_pred_by_clusters.append(y_pred_cluster)
 
         return np.array(y_pred_by_clusters).T
 
     def predict_proba(self, X):
-        self.y_pred_by_clusters = []
-
         probability_by_class = np.zeros((len(X), self.n_classes))
 
         # Dynamic weighted probability combination strategy for the final classification results;
         for c, classifier in enumerate(self.classifiers):
             predicted_probs = classifier.predict_proba(X)
 
-            # If the classifier was not trained with instances from some classes, add
-            # columns with zeros in the predicted_probs for the missing classes
-            if len(classifier.classes_) < self.n_classes:
-                missing_labels = [label for label in range(self.n_classes)
-                                  if label not in classifier.classes_]
+            #print(predicted_probs)
+            predicted_probs = fix_predict_prob(
+                predicted_probs, self.labels_by_cluster[c], self.n_classes)
 
-                for lbl in missing_labels:
-                    col_zeros = np.zeros((X.shape[0], 1))
-                    predicted_probs = np.hstack(
-                        (predicted_probs[:, :lbl], col_zeros, predicted_probs[:, lbl:])
-                    )
+            #print(self.labels_by_cluster[c])
+            #print(predicted_probs)
+            #print("---------------------------")
+            # # If the classifier was not trained with instances from some classes, add
+            # # columns with zeros in the predicted_probs for the missing classes
+            # if len(classifier.classes_) < self.n_classes:
+            #     missing_labels = [label for label in range(self.n_classes)
+            #                       if label not in classifier.classes_]
+
+            #     for lbl in missing_labels:
+            #         col_zeros = np.zeros((X.shape[0], 1))
+            #         predicted_probs = np.hstack(
+            #             (predicted_probs[:, :lbl], col_zeros, predicted_probs[:, lbl:])
+            #         )
             probability_by_class += predicted_probs * self.weights[c]
 
         weights = np.tile(self.weights, (len(X), 1))
