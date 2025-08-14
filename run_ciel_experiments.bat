@@ -1,8 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Preciso rodar o contraceptive do zero e descobrir qual é o problema dele
+REM Preciso rodar o contraceptive do zero e descobrir qual é o problema dele Começar do fold 5
 
-set DATASETS=rectangles elipses contraceptive german_credit heart pima wdbc australian_credit wine iris
+REM set DATASETS=rectangles elipses contraceptive german_credit heart pima wdbc australian_credit wine iris
+set DATASETS=contraceptive
 set N_PARTICLES=30
 set N_ITERS=10
 

@@ -447,7 +447,8 @@ def main():
 
     X, y = dataset_loader.select_dataset_function(args.dataset)()
 
-    for fold in range(1, N_FOLDS+1):
+    # TODO lembrar que eu fiz isso
+    for fold in range(5, N_FOLDS+1):
 
         # Break dataset in training and validation
         X_train, X_val, y_train, y_val = dataset_loader.split_training_test(X, y, fold)
