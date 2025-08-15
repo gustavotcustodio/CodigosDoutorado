@@ -20,6 +20,35 @@ def split_training_test(X, y, fold, n_runs=10):
 
     return X_train, X_test, y_train, y_test
 
+def read_electricity_dataset():
+    df = pd.read_csv("./datasets/electricity.csv").astype(np.float32)
+    X = df.values
+    ct = ColumnTransformer(
+            transformers = [(
+                'one_hot_encoder',
+                OneHotEncoder(categories = 'auto', sparse_output=False),
+                [1]
+            )],
+            remainder = 'passthrough')
+    y = X[:, -1].astype(int)
+    X = X[:, :-1]
+
+    X = ct.fit_transform(X)
+    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    return X, y
+
+
+def read_blood_dataset():
+    X = np.loadtxt("./datasets/blood.csv", delimiter=",", skiprows=1)
+    np.random.seed(42)
+    np.random.shuffle(X)
+
+    y = X[:,-1].astype(int) - 1
+    X = X[:, :-1]
+    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+
+    return X, y
+
 
 def read_australian_credit_dataset():
     X = np.loadtxt("./datasets/australian.dat", delimiter=",")
@@ -191,6 +220,8 @@ def read_vehicle_dataset():
 
 DATASETS_INFO = {
     "wine": {"function": read_wine_dataset, "nlabels": 3},
+    "blood": {"function": read_blood_dataset, "nlabels": 2},
+    "electricity": {"function": read_electricity_dataset, "nlabels": 2},
     "german_credit": {"function": read_german_credit_dataset, "nlabels": 2},
     "wdbc": {"function": read_wdbc_dataset, "nlabels": 2},
     "water": {"function": read_potability_dataset, "nlabels": 2},
@@ -228,7 +259,7 @@ def normalize_data(X_train, X_test):
 if __name__ == "__main__":
     # X_train, X_test, y_train, y_test = read_iris_dataset(0)
 
-    datasets = [ "wine", "german_credit", "wdbc", "contraceptive",
+    datasets = [ "wine", "blood", "german_credit", "wdbc", "contraceptive",
                   "australian_credit", "pima", "heart", "iris"]
 
     for dataset in datasets:
