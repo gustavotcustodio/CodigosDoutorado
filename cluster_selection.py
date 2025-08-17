@@ -37,8 +37,13 @@ class ClusteringModule:
         self.distances_between_samples = cosine_distances(self.X, self.X)
         self.allow_fcm = True
 
-    def get_clusters_by_centroids(self, centroids):
-        dist_matrix = distance_matrix(self.X, centroids)
+    def get_clusters_by_centroids(self, centroids=None, X=None):
+        if centroids is None:
+            centroids = self.centroids
+        if X is None:
+            X = self.X
+
+        dist_matrix = distance_matrix(X, centroids)
         assigned_clusters = np.argmin(dist_matrix, axis=1)
 
         clusters = self.fix_cluster_sequence(assigned_clusters)
@@ -136,10 +141,8 @@ class ClusteringModule:
         possible_clusterers = []
         candidate_clusters = []
 
-        best_X, best_y = self.X, self.y
-
         n_samples = self.X.shape[0]
-        max_clusters = int(np.sqrt(n_samples) / 2)
+        max_clusters = 3 # int(np.sqrt(n_samples) / 2)
 
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
             if clustering_algorithm == "fcm" and not(self.allow_fcm):
@@ -467,6 +470,15 @@ class ClusteringModule:
         u_membership = 1 / (u_membership + 1e-8)
         u_membership[u_membership > 1] = 1
         return u_membership
+
+    def get_closest_centroids(self, arg1):
+        """TODO: Docstring for get_closest_centroids.
+
+        :arg1: TODO
+        :returns: TODO
+
+        """
+        pass
 
 if __name__ == "__main__":
     fcm = FuzzyCMeans(n_clusters=3)

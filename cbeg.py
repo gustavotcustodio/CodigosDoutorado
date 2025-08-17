@@ -250,36 +250,77 @@ class CBEG:
 
 
     def majority_vote_outputs(
-            self, y_pred_by_clusters: list[NDArray]
+            self, y_prob_by_clusters: list[NDArray], base_classifiers=None
         ) -> tuple[NDArray, NDArray]:
+        # TODO fazer com que os clusters do DummyClassifier não votem
 
         """ Get the predicted class of each different classifier and
         combine their votes into a single prediction.
         """
-        n_samples = y_pred_by_clusters[0].shape[0]
-        vote_count = np.zeros(shape=(n_samples, self.n_labels)).astype(int)
-        n_clusters = len(y_pred_by_clusters)
+        if base_classifiers is None:
+            base_classifiers = self.base_classifiers
 
-        for y_pred_cluster in y_pred_by_clusters:
-            # size n X 2
-            vote_count[range(n_samples), y_pred_cluster] += 1
+        n_samples = y_prob_by_clusters[0].shape[0]
+        vote_count = np.zeros(shape=(n_samples, self.n_labels))#.astype(int)
+        n_clusters = len(y_prob_by_clusters)
+
+        # ypred_train_clusters = []
+
+        # for c in range(n_clusters):
+        #     selected_features = self.features_module.features_by_cluster[c]
+        #     X_cluster = self.X_train[:, selected_features]
+
+        #     ypred_train_clusters.append( base_classifiers[c].predict(X_cluster) )
+        #         
+
+        # ypred_train_clusters = [self.base_classifiers[c].predict(X_cluster)
+        #                         for c in range(n_clusters)]
+        # accuracy_by_cluster = [accuracy_score(self.y_train, y_pred_train)
+        #                        for y_pred_train in ypred_train_clusters]
+
+        for c, y_prob_cluster in enumerate(y_prob_by_clusters):
+            y_pred_cluster = y_prob_cluster.argmax(1)
+
+            if isinstance(base_classifiers[c], DummyClassifier):
+                continue
+
+            #selected_features = self.features_module.features_by_cluster[c]
+            #X_cluster = self.X_train[:, selected_features]
+            vote_count[range(n_samples), y_pred_cluster
+                       ] +=  y_prob_by_clusters[c].max(axis=1)
+
+            #base_classifiers[c].predict_proba(X_cluster).max(axis=1) # accuracy_by_cluster[c]
+        if np.any(self.y_clustering >= 0):
+            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
+            labels = self.y_clustering[samples_unique_cluster]
+
+            vote_count[samples_unique_cluster, :] = 0
+            vote_count[samples_unique_cluster, labels] = n_clusters
 
         # Get the majority class for each sample
         vote_sums = vote_count / vote_count.sum(axis=1)[:, np.newaxis]
         samples_weights = np.full((n_samples, n_clusters), 1 / n_clusters)
+
+        print(y_prob_by_clusters)
+        print(self.labels_by_cluster)
 
         return vote_sums, samples_weights # Voting weights
 
 
     def weighted_membership_outputs(
             self, X: NDArray, y_pred_by_clusters: list[NDArray],
-            function_to_combine: Optional[Callable]=None
+            base_classifiers=None, function_to_combine: Optional[Callable]=None
         ) -> tuple[NDArray, NDArray]:
 
         """ Get the predicted classes from the classifiers and combine them
         through weighted voting. The weight is given according to the
         membership value. """
         n_samples = y_pred_by_clusters[0].shape[0]
+        n_clusters = len(y_pred_by_clusters)
+
+        if base_classifiers is None:
+            base_classifiers = self.base_classifiers
+
         vote_sums = np.zeros(shape=(n_samples, self.n_labels))
 
         centroids = self.cluster_module.centroids
@@ -289,6 +330,9 @@ class CBEG:
         idx_samples = range(n_samples)
 
         for c, y_pred_cluster in enumerate(y_pred_by_clusters):
+
+            if isinstance(base_classifiers[c], DummyClassifier):
+                continue
 
             if function_to_combine is not None \
                     and function_to_combine == self.calc_training_entropy:
@@ -302,6 +346,13 @@ class CBEG:
                         u_membership[idx_samples, c] 
                         # (u_membership[idx_samples, c] * len(self.labels_by_cluster[c]))
                          # TODO ver se vale a pena multiplicar pelo número de labels
+
+        if np.any(self.y_clustering >= 0):
+            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
+            labels = self.y_clustering[samples_unique_cluster]
+
+            vote_sums[samples_unique_cluster, :] = 0
+            vote_sums[samples_unique_cluster, labels] = n_clusters
 
         vote_sums /= vote_sums.sum(axis=1)[:, np.newaxis]
         return vote_sums, u_membership
@@ -425,11 +476,12 @@ class CBEG:
         y_prob_by_clusters = []
         y_pred_by_clusters = []
 
-        n_clusters = self.cluster_module.n_clusters
-
         if self.cluster_module.n_clusters is None:
             print("Error: Number of clusters isn't set.")
             sys.exit(1)
+
+        n_clusters = self.cluster_module.n_clusters
+        self.y_clustering = self.get_y_uniform_clusters(X_test)
 
         for c in range(n_clusters):
             selected_features = self.features_module.features_by_cluster[c]
@@ -440,22 +492,16 @@ class CBEG:
             y_prob_cluster_allclasses = fix_predict_prob(
                     y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
 
-            # y_prob_cluster[:, 0] = np.nan_to_num(y_prob_cluster[:, 0], nan=1.0)
-            # y_prob_cluster = np.nan_to_num(y_prob_cluster, nan=0.0)
-
-            # possible_labels = np.unique(self.labels_by_cluster[c])
-
-            # y_prob_cluster_allclasses = np.zeros((X_test.shape[0], self.n_labels))
-
-            # for i, lbl in enumerate(possible_labels):
-            #     y_prob_cluster_allclasses[:, lbl] = y_prob_cluster[:, i]
             y_prob_by_clusters.append(y_prob_cluster_allclasses)
 
             y_pred_cluster = np.argmax(y_prob_cluster_allclasses, axis=1)
             y_pred_by_clusters.append(y_pred_cluster)
 
+            # if len(unique_classes_in_clusters[c]) < 2
+
         # Used later
         self.y_pred_by_clusters = np.vstack(y_pred_by_clusters).T
+        # self.y_pred_by_clusters[]
 
         if self.combination_strategy == "weighted_membership":
             y_prob, clusters_weights = self.weighted_membership_outputs(X_test, y_pred_by_clusters)
@@ -463,7 +509,7 @@ class CBEG:
             return y_prob
 
         elif self.combination_strategy == "majority_voting":
-            y_prob, clusters_weights = self.majority_vote_outputs(y_pred_by_clusters)
+            y_prob, clusters_weights = self.majority_vote_outputs(y_prob_by_clusters)
             self.cluster_weights_samples = clusters_weights
             return y_prob
 
@@ -484,7 +530,6 @@ class CBEG:
             return y_prob
 
         elif self.combination_strategy == "meta_classifier":
-            # TODO mudar isso para probabilidade
             y_prob, clusters_weights = self.meta_classifier_predict(y_prob_by_clusters)
             self.cluster_weights_samples = clusters_weights
             return y_prob
@@ -492,6 +537,29 @@ class CBEG:
             print("O ERRO:", self.combination_strategy)
             print("Invalid combination_strategy value." )
             sys.exit(1)
+
+    def get_y_uniform_clusters(self, X_test):
+        # Perform a previous prediction seeing the distance between
+        # samples and centroids. Give 100% prob
+        # Cluster the test samples. This is done to check if any sample
+        # belongs in a very well defined cluster.
+        n_clusters = self.cluster_module.n_clusters
+        y_pred_clustering = np.zeros(X_test.shape[0]).astype(int) - 1
+
+        clusters = self.cluster_module.get_clusters_by_centroids(X=X_test)
+
+        get_classes_in_cluster = lambda c: np.unique(self.labels_by_cluster[c])
+        unique_classes_in_clusters = [get_classes_in_cluster(c)
+                                      for c in range(n_clusters)]
+        for c in range(n_clusters):
+            if len(unique_classes_in_clusters[c]) < 2:
+                class_cluster = unique_classes_in_clusters[c][0]
+
+                idx_unique_cluster = np.where(clusters == c)[0]
+                y_pred_clustering[idx_unique_cluster] = class_cluster
+
+        # y_pred_clustering = [0, 0, 0, 1, -1, -1] # if -1, the
+        return y_pred_clustering
 
     def save_training_data(self, filename: str, folder: str):
         # Possible clusters
@@ -612,8 +680,6 @@ class CBEG:
         if y_score is not None:
             y_score = y_score / y_score.sum(axis=1)[:, np.newaxis]
             if multiclass:
-                # print(y_val)
-                # print(y_score)
                 auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
             else:
                 y_score = y_score[:, 1]
@@ -622,6 +688,8 @@ class CBEG:
 
     def fit(self, X: NDArray, y: NDArray):
         """ Fit the classifier to the data. """
+        self.X_train = X
+        self.y_train = y
 
         self.n_labels = np.unique(y).shape[0]
 
@@ -672,9 +740,13 @@ class CBEG:
                 fusion_function = self.majority_vote_outputs
 
             clf_selector = ClassifierSelector(
-                self.n_labels, n_clusters, self.samples_by_cluster,
-                self.labels_by_cluster, fusion_function,
-                feature_selector=self.features_module
+                n_labels = self.n_labels,
+                n_clusters = n_clusters,
+                samples_by_cluster = self.samples_by_cluster,
+                labels_by_cluster = self.labels_by_cluster,
+                cbeg = self,
+                fusion_function = fusion_function,
+                feature_selector = self.features_module
             )
             self.base_classifiers = clf_selector.select_base_classifiers()
 

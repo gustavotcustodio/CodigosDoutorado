@@ -1,7 +1,6 @@
 import numpy as np
 import sys
 import random
-from pydantic.type_adapter import P
 import pyswarms as ps
 from typing import Callable
 from deslib.util.diversity import disagreement_measure
@@ -25,6 +24,7 @@ from feature_selection import FeatureSelectionModule
 from typing import Mapping, Optional, Callable
 from meta_classifier import MetaClassifier
 from utils.clusters import fix_predict_prob
+from cluster_selection import ClusteringModule
 
 N_FOLDS = 10
 
@@ -51,11 +51,12 @@ class ClassifierSelector:
     n_clusters: int
     samples_by_cluster: dict
     labels_by_cluster: dict
+    cbeg: 'CBEG'
     fusion_function: Callable
     n_iters: int = 25
     n_particles: int = 30
     # options: tuple = (0.729, 1.49445, 1.49445) # w, c1 and c2
-    options: tuple = (0.9, 1.5, 2.5) # w, c1 and c2
+    options: tuple = (0.9, 2.0, 2.0) # w, c1 and c2
     feature_selector: Optional[FeatureSelectionModule] = None
     ftol_iter: int = 8
 
@@ -228,6 +229,9 @@ class ClassifierSelector:
 
         clf.fit(X_train, y_train)
         y_prob_cluster = clf.predict_proba(X_val)
+
+        self.cbeg.y_clustering = self.get_y_uniform_clusters(X_val)
+
         return fix_predict_prob(
             y_prob_cluster, self.labels_by_cluster[cluster], self.n_labels)
 
@@ -253,21 +257,9 @@ class ClassifierSelector:
         return fold_classifiers
 
 
-    def newmethod135(self, y_prob_train_by_clf, y_train, y_prob_val_by_clf):
-        # self.meta_classifier = self.train_meta_classifier(
-        #         y_prob_train_by_clf, y_train)
-        meta_classifier = MetaClassifier(y_prob_train_by_clf, y_train)
-        meta_classifier.train()
-
-        y_prob_final, _ = self.fusion_function(
-                y_prob_val_by_clf, meta_classifier)
-
-        return y_prob_final
-
     def eval_base_classifiers(self, X_cluster_by_fold, X_val_by_fold,
                               y_cluster_by_fold, y_val_by_fold):
         def wrapper(selected_classifiers):
-
             eval_by_fold = []
             n_clusters = len(selected_classifiers)
 
@@ -290,6 +282,8 @@ class ClassifierSelector:
                     clf, c, X_cluster_by_fold[c][fold],
                     y_cluster_by_fold[c][fold], X_val
                 ) for c, clf in enumerate(fold_classifiers)]
+
+                # self.cbeg.base_classifiers = fold_classifiers
 
                 y_pred_by_clf = [y_prob.argmax(1) for y_prob in y_prob_val_by_clf]
 
@@ -322,19 +316,22 @@ class ClassifierSelector:
                             y_prob_val_by_clf, meta_classifier)
 
                 elif self.fusion_function.__name__ == 'weighted_membership_outputs':
-                    y_prob_final, _ = self.fusion_function(X_val, y_pred_by_clf)
+                    fusion_function = self.cbeg.weighted_membership_outputs
+                    y_prob_final, _ = fusion_function(
+                        X_val, y_pred_by_clf, base_classifiers = fold_classifiers)
 
                 else: # majority_voting
-                    y_prob_final, _ = self.fusion_function(y_pred_by_clf)
+                    fusion_function = self.cbeg.majority_vote_outputs
+                    y_prob_final, _ = fusion_function(y_pred_by_clf, fold_classifiers)
 
                 y_pred = y_prob_final.argmax(1)
 
                 if self.n_labels > 2:
                     auc_score = roc_auc_score(y_val, y_prob_final, multi_class='ovr')
-                    f1_val = f1_score(y_val, y_pred, average='weighted')
+                    #f1_val = f1_score(y_val, y_pred, average='weighted')
                 else:
                     auc_score = roc_auc_score(y_val, y_prob_final[:,1])
-                    f1_val = f1_score(y_val, y_pred)
+                    #f1_val = f1_score(y_val, y_pred)
 
                 # print("fold:", fold)
                 # print("AUC score:", auc_score)
@@ -344,7 +341,7 @@ class ClassifierSelector:
                 #diversity_score = self.calc_diversity_score(
                 #        n_clusters, y_val, y_pred_by_clf)
                 # Calc the combination of AUC and diversity for this fold
-                eval_fold = auc_score * 0.5 + f1_val * 0.5
+                eval_fold = auc_score  #auc_score * 0.5 + f1_val * 0.5
                 #0.75 * f1_val + 0.25 * diversity_score
 
                 # print("Avg. AUC:", avg_auc_clusters)
@@ -361,15 +358,16 @@ class ClassifierSelector:
         candidate solutions. """
 
         # Wrap each function call in delayed
-        delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
+        #delayed_costs = [delayed(self.calc_cost)(solution) for solution in solutions]
 
         # Compute in parallel
-        costs = compute(*delayed_costs)
+        #costs = compute(*delayed_costs)
 
-        # costs = [self.calc_cost(solution) for solution in solutions]
+        costs = [self.calc_cost(solution) for solution in solutions]
         print(costs)
 
         self.update_inertia()
+        # self.random_restart()
         print("PSO params:", self.pso.options)
         return costs
 
@@ -429,3 +427,47 @@ class ClassifierSelector:
         base_classifiers = self.decode_candidate_solution(best_solution)
 
         return base_classifiers
+
+
+    def get_y_uniform_clusters(self, X_test):
+        # Perform a previous prediction seeing the distance between
+        # samples and centroids. Give 100% prob
+        # Cluster the test samples. This is done to check if any sample
+        # belongs in a very well defined cluster.
+        n_clusters = self.cbeg.cluster_module.n_clusters
+        y_pred_clustering = np.zeros(X_test.shape[0]).astype(int) - 1
+
+        clusters = self.cbeg.cluster_module.get_clusters_by_centroids(X=X_test)
+
+        get_classes_in_cluster = lambda c: np.unique(self.labels_by_cluster[c])
+        unique_classes_in_clusters = [get_classes_in_cluster(c)
+                                      for c in range(n_clusters)]
+        for c in range(n_clusters):
+            if len(unique_classes_in_clusters[c]) < 2:
+                class_cluster = unique_classes_in_clusters[c][0]
+
+                idx_unique_cluster = np.where(clusters == c)[0]
+                y_pred_clustering[idx_unique_cluster] = class_cluster
+
+        # y_pred_clustering = [0, 0, 0, 1, -1, -1] # if -1, the
+        return y_pred_clustering
+
+
+    def random_restart(self):
+        prob_particles = np.random.rand(self.n_particles)
+        particle_indices = np.where(prob_particles < 0.1)[0]
+
+        """Resets given particles to random positions in bounds."""
+        lb, ub = self.pso.bounds
+        self.pso.swarm.position[particle_indices] = np.random.uniform(
+            low=lb, high=ub,
+            size=(len(particle_indices), self.pso.dimensions)
+        )
+        lb, ub = np.array(lb), np.array(ub)
+        self.pso.swarm.velocity[particle_indices] = np.random.uniform(
+            low=-abs(ub - lb), high=abs(ub - lb), 
+            size=(len(particle_indices), self.pso.dimensions)
+        )
+        self.pso.swarm.pbest_pos[
+                particle_indices] = self.pso.swarm.position[particle_indices]
+        self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
