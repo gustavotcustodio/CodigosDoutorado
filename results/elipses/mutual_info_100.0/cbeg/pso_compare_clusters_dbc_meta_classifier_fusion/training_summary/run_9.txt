@@ -1,109 +1,44 @@
-Clustering algorithm selected: spectral
+Clustering algorithm selected: fcm
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.4544519715082186
+Clustering evaluation value: 0.09860084655355295
 
 ========== Cluster 0 ==========
 
-Base classifier: LogisticRegression()
+Base classifier: DecisionTreeClassifier(max_depth=9, min_samples_leaf=9, min_samples_split=8)
 
-Minority Class: 2
+Minority Class: 1
 
 Selected Features: [0 1]
 
-Labels: [2 1 0 1 1 1 0 0 1 0 1 2 0 0 0 1 0 1 1 1 0 0 0 1 0 0 2 0 1 1 2 2 1 0 1 0 0
- 1 1 1 0 2 1 1 1 2 2 1 0 1 1 0 1 2 0 0 1 0 1 2 0 0 0 2 1 1 1 1 0 0 0 0 1 1
- 2 0 0 0 1 2 1 0 0 1 1 0 1 0 2 2 2 1 1 0 2 2 1 0 0 0 1 0 1 0 1 0 0 1 0 0 0
- 0 1 0 0 1 1 0 1 0 1 1 0 2 0 1 0 2 0 0 2 0 1 1 1 0 2 2 1 1 0 0 0 1 1 1 0 1
- 1 0 2 1 0 1 0 2 1 0 1 1 1 1 0 1 1 0 1 0 0]
+Labels: [2 2 2 2 1 2 0 0 1 2 0 2 0 1 0 1 1 1 2 0 2 2 2 1 1 0 1 2 1 2 2 0 1 2 1 2 2
+ 1 0 2 2 2 2 0 2 0 2 2 0 2 2 0 0 2 2 1 2 2 2 2 1 2 0 1 2 0 2 1 0 0 2 2 2 0
+ 1 2 2 0 0 2 1 2 0 0 1 2 0 2 0 2 2 2 0 2 2 1 2 1 1 2 0 1 2 2 2 1 2 0 2 0 2
+ 2 0 2 2 2 1 1 1 2 2 0 2 2 2 2 1 1 2 2 0 0 2 0 2 2 0 2 0 2 2 1 1 2 1 1 0 0
+ 2 2 2 2 2 1 2 2 0 1 0 2 0 2 0 2 0 2 1 2 2 2 1 2 2 2 2 2 0 2 2 0 2 2 0 2 2
+ 2 1 2 0 2 2 1 0 2 2 1 0 2 0 2 2 2 2 0 1 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 2 2
+ 2 1 2 2 0 2 0 0 2 2 0 2 2 2 2 2 2 2 2 2 2 0 2 0 2 2 2 0 2 2 2 2 1 0 2 0 2
+ 2 2 0 2 2 2 1 2 2 2 2 2 0 0 1 2 2 2 2 0 2 2 2 2 2 2 1 2 1 2 0 2 1 2 1 1 2
+ 2 2 2 2 2 0 2 0 2 0 2 0 0 2 1 2 0 2 2 2 2 2 2 2 2 2 2 1 2 0 0 0 2 0 2 1 2
+ 2 0 0]
 
 ========== Cluster 1 ==========
 
-Base classifier: LogisticRegression()
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [2 1 0 0 1 2 2 0 1 0 1 2 1 0 1 1 2 1 1 0 2 2 2 0 0 2 1 2 2 0 1 2 1 0 2 0 1
- 0 0 1 1 2 2 0 1 1 2 2 0 2 1 1 1 1 2 1 2 2 0 2 0 2 1 2 1 2 0 2 0 1 2 2 2 0
- 2 2 2 1 2 1 2 2 2 2 2 2 2 2 2 0 2 1 2 0 0 0 0 2 2 2 0 2 2 2 2 1 2 0 1 2 2
- 0 0 2 2 2 2 1 0 1 2 1 1 2 0 2 2 2 1 2 2 2 2 0 0 1 2 0]
-
-========== Cluster 2 ==========
-
-Base classifier: KNeighborsClassifier(n_neighbors=7)
+Base classifier: DecisionTreeClassifier(max_depth=8, min_samples_leaf=2, min_samples_split=7)
 
 Minority Class: 2
 
 Selected Features: [0 1]
 
-Labels: [0 0 0 2 0 2 2 0 2 0 0 0 2 0 0 0 0 2 0 0 0 0 0 0 2 2 0 2 0 2 0 0 0 0 0 2 0
- 0 0 0 0 2 2 2 2 0 2 2 2 2 2 2 0 2 0 0 0 2 2 2 0 0 2 0 0 0 0 0 2 2 0 0 2 0]
-
-========== Cluster 3 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0]
-
-========== Cluster 4 ==========
-
-Base classifier: LogisticRegression()
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 0 1 1 0 0 1 1 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 1 0 1 1 1 1 1 0 0 0 0
- 1 1 1 0 0 1 1 1 0 1 0 0 0 1 0 0 0 1 0 0 1 1 1 1]
-
-========== Cluster 5 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 2
-
-Selected Features: [0 1]
-
-Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2]
-
-========== Cluster 6 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 2
-
-Selected Features: [0 1]
-
-Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2 2]
-
-========== Cluster 7 ==========
-
-Base classifier: DecisionTreeClassifier(max_depth=2, min_samples_leaf=9, min_samples_split=3)
-
-Minority Class: 2
-
-Selected Features: [0 1]
-
-Labels: [2 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 2 1 2 1 1 1 1 2
- 2 1 1 1 1 2 2 2 1 1 1 2 1 1 1 1 2 2 1 1 1 1 1 2 1 1 1 1 1]
-
-========== Cluster 8 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 0 1 1 1 0 0 1 1 0 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 2 1 1 0 0 0 1 0 1 0 1 1
+ 1 1 0 0 1 0 0 1 1 1 1 1 0 0 0 0 0 2 0 1 1 0 2 0 2 0 1 1 0 1 0 1 0 1 0 1 0
+ 0 0 1 1 1 0 0 0 0 1 0 1 0 0 2 0 1 0 1 0 0 2 0 1 1 0 0 1 0 2 1 1 0 1 0 1 0
+ 1 0 0 1 1 1 2 0 1 0 1 0 1 0 0 1 1 2 1 1 0 0 0 2 1 1 1 0 1 1 1 1 1 0 0 0 1
+ 0 1 1 1 0 0 1 0 1 0 0 1 0 2 1 0 0 1 1 0 1 1 1 1 0 1 1 0 2 2 0 1 1 1 1 1 0
+ 0 2 0 2 1 1 1 1 0 0 1 0 1 0 1 0 1 1 0 0 1 1 0 1 0 0 1 0 1 1 1 0 0 0 0 1 2
+ 2 0 0 1 0 0 1 1 1 0 1 1 0 1 1 0 1 0 0 1 1 1 1 0 2 0 0 1 1 1 0 1 1 0 0 0 1
+ 0 0 1 0 1 1 1 1 1 0 2 1 0 0 2 1 1 1 0 0 0 1 1 1 0 0 0 1 0 1 1 1 0 0 1 1 1
+ 1 1 0 0 0 0 2 0 1 0 1 1 0 1 1 1 0 2 1 0 0 1 0 1 1 1 1 1 1 1 1 1 0 0 1 1 0
+ 1 0 0 0 1 1]
 

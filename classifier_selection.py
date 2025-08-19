@@ -15,7 +15,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
 from sklearn.model_selection import StratifiedKFold
 # from concurrent.futures import ThreadPoolExecutor, as_completed
 from dask.base import compute
@@ -322,16 +322,16 @@ class ClassifierSelector:
 
                 else: # majority_voting
                     fusion_function = self.cbeg.majority_vote_outputs
-                    y_prob_final, _ = fusion_function(y_pred_by_clf, fold_classifiers)
+                    y_prob_final, _ = fusion_function(y_prob_val_by_clf, fold_classifiers)
 
                 y_pred = y_prob_final.argmax(1)
 
                 if self.n_labels > 2:
-                    auc_score = roc_auc_score(y_val, y_prob_final, multi_class='ovr')
-                    #f1_val = f1_score(y_val, y_pred, average='weighted')
+                    #auc_score = roc_auc_score(y_val, y_prob_final, multi_class='ovr')
+                    f1_val = f1_score(y_val, y_pred, average='weighted')
                 else:
-                    auc_score = roc_auc_score(y_val, y_prob_final[:,1])
-                    #f1_val = f1_score(y_val, y_pred)
+                    #auc_score = roc_auc_score(y_val, y_prob_final[:,1])
+                    f1_val = f1_score(y_val, y_pred)
 
                 # print("fold:", fold)
                 # print("AUC score:", auc_score)
@@ -341,7 +341,9 @@ class ClassifierSelector:
                 #diversity_score = self.calc_diversity_score(
                 #        n_clusters, y_val, y_pred_by_clf)
                 # Calc the combination of AUC and diversity for this fold
-                eval_fold = auc_score  #auc_score * 0.5 + f1_val * 0.5
+
+                eval_fold = 0.5 * (accuracy_score(y_val, y_pred) + f1_val)  #auc_score * 0.5 + f1_val * 0.5
+
                 #0.75 * f1_val + 0.25 * diversity_score
 
                 # print("Avg. AUC:", avg_auc_clusters)

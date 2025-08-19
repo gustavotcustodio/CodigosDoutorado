@@ -1,67 +1,29 @@
-Clustering algorithm selected: kmeans++
+Clustering algorithm selected: spectral
 =====================================
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.45986722625304416
+Clustering evaluation value: 0.005561401459756118
 
 ========== Cluster 0 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 1 ==========
-
-Base classifier: SVC(probability=True)
+Base classifier: KNeighborsClassifier(n_neighbors=7)
 
 Minority Class: 0
 
 Selected Features: [0]
 
-Labels: [1 0 1 1 1 1 0 0 0 0 1 1 1 1 1 0 1 0 0 0 1 1 1 1 0 1 0 1 0 0 0 0 0 1 0 0 1
- 0 1 1 0 0 1 1 1 1 1 1 0 1 1 0 1 0 1 1 1 0 0 1 1 1 0 1 1 0 0 0 1 0 1 1 1 1
- 0 0 1 1 0 1 0]
+Labels: [1 1 0 1 1 0 0 0 1 1 1 0 0 1 0 1 0 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 0 0 1 0 1
+ 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 1 1 1 0 0 0 1 1 0 0 0 1 1 1 1 0 1 0 1 1 1 1
+ 1 1 1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 1 0 1 0 0 1 1 1 0 0 1 1 1
+ 1 1 1 0 0 1 1 0 1 1 1 0 0 0 1 0 1 1 1 1 0 0 0 1 1 1 0 1 0 1 0 1 0 0 1 0 0
+ 0 0 1 0 0 1 0 1 1 1 0 0 0 1 1 1 1 0 1 1 1 0 1 0 0 1 0 0 1 1 1 0 0 1 1 0 1
+ 0 0 0 1 0 0 1 0 0 1 1 0 0 0 1 0 1 0 0 1 1 0 0 1 1 1 1 0 1 1 0 1 0 1 0 0 1
+ 1 1 0 1 1 1 0 1 1 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 0 1 0 0 0 0
+ 1 1 1 1 1 0 1 1 1 0 1 1 0 1 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 1 0 1 1 1 0 1 0
+ 0 0 1 1 0 1 0 0 1 0 1 1 1 1 0 1 1 1 0 0 1 0 1 1 0 0 1 0 1 1 0 0 0 1 0 0 1
+ 1 1 0 1 1 0 1 1 1 1 0 1 0 0 1 1 0 1 0 1 0 0 0 1 0 1 0 0 0]
 
-========== Cluster 2 ==========
-
-Base classifier: SVC(probability=True)
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 1 0 1 1 0 1 1 0 0 1 0 0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1 0 0 0 0
- 0 1 0 0 1 1 1 0 0 1 0 1 0 1 0 1 1 1 0 1 0 1 1 0 1 1 0 0 1 0 1 1 1 0 0 1 0
- 1 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 1 0 0 1 0 0 0 0]
-
-========== Cluster 3 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 4 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 5 ==========
+========== Cluster 1 ==========
 
 Base classifier: LogisticRegression()
 
@@ -69,62 +31,14 @@ Minority Class: 1
 
 Selected Features: [0]
 
-Labels: [1 0 1 0 1 0 1 0 0 0 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 1 0 1 0 1 1 0 1 0 1 1 1
- 0 0 0 1 1 0 1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 6 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 7 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 8 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0]
-
-========== Cluster 9 ==========
-
-Base classifier: KNeighborsClassifier(n_neighbors=7)
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 0 0 1 0 0 0 1 0 0 1 0 1 1 0 1 0 0 0 0 1 1 1 0 1 0 0 0 1 0 0 1 1 0 0 1 0
- 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 0 1 0 0 0 1 1 0
- 1 1 1 0 0 0 1 0 0 1 0 0 0 1 0 1 0 0 1 1]
-
-========== Cluster 10 ==========
-
-Base classifier: GaussianNB()
-
-Minority Class: 0
-
-Selected Features: [0]
-
-Labels: [1 1 0 1 1 1 1 1 1 1 1 0 0 1 1 0 0 0 1 1 1 0 0 1 1 0 1 1 0 0 1 1 1 1 1 0 0
- 1 1 1 0 1 1 0 1 1 1 0 1 0 1 1 0 0]
+Labels: [1 0 0 1 1 1 0 0 0 0 1 1 1 0 1 1 0 0 0 0 1 0 0 1 1 0 0 1 0 1 0 0 0 1 1 0 1
+ 0 0 0 1 0 0 1 1 1 0 0 1 0 1 0 0 1 0 0 0 0 1 0 1 1 0 0 0 0 0 0 1 1 0 1 0 1
+ 0 0 1 0 1 0 1 1 1 0 0 0 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 0 1 1 0 1 0 0 1 0 0
+ 0 1 1 0 0 1 1 0 1 0 1 0 1 1 0 0 1 1 0 0 0 0 0 1 0 1 0 0 0 1 1 0 0 1 0 0 1
+ 0 0 0 1 1 0 1 0 1 1 0 0 1 1 1 1 1 0 0 1 1 0 0 0 0 0 0 0 1 0 1 1 0 0 0 0 0
+ 1 1 0 0 1 1 1 0 0 0 1 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 1 0 1 0 0 1 1 0 0
+ 0 1 1 1 0 1 1 1 0 1 0 0 0 0 1 0 1 0 1 1 0 1 0 1 1 1 0 1 1 0 0 1 0 0 1 0 1
+ 1 0 1 1 0 1 1 1 0 1 0 1 1 0 0 0 1 0 0 1 0 1 1 1 0 1 0 1 1 0 1 1 1 0 0 1 1
+ 1 1 1 0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0 1 1 0 1 1 0 0 1 0
+ 1 0 0 0 0 1 1 1 1 0 1 1 0 0 0 0 0 1 0 0 1 0 1 0 1]
 

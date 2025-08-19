@@ -1,140 +1,44 @@
-Clustering algorithm selected: fcm
+Clustering algorithm selected: kmeans
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.4747342091524279
+Clustering evaluation value: 0.062083994910469925
 
 ========== Cluster 0 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: DecisionTreeClassifier(max_depth=4, min_samples_leaf=9, min_samples_split=6)
 
-Minority Class: 1
+Minority Class: 0
 
 Selected Features: [0 1]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [1 1 0 1 1 0 0 0 0 1 1 1 0 0 1 0 1 0 1 1 0 0 1 1 1 0 1 0 1 1 0 0 1 0 1 0 0
+ 0 0 1 1 0 1 1 1 1 1 0 1 1 1 0 0 1 0 0 1 1 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1 0
+ 0 1 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 0 1 0 1 0 0 1 1 0 0 1 1 1 1 1 0 0 1 1 0
+ 1 1 1 0 0 0 1 0 1 1 1 1 0 0 0 1 1 1 0 1 0 1 0 1 0 0 1 0 0 0 0 1 0 0 1 0 1
+ 1 1 0 0 0 1 1 1 1 0 1 1 1 0 1 0 0 1 0 0 1 1 1 0 0 1 1 0 1 0 0 0 1 0 0 0 1
+ 0 0 1 1 0 0 0 1 0 1 0 0 1 1 0 0 1 1 1 1 0 1 1 0 1 0 1 0 0 1 1 0 1 1 0 1 1
+ 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 0 0 1 0 0 0 0 1 1 1 1 1 0 1 1
+ 1 0 1 0 1 0 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 1 0 1 1 0 1 0 0 0 1 1 0 1 0 0 1
+ 0 1 1 1 1 0 1 1 1 0 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 1 1 1 0 1 1 0 1 1 1 1 0
+ 1 0 0 1 1 0 1 0 1 0 0 0 1 0 1 0 0 0]
 
 ========== Cluster 1 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 2 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: SVC(C=565.2997646749244, gamma=882.9815885100514, probability=True)
 
 Minority Class: 1
 
 Selected Features: [0 1]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 3 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 4 ==========
-
-Base classifier: LogisticRegression()
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 1 1 1 0 0 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 1
- 1 1 0 1 0 1 0 1 1 1 1 1 1 0 0 1 0 1 1 1 1 0 0 0 0 0 1 1 0 1 0 0]
-
-========== Cluster 5 ==========
-
-Base classifier: SVC(C=192.5480247399875, gamma=263.9720869843861, probability=True)
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 0 0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 1 1 1 1 0 0 0 0 0 0 0 1 0 1 1 0 1 0 0 0
- 0 0 0 0 0 0 0 1 0 0 1 1 0 1 1 1 0 0 1 1 1 0 1 0 1 0 0 0 0 1 0 0 1 1 0 0 1
- 1 1 1 0 0 1 1 0 1 0 1 0 0 0 1 0 0 1 1]
-
-========== Cluster 6 ==========
-
-Base classifier: GaussianNB()
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [1 1 0 1 1 0 1 1 0 1 1 1 1 1 1 1 1 0 0 1 1 0 0 1 0 1 1 1 1 1 1 0 1 0 1 0 1
- 1 0 1 0 1 0 0 1 1 1 1 1 0 0 1 0 0 1 1 0 1 1 1 0 0 0 1 1 1 0 0 1 0 0 0 0 0
- 0 0 0 1 0 0]
-
-========== Cluster 7 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0]
-
-========== Cluster 8 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 9 ==========
-
-Base classifier: KNeighborsClassifier(n_neighbors=7)
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [1 0 1 1 1 1 0 1 1 1 0 1 0 0 1 1 1 0 0 0 0 0 1 0 1 1 0 1 0 1 0 1 0 0 0 1 0
- 0 0 1 0 0 1 0 0 1 1 1 1 1 0 1 1 0 1 1 1 1 1 0 0 1 1 1 1 0 0 1 0 0 1 0 1 1
- 0 1 1 0 1 0]
-
-========== Cluster 10 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0]
-
-========== Cluster 11 ==========
-
-Base classifier: LogisticRegression()
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 0 1 1 0 1 1 0 0 0 1 0 1 0 0 1 0 0 1 0 0 1 1 1 1 0 0 0 0 0 0 0 1 0 0 1
- 0 0 1 1 1 0 0 1 1 0 0 1 0 1 0 0 1 1 1 1 0 1 1 1 0 0 0 0 0 1 1 0 0 0 0]
+Labels: [1 0 0 1 1 1 0 0 0 1 1 1 0 1 1 0 0 0 0 1 0 0 1 1 1 0 0 1 0 0 1 0 0 0 1 1 0
+ 1 0 0 0 1 0 0 1 1 1 0 0 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 0 1 0 0 1 0 0 0 1 0
+ 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 1 0 1 0 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 0 1 1
+ 1 0 0 1 1 0 0 0 1 1 1 0 0 1 1 0 1 0 1 0 1 1 0 0 1 1 0 0 0 0 0 1 0 1 0 0 0
+ 1 1 0 0 1 0 0 1 0 0 0 1 1 0 1 0 1 1 0 0 1 1 1 1 1 0 0 1 1 0 0 0 0 0 0 0 1
+ 0 1 1 0 0 0 0 1 1 0 0 1 1 1 0 0 0 1 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 1 0
+ 1 0 0 1 1 1 0 0 0 1 1 1 1 0 1 1 1 0 1 0 0 0 0 1 0 1 0 1 1 0 1 0 1 1 1 0 1
+ 1 0 1 0 0 1 0 1 1 0 1 1 0 1 1 1 0 1 0 1 1 0 0 1 0 0 1 0 1 1 1 1 0 1 0 1 1
+ 1 0 1 1 1 0 0 1 1 1 1 1 0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0
+ 1 1 1 1 0 1 1 0 0 1 0 1 0 0 0 0 1 1 1 1 0 1 1 0 0 0 0 0 1 0 0 1 0 1 0 1]
 

@@ -165,14 +165,15 @@ def main():
     datasets = [
         "elipses",
         "rectangles",
-        "australian_credit",
-        "german_credit",
-        "contraceptive", 
+        #"australian_credit",
+        #"german_credit",
+        #"contraceptive", 
         "wine",
         "wdbc",
-        "pima",
+        #"pima",
         "iris",
         "heart",
+        #"blood",
     ]
     datasets = filter_no_experim_datasets(datasets)
 

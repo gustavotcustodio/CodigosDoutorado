@@ -1,92 +1,44 @@
-Clustering algorithm selected: spectral
+Clustering algorithm selected: kmeans
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.5858897730573681
+Clustering evaluation value: 0.11754519625734472
 
 ========== Cluster 0 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: KNeighborsClassifier(n_neighbors=7)
 
-Minority Class: 1
+Minority Class: 0
 
-Selected Features: [0 1]
+Selected Features: [0]
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 1 1 1 0 0 0 1 1 0 0 0 1 1 1 1 0 1 0
+ 1 1 1 1 1 1 0 1 0 0 0 0 1 1 0 1 1 1 1 1 0 1 1 1 0 0 1 0 0 1 1 0 0 0 1 1 1
+ 1 0 0 0 0 1 1 1 1 0 0 1 0 0 0 0 0 1 0 0 0 1 1 0 1 1 0 0 1 0 1 0 0 1 1 0 0
+ 1 1 1 1 1 0 0 1 1 0 1 1 1 0 0 0 1 0 1 1 1 1 0 0 0 1 1 1 0 1 0 1 0 1 0 0 1
+ 0 0 0 0 1 0 0 1 0 1 1 1 0 0 0 1 1 1 1 0 1 1 1 0 1 0 0 1 0 0 1 1 1 0 0 1 1
+ 0 1 0 0 0 1 0 0 0 1 0 0 1 1 0 0 0 1 0 1 0 0 1 1 0 0 1 1 1 1 0 1 1 0 1 0 1
+ 0 0 1 1 0 1 1 0 1 1 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 0 0 1 0 0
+ 0 0 1 1 1 1 1 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 1 0 1 1 0 1
+ 0 0 0 1 1 0 1 0 0 1 0 1 1 1 1 0 1 1 1 0 0 1 0 0 0 1 0 1 1 0 0 0 1 0 0 1 1
+ 1 0 1 1 0 1 1 1 1 0 1 0 0 1 1 0 1 0 1 0 0 0 1 0 1 0 0 0]
 
 ========== Cluster 1 ==========
 
-Base classifier: KNeighborsClassifier()
+Base classifier: LogisticRegression()
 
 Minority Class: 1
 
 Selected Features: [0]
 
-Labels: [0 0 1 0 0 0 0 0 0 1 1 1 0 1 1 1 0 0 1 0 0 0 0 0 1 0 1 1 1 0 0 1 1 0 0 1 0
- 1 0 0 0 0 1 1 0 1 1 1 0 1 1 1 1 1 0 0 1 0 1 1 0 1 0 0 1 1 1 0 1 0 1 1 0 1
- 1 0 0 1 0 1 1 1 1 1 0 0 0 1 0 1 1 0 1 0 1 1 1 0 1 1 1 0 0 0 0 0 0 0 1 1 0
- 0 1 0 0 1 0 0 0 0]
-
-========== Cluster 2 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 3 ==========
-
-Base classifier: SVC(probability=True)
-
-Minority Class: 1
-
-Selected Features: [0]
-
-Labels: [0 1 1 1 0 0 0 0 1 0 0 1 1 1 0 1 1 1 0 1 1 1 0 0 1 1 0 0 0 0 1 0 0 1 1 0 1
- 1 1 1 0 0 0 1 1 0 0 1 1 0 1 0 0 1 0 1 1 1 1 1 0 1 0 1 1 0 1 0 1 1 0 1 1 1
- 0 0 0 1 0 0 1 1 0 0 1 0 0 0 0 0 0 0 1 0 0 0]
-
-========== Cluster 4 ==========
-
-Base classifier: SVC(probability=True)
-
-Minority Class: 0
-
-Selected Features: [0]
-
-Labels: [0 1 0 0 1 1 1 1 1 0 0 0 0 0 1 0 1 0 1 1 1 1 0 1 1 1 0 1 1 0 1 1 0 1 1 1 0
- 0 0 0 1 0 0 1 1 1 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 0 1 0 1 0 1 0 0 1 0 0 0 0
- 1 1 0 0 0 1 0 1 0 1 0 0 1 1 0 1 1 0 0 0 1 0 1 1 1 1 0 0 1 1 0 0 0 1 1 0 0
- 1 1 1 0 0 1 1 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1
- 0 0 0 1 1 0 0 1 0 0 1 1 0 0 1 0 1 1 1 0 0 0 0 1 1 1 1 1 1 1 1 1 0 1 1 0 0
- 1 0 1 1 0 0 1 1 1 0 1 0 1 1 1 0 0 1 1 1 0 1 0 0 0 1 1 0 1 1 1 1 1 0 0 1 1
- 1 1 0 1 0 1 1 0 0 0 0 0 1 1 0 1 1 0 1 0 0 1 0 1 1 1 0 1 0 0 0 0 1 0 0 0 1
- 1 0 1 1 0 1 1 0 0 0 1 1 0 1 1]
-
-========== Cluster 5 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 6 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 0
-
-Selected Features: [0 1]
-
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+Labels: [0 0 1 0 1 0 0 1 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 1 0 1 0 0 1 0 1 0 1 1 1 1
+ 0 0 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 0 1 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 0 1 0
+ 1 0 0 0 0 1 0 1 0 0 0 1 1 1 0 0 0 1 1 0 0 1 1 0 0 1 1 1 0 0 1 1 0 0 0 1 1
+ 1 0 0 1 1 0 1 0 1 0 1 1 0 0 1 1 0 0 0 0 0 1 0 1 0 0 0 1 1 0 0 1 0 0 1 0 0
+ 0 1 1 0 1 0 1 1 0 0 1 1 1 1 1 0 0 1 1 0 0 0 0 0 0 0 1 0 1 1 0 0 0 0 1 1 0
+ 0 1 1 1 0 0 0 1 0 0 0 0 1 1 1 1 1 0 0 0 1 1 1 1 0 1 0 1 0 0 1 1 1 0 0 0 1
+ 1 1 1 0 1 1 1 0 1 0 0 0 0 1 0 1 0 1 1 0 1 0 1 1 1 0 1 1 0 1 0 0 1 0 1 1 0
+ 1 1 0 1 1 1 0 1 0 1 1 0 0 1 0 0 1 0 1 1 1 1 0 1 0 1 1 1 0 1 1 1 0 0 1 1 1
+ 1 1 0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0 1 1 1 1 0 1 1 0 0 1
+ 0 1 0 0 0 0 1 1 1 1 0 1 1 0 0 0 0 0 1 0 0 1 0 1 0 1]
 

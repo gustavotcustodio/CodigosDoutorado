@@ -301,9 +301,6 @@ class CBEG:
         vote_sums = vote_count / vote_count.sum(axis=1)[:, np.newaxis]
         samples_weights = np.full((n_samples, n_clusters), 1 / n_clusters)
 
-        print(y_prob_by_clusters)
-        print(self.labels_by_cluster)
-
         return vote_sums, samples_weights # Voting weights
 
 
