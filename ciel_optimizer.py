@@ -151,14 +151,39 @@ class CielOptimizer:
 
         return samples_by_cluster, labels_by_cluster
 
+    def get_y_uniform_clusters(self, X_test):
+        # Perform a previous prediction seeing the distance between
+        # samples and centroids. Give 100% prob
+        # Cluster the test samples. This is done to check if any sample
+        # belongs in a very well defined cluster.
+        n_clusters = self.n_clusters
+        y_pred_clustering = np.zeros(X_test.shape[0]).astype(int) - 1
+
+        clusters = self.clusterer.predict(X_test)
+
+        get_classes_in_cluster = lambda c: np.unique(self.labels_by_cluster[c])
+        unique_classes_in_clusters = [
+            get_classes_in_cluster(c) for c in range(n_clusters)
+        ]
+        for c in range(n_clusters):
+            if len(unique_classes_in_clusters[c]) < 2:
+                class_cluster = unique_classes_in_clusters[c][0]
+
+                idx_unique_cluster = np.where(clusters == c)[0]
+                y_pred_clustering[idx_unique_cluster] = class_cluster
+
+        # y_pred_clustering = [0, 0, 0, 1, -1, -1] # if -1, the
+        return y_pred_clustering
+
     def fit(self, X, y):
 
         self.n_classes = len(np.unique(y))
 
-        clusterer = create_clusterer(self.best_clusterer, self.n_clusters)
-        clusters = clusterer.fit_predict(X)
+        self.clusterer = create_clusterer(self.best_clusterer, self.n_clusters)
+        clusters = self.clusterer.fit_predict(X)
+
         # samples_by_cluster, self.labels_by_cluster = \
-        #         self.cluster_samples(X, y, optimal_clusterer)
+        #         cluster_samples(X, y, optimal_clusterer)
         samples_by_cluster, self.labels_by_cluster = \
                 self.split_clusters_in_lists(clusters, X, y)
         # print("Num. clusters:", len(samples_by_cluster))
@@ -176,13 +201,21 @@ class CielOptimizer:
             y_pred_cluster = classifier.predict(X) #+ offset
             y_pred_by_clusters.append(y_pred_cluster)
 
+        if np.any(self.y_clustering >= 0):
+            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
+            labels = self.y_clustering[samples_unique_cluster]
         return np.array(y_pred_by_clusters).T
 
     def predict_proba(self, X):
         probability_by_class = np.zeros((len(X), self.n_classes))
 
+        self.y_clustering = self.get_y_uniform_clusters(X)
+
         # Dynamic weighted probability combination strategy for the final classification results;
         for c, classifier in enumerate(self.classifiers):
+            if isinstance(classifier, DummyClassifier):
+                continue
+
             predicted_probs = classifier.predict_proba(X)
 
             #print(predicted_probs)
@@ -205,6 +238,15 @@ class CielOptimizer:
             #         )
             probability_by_class += predicted_probs * self.weights[c]
 
+        if np.any(self.y_clustering >= 0):
+            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
+            labels = self.y_clustering[samples_unique_cluster]
+
+            probability_by_class[samples_unique_cluster, :] = 0
+            probability_by_class[samples_unique_cluster, labels] = 1.0
+        
+        p_class = probability_by_class
+        probability_by_class = p_class / p_class.sum(axis=1)[:, np.newaxis]
         weights = np.tile(self.weights, (len(X), 1))
 
         y_pred_by_cluster = self.predict_labels_by_cluster(X)

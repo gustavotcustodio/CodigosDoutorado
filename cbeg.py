@@ -252,7 +252,6 @@ class CBEG:
     def majority_vote_outputs(
             self, y_prob_by_clusters: list[NDArray], base_classifiers=None
         ) -> tuple[NDArray, NDArray]:
-        # TODO fazer com que os clusters do DummyClassifier não votem
 
         """ Get the predicted class of each different classifier and
         combine their votes into a single prediction.
