@@ -15,7 +15,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
-from utils.clusters import fix_predict_prob
+from utils.clusters import fix_predict_prob, replace_nan_probs_by_predictions
 
 N_FOLDS = 10
 
@@ -52,6 +52,8 @@ class CielOptimizer:
                  classifiers_params=None,
                  weights=None,
                  combination_strategy='dynamic_weighted_prob'):
+
+        # warnings.filterwarnings("error")
 
         self.best_classifier = best_classifier
         self.n_clusters = n_clusters
@@ -201,9 +203,9 @@ class CielOptimizer:
             y_pred_cluster = classifier.predict(X) #+ offset
             y_pred_by_clusters.append(y_pred_cluster)
 
-        if np.any(self.y_clustering >= 0):
-            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
-            labels = self.y_clustering[samples_unique_cluster]
+        # if np.any(self.y_clustering >= 0):
+        #     samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
+        #     labels = self.y_clustering[samples_unique_cluster]
         return np.array(y_pred_by_clusters).T
 
     def predict_proba(self, X):
@@ -218,9 +220,12 @@ class CielOptimizer:
 
             predicted_probs = classifier.predict_proba(X)
 
-            #print(predicted_probs)
+            replace_nan_probs_by_predictions(predicted_probs, classifier, X)
+
             predicted_probs = fix_predict_prob(
                 predicted_probs, self.labels_by_cluster[c], self.n_classes)
+
+            # predicted_probs np.nan_to_num(y_prob_cluster, nan=1/3)
 
             #print(self.labels_by_cluster[c])
             #print(predicted_probs)

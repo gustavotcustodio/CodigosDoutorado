@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy.sparse import data
-from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import StratifiedKFold
 
@@ -23,6 +23,9 @@ def split_training_test(X, y, fold, n_runs=10):
 def read_electricity_dataset():
     df = pd.read_csv("./datasets/electricity.csv").astype(np.float32)
     X = df.values
+    np.random.seed(42)
+    np.random.shuffle(X)
+
     ct = ColumnTransformer(
             transformers = [(
                 'one_hot_encoder',
@@ -34,7 +37,6 @@ def read_electricity_dataset():
     X = X[:, :-1]
 
     X = ct.fit_transform(X)
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
@@ -45,7 +47,6 @@ def read_blood_dataset():
 
     y = X[:,-1].astype(int) - 1
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
 
     return X, y
 
@@ -59,11 +60,13 @@ def read_australian_credit_dataset():
     X = X[:, :-1]
 
     ct = ColumnTransformer(
-            transformers = [('one_hot_encoder', OneHotEncoder(categories = 'auto', sparse_output=False),
-                             [3, 4, 5, 11])],
+            transformers = [
+                ('one_hot_encoder',
+                 OneHotEncoder(categories = 'auto', sparse_output=False),
+                 [3, 4, 5, 11])
+            ],
             remainder = 'passthrough')
     X = ct.fit_transform(X)
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 def read_elipses_dataset():
@@ -72,7 +75,6 @@ def read_elipses_dataset():
     np.random.shuffle(X)
     y = X[:,-1].astype(int)
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 def read_rectangles_dataset():
@@ -81,7 +83,6 @@ def read_rectangles_dataset():
     np.random.shuffle(X)
     y = X[:,-1].astype(int)
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 def read_pima_dataset():
@@ -91,7 +92,6 @@ def read_pima_dataset():
 
     y = X[:,-1].astype(int)
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
@@ -102,7 +102,6 @@ def read_iris_dataset():
 
     y = X[:,-1].astype(int)
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
@@ -114,7 +113,6 @@ def read_heart_dataset():
 
     y = X[:,-1].astype(int) - 1
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
@@ -126,7 +124,13 @@ def read_contraceptive_dataset():
     y = X[:,-1].astype(int) - 1
 
     X = X[:, :-1]
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    ct = ColumnTransformer(
+            transformers = [
+                ('one_hot_encoder',
+                 OneHotEncoder(categories = 'auto', sparse_output=False),
+                 [1, 2, 6, 7])],
+            remainder = 'passthrough')
+    X = ct.fit_transform(X)
 
     # enc = MultiLabelBinarizer(sparse_output=False)
     # y_1_hot = enc.fit_transform(y.reshape(-1, 1))
@@ -150,7 +154,6 @@ def read_hepatitis_dataset():
         X[idx, col] = mean_col
 
     X = X.astype(np.float32)
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
@@ -179,12 +182,14 @@ def read_german_credit_dataset():
                              [0, 2, 3, 5, 6, 8, 9, 11, 13, 14, 16, 18, 19 ])],
             remainder = 'passthrough')
     X = ct.fit_transform(X)
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X, y
 
 
 def read_wine_dataset():
     X = np.loadtxt("./datasets/wine.data", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+
     y = X[:, 0].astype(int) - 1
     X = X[:, 1:]
     for i in range(X.shape[1]):
@@ -198,6 +203,8 @@ def read_wine_dataset():
 
 def read_wdbc_dataset():
     X = np.loadtxt("./datasets/wdbc.data", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
 
     y = X[:, 1].astype(int)
     X = np.hstack((X[:, [0]], X[:, 2:]))
@@ -209,11 +216,11 @@ def read_wdbc_dataset():
 
 def read_vehicle_dataset():
     X = np.loadtxt("./datasets/vehicle.dat", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
 
     y = X[:, -1].astype(int)
     X = X[:, :-1]
-
-    X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
 
     return X, y
 
@@ -246,7 +253,7 @@ def select_dataset_function(dataset):
 
 
 def normalize_data(X_train, X_test):
-    min_max_scaler = MinMaxScaler()
+    min_max_scaler = StandardScaler()
 
     min_max_scaler.fit(X_train)
 
