@@ -1,5 +1,5 @@
 ============== Classifiers Parameters ==============
-[{'n_estimators': 73, 'max_depth': 1, 'min_samples_split': 9, 'min_samples_leaf': 9, 'learning_rate': 0.782619888067436}, {'n_estimators': 230, 'max_depth': 7, 'min_samples_split': 6, 'min_samples_leaf': 7, 'learning_rate': 0.9287426192240901}, {'n_estimators': 375, 'max_depth': 7, 'min_samples_split': 4, 'min_samples_leaf': 2, 'learning_rate': 0.3851219392677828}]
+[{'n_estimators': 126, 'max_depth': 5, 'min_samples_split': 8, 'min_samples_leaf': 7}, {'n_estimators': 312, 'max_depth': 9, 'min_samples_split': 3, 'min_samples_leaf': 4}, {'n_estimators': 25, 'max_depth': 7, 'min_samples_split': 3, 'min_samples_leaf': 7}, {'n_estimators': 291, 'max_depth': 9, 'min_samples_split': 5, 'min_samples_leaf': 9}, {'n_estimators': 379, 'max_depth': 4, 'min_samples_split': 4, 'min_samples_leaf': 7}, {'n_estimators': 291, 'max_depth': 9, 'min_samples_split': 7, 'min_samples_leaf': 10}, {'n_estimators': 362, 'max_depth': 6, 'min_samples_split': 4, 'min_samples_leaf': 5}, {'n_estimators': 345, 'max_depth': 6, 'min_samples_split': 3, 'min_samples_leaf': 5}]
 
 Optimal clusterer: kmeans
 
@@ -14,28 +14,46 @@ silhouette: 0.35082596723070175
 davies_bouldin: 1.199429098516574
 calinski_harabasz_score: 288.75127238617404
 
-Base classifier: gb
+Base classifier: extra_tree
 ========== Cluster 0 ==========
 
-Labels: [1 1 1 0 0 0 0 1 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0
- 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 1 0 0 1 0 1
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 0
- 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+Labels: [1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 0 1 1 1 1 0 1 0 1 1 0 1 0 0 0 1 1 1 1 1 1 1
+ 0 1 1 0 0 1 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 1 0 0 0 1
+ 0 0 0 1 0 0 1]
 
 ========== Cluster 1 ==========
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 2 ==========
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1 1 0 1 1
- 1 1 0 0 1 0 1 1 1 1 1 1 1 0 1 1 1 1 0 0 1 1 1 1 0 0 0 0 1 0 1 1 1 0 0 1 0
- 0 1 1 1 0 0 1]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 3 ==========
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0]
+
+========== Cluster 4 ==========
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 5 ==========
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 6 ==========
+
+Labels: [1 0 1 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0
+ 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 7 ==========
+
+Labels: [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0]
 
