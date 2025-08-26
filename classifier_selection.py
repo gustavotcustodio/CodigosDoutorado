@@ -23,7 +23,7 @@ from dask.delayed import delayed
 from feature_selection import FeatureSelectionModule
 from typing import Mapping, Optional, Callable
 from meta_classifier import MetaClassifier
-from utils.clusters import fix_predict_prob
+from utils.clusters import fix_predict_prob, replace_nan_probs_by_predictions
 from cluster_selection import ClusteringModule
 
 N_FOLDS = 10
@@ -227,10 +227,13 @@ class ClassifierSelector:
             X_train = X_train[:, features]
             X_val = X_val[:, features]
 
+        self.cbeg.y_clustering = self.get_y_uniform_clusters(X_val)
+
         clf.fit(X_train, y_train)
+
         y_prob_cluster = clf.predict_proba(X_val)
 
-        self.cbeg.y_clustering = self.get_y_uniform_clusters(X_val)
+        replace_nan_probs_by_predictions(y_prob_cluster, clf, X_val)
 
         return fix_predict_prob(
             y_prob_cluster, self.labels_by_cluster[cluster], self.n_labels)
@@ -295,20 +298,15 @@ class ClassifierSelector:
 
                     for c, classifier in enumerate(fold_classifiers):
                         y_prob_cluster = classifier.predict_proba(X_train)
+
+                        replace_nan_probs_by_predictions(y_prob_cluster, classifier, X_train)
                         y_prob_cluster = fix_predict_prob(
                             y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
                         y_prob_train_by_clf.append(y_prob_cluster)
 
-                    # y_prob_clusters_train = [classifier.predict_proba(X_train)
-                    #                          for classifier in fold_classifiers]
-                    # y_prob_clusters_train = [fix_predict_prob(y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
-                    #                          for c, y_prob_cluster in enumerate(y_prob_clusters_train)]
-                    # y_prob_train_by_clf = np.array(y_prob_train_by_clf).T
                     y_train = np.hstack([y_cluster_by_fold[c][fold]
                                          for c in range(n_clusters) ])
 
-                    # self.meta_classifier = self.train_meta_classifier(
-                    #         y_prob_train_by_clf, y_train)
                     meta_classifier = MetaClassifier(y_prob_train_by_clf, y_train)
                     meta_classifier.train()
 

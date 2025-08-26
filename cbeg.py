@@ -28,7 +28,7 @@ from process_results import filter_cbeg_experiments_configs, experiment_already_
 from logger import PredictionResults
 from pso_optimizator import PsoOptimizator
 from classifier_selection import ClassifierSelector
-from utils.clusters import fix_predict_prob
+from utils.clusters import fix_predict_prob, replace_nan_probs_by_predictions
 from meta_classifier import MetaClassifier
 
 # A seleção por AUC é baseada no "A cluster-based intelligence ensemble learning method for classification problems"
@@ -484,7 +484,10 @@ class CBEG:
             X_test_cluster = X_test[:, selected_features]
 
             # Get the class for the current cluster
-            y_prob_cluster = self.base_classifiers[c].predict_proba(X_test_cluster)  # .astype(np.int32)
+            classifier = self.base_classifiers[c]
+            y_prob_cluster = classifier.predict_proba(X_test_cluster)  # .astype(np.int32)
+
+            replace_nan_probs_by_predictions(y_prob_cluster, classifier, X_test_cluster)
             y_prob_cluster_allclasses = fix_predict_prob(
                     y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
 
@@ -792,8 +795,10 @@ class CBEG:
 
                 X_attrs = X[:, selected_features]
 
-                y_prob_cluster = self.base_classifiers[c].predict_proba(X_attrs)
+                classifier = self.base_classifiers[c]
+                y_prob_cluster = classifier.predict_proba(X_attrs)
 
+                replace_nan_probs_by_predictions(y_prob_cluster, classifier, X_attrs)
                 y_prob_cluster_allclasses = fix_predict_prob(
                         y_prob_cluster, self.labels_by_cluster[c], self.n_labels)
 
