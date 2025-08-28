@@ -1,46 +1,68 @@
 ============== Classifiers Parameters ==============
-[{'n_estimators': 201, 'max_depth': 1, 'min_samples_split': 10, 'min_samples_leaf': 10, 'learning_rate': 0.17085094805017698}, {'n_estimators': 233, 'max_depth': 9, 'min_samples_split': 6, 'min_samples_leaf': 3, 'learning_rate': 0.646430485192061}, {'n_estimators': 172, 'max_depth': 2, 'min_samples_split': 5, 'min_samples_leaf': 6, 'learning_rate': 0.8311583179002879}]
+[{'n_estimators': 426, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 6, 'learning_rate': 0.3480846483827212}, {'n_estimators': 242, 'max_depth': 5, 'min_samples_split': 6, 'min_samples_leaf': 2, 'learning_rate': 0.7107382669241662}, {'n_estimators': 10, 'max_depth': 1, 'min_samples_split': 3, 'min_samples_leaf': 6, 'learning_rate': 0.8124465027764626}, {'n_estimators': 118, 'max_depth': 8, 'min_samples_split': 3, 'min_samples_leaf': 2, 'learning_rate': 0.4493024535460102}, {'n_estimators': 203, 'max_depth': 5, 'min_samples_split': 4, 'min_samples_leaf': 2, 'learning_rate': 0.9495640646213418}, {'n_estimators': 88, 'max_depth': 1, 'min_samples_split': 7, 'min_samples_leaf': 4, 'learning_rate': 0.6808486307391717}, {'n_estimators': 43, 'max_depth': 8, 'min_samples_split': 6, 'min_samples_leaf': 9, 'learning_rate': 0.4361733335689339}, {'n_estimators': 433, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 8, 'learning_rate': 0.7920057249975464}, {'n_estimators': 98, 'max_depth': 3, 'min_samples_split': 6, 'min_samples_leaf': 2, 'learning_rate': 0.9325360123306066}]
 
 Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.0
-normalized_mutual_info_score: 0.0
-v_measure_score: 0.0
-fowlkes_mallows_score: 0.7981351646379378
+adjusted_rand_score: 0.02813868023338329
+normalized_mutual_info_score: 0.017568068542912058
+v_measure_score: 0.017568068542912058
+fowlkes_mallows_score: 0.7964310455130247
 
 Internal clustering metrics:
-silhouette: -inf
-davies_bouldin: inf
-calinski_harabasz_score: -inf
+silhouette: 0.7489396404181909
+davies_bouldin: 0.3455880387923655
+calinski_harabasz_score: 179.5980234725765
 
 Base classifier: gb
 ========== Cluster 0 ==========
 
-Labels: [0 0 0 1 0 1 0 0 0 1 0 0 0 0 1 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 1
- 0 0 1 0 0 1 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 1 0 0
- 0 1 1 0 0 1 0 0 1 1 1 0 0 0 0 0 0 1 0 0 0 0 0 0 1 1 0 0 0 1 0 1 1 0 0 0 0
- 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1 0 0 0 0 1 1 1 1 0 0
- 0 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 0 1 0 0 0 0 1 0 0 0 1 0 0
- 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 1 0 0 0 1 0 1 0 1 0 0 0 0 0 1 1 1 0 0 0 1 0
- 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0]
+Labels: [0 1 1 0 1 1 1 0 0 0 1 0 1 0 0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0 1 0 1 1 1 0 1
+ 0 0 0 0 1 0 1 0 1 1 0 0 1 1 0 0 0 0 0 0 1 1 1 0 1 0 0 1 0 0 1 0 1 1 0 0 1
+ 1 1 1 0 1 0 0 1 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 1 0 1]
 
 ========== Cluster 1 ==========
 
-Labels: [0 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 1 0 0 1 0 0 0 1
- 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 1 0 1 0 0 0
- 0 0 1 1 1 1 0 1 0 0 0 0 0 1 1 0 0 0 0 1 0 1 0 0 0 0 1 1 0 0 0 1 1 0 0 0 0
- 0 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 1 1 1 1 1 0
- 0 1 1 0 0 0 0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0
- 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 0 0 0 0
- 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0
- 1 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0
- 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 1 0]
+Labels: [0 0 0 1 0 0 0 1 1 1 0 1 1 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0
+ 0 0 0 0 0 1 0 0 0 1 1 1 0 0]
 
 ========== Cluster 2 ==========
 
-Labels: [0 0 0 0 0 0 0 0 0 1 1 0 1 0 0 1 1 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0
- 1 1 0 0 0 0 1 0 0 1 0 0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0
- 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 1 1 0 0 1 0 0 0 0
- 0]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1
+ 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 3 ==========
+
+Labels: [0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0
+ 1 0 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 4 ==========
+
+Labels: [1 0 1 0 0 0 0 0 0 0 1 0 0 0 1 1 0 1 0 1 0 1 0 0 0 0 1 0 0 0 0 0 0 0 1 0 1
+ 1 1 1 0 0 0 1 1 1 1 1 1 0 0 1 0 0 0 0 0 0 1 0 1 1 0 1 1 1 0 0 1 0 0 1 1 0
+ 0 0 0 0]
+
+========== Cluster 5 ==========
+
+Labels: [0 0 0 0 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 1 1 1 0 0 0 1 1
+ 1 0 1 0 0 1 1 0 0 0 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 1 0 0 1 1 0 0 0 1 0 0
+ 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 1
+ 1 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 0]
+
+========== Cluster 6 ==========
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0
+ 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0
+ 0 0 0]
+
+========== Cluster 7 ==========
+
+Labels: [1 1 1 0 0 1 1]
+
+========== Cluster 8 ==========
+
+Labels: [0 0]
 
