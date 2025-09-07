@@ -156,7 +156,11 @@ class ClusteringModule:
                 # c = len(np.unique(clusters[idx_clusters]))
 
                 clusterer = self.create_clusterer(clustering_algorithm, c)
+                if clustering_algorithm == "spectral":
+                    print("começo spectral")
                 clusters = clusterer.fit_predict(self.X)
+                if clustering_algorithm == "spectral":
+                    print("fim spectral")
 
                 # Merge clusters with very few instances
                 clusters = self.merge_small_clusters(clusters)

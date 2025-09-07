@@ -1,8 +1,9 @@
 #!/bin/bash
 # COMBINATION_METHODS="weighted_membership majority_voting weighted_membership_entropy cluster_density"
-# DATASETS="australian_credit german_credit contraceptive wine pima wdbc iris heart"
-DATASETS="rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart"
-EVALUATION_METRIC="dbc dbc_rand rand"
+DATASETS="normal_2_class"
+# DATASETS="rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart"
+# EVALUATION_METRIC="dbc dbc_rand rand"
+EVALUATION_METRIC="rand"
 COMBINATION_METHODS="meta_classifier weighted_membership majority_voting"
 POSSIBLE_N_CLUSTERS="2 3"
 CLASSIFIERS_SELECTION="crossval default pso"

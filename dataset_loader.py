@@ -77,6 +77,14 @@ def read_elipses_dataset():
     X = X[:, :-1]
     return X, y
 
+def read_normal_dist_dataset():
+    X = np.loadtxt("./datasets/normal_2_class.csv", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+    y = X[:,-1].astype(int)
+    X = X[:, :-1]
+    return X, y
+
 def read_rectangles_dataset():
     X = np.loadtxt("./datasets/rectangles.dat", delimiter=",")
     np.random.seed(42)
@@ -241,6 +249,7 @@ DATASETS_INFO = {
     "iris": {"function": read_iris_dataset, "nlabels": 3},
     "elipses": {"function": read_elipses_dataset, "nlabels": 3},
     "rectangles": {"function": read_rectangles_dataset, "nlabels": 2},
+    "normal_2_class": {"function": read_normal_dist_dataset, "nlabels": 2},
 }
 
 
