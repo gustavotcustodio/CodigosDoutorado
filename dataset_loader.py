@@ -253,7 +253,7 @@ def select_dataset_function(dataset):
 
 
 def normalize_data(X_train, X_test):
-    min_max_scaler = StandardScaler()
+    min_max_scaler = MinMaxScaler()
 
     min_max_scaler.fit(X_train)
 
