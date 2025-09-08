@@ -2,7 +2,8 @@
 setlocal enabledelayedexpansion
 
 REM Define variable lists
-set DATASETS=rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart
+REM set DATASETS=rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart
+set DATASETS=normal_2_class
 set EVALUATION_METRIC=dbc dbc_rand rand
 set COMBINATION_METHODS=meta_classifier weighted_membership majority_voting
 set POSSIBLE_N_CLUSTERS=2 3
@@ -10,7 +11,7 @@ set CLASSIFIERS_SELECTION=crossval default pso
 
 REM Loop through datasets
 for %%D in (%DATASETS%) do (
-    for %%M in (100 75 50) do (
+    for %%M in (75 50) do (
         for %%S in (%CLASSIFIERS_SELECTION%) do (
             for %%C in (%COMBINATION_METHODS%) do (
 
