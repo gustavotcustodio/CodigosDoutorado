@@ -284,9 +284,12 @@ class SupervisedClustering:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-d", "--dataset", type=str, required=True, help = "Dataset used.")
-    parser.add_argument("-b", "--base_classifier", type=str, default='svm', help = "Values: svm, dt, lr")
-    parser.add_argument("-m", "--min_mutual_info_percentage", type=float, default=100.0, help = "Mutual information value.")
+    parser.add_argument("-d", "--dataset", type=str, required=True,
+                        help = "Dataset used.")
+    parser.add_argument("-b", "--base_classifier", type=str, default='svm',
+                        help = "Values: svm, dt, lr")
+    parser.add_argument("-m", "--min_mutual_info_percentage", type=float,
+                        default=100.0, help = "Mutual information value.")
     parser.add_argument("-M", type=int, default=10,
                         help = "Number of closest neighbors, used do determine the voting weight of each base classifier.")
     args = parser.parse_args()
