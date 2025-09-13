@@ -8,7 +8,7 @@ from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES, CLASSIFICA
 
 def experiment_already_performed(dataset, experiment_variation, mutual_info):
     folder_path = f'./results/{dataset}/mutual_info_{mutual_info}/cbeg/{experiment_variation}'
-
+    
     if os.path.exists(folder_path):
         return True
     else:
@@ -163,13 +163,11 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
-        "normal_2_class",
-        "blood",
         "elipses",
         "rectangles",
         "australian_credit",
         "german_credit",
-        "contraceptive",
+        "contraceptive", 
         "wine",
         "wdbc",
         "pima",
@@ -181,8 +179,8 @@ def main():
     mutual_info_percentages = [100.0, 75.0, 50.0]
 
     process_cbeg_results(datasets, mutual_info_percentages)
-    process_base_results(datasets, mutual_info_percentages)
-    process_ciel_results(datasets, mutual_info_percentages)
+    # process_ciel_results(datasets, mutual_info_percentages)
+    # process_base_results(datasets, mutual_info_percentages) 
 
 if __name__ == "__main__":
     main()
