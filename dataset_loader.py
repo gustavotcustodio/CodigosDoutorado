@@ -77,6 +77,22 @@ def read_elipses_dataset():
     X = X[:, :-1]
     return X, y
 
+def read_normal_dist_dataset():
+    X = np.loadtxt("./datasets/normal_2_class.csv", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+    y = X[:,-1].astype(int)
+    X = X[:, :-1]
+    return X, y
+
+def read_normal_dist_multiclass_dataset():
+    X = np.loadtxt("./datasets/normal_3_class.csv", delimiter=",")
+    np.random.seed(42)
+    np.random.shuffle(X)
+    y = X[:,-1].astype(int)
+    X = X[:, :-1]
+    return X, y
+
 def read_rectangles_dataset():
     X = np.loadtxt("./datasets/rectangles.dat", delimiter=",")
     np.random.seed(42)
@@ -226,21 +242,40 @@ def read_vehicle_dataset():
 
 
 DATASETS_INFO = {
-    "wine": {"function": read_wine_dataset, "nlabels": 3},
-    "blood": {"function": read_blood_dataset, "nlabels": 2},
-    "electricity": {"function": read_electricity_dataset, "nlabels": 2},
-    "german_credit": {"function": read_german_credit_dataset, "nlabels": 2},
-    "wdbc": {"function": read_wdbc_dataset, "nlabels": 2},
-    "water": {"function": read_potability_dataset, "nlabels": 2},
-    "contraceptive": {"function": read_contraceptive_dataset, "nlabels": 3},
-    "hepatitis": {"function": read_hepatitis_dataset, "nlabels": 2},
-    "vehicle": {"function": read_vehicle_dataset, "nlabels": 3},
-    "australian_credit": {"function": read_australian_credit_dataset, "nlabels": 2},
-    "pima": {"function": read_pima_dataset, "nlabels": 2},
-    "heart": {"function": read_heart_dataset, "nlabels": 2},
-    "iris": {"function": read_iris_dataset, "nlabels": 3},
-    "elipses": {"function": read_elipses_dataset, "nlabels": 3},
-    "rectangles": {"function": read_rectangles_dataset, "nlabels": 2},
+    "wine": {
+        "function": read_wine_dataset, "nlabels": 3},
+    "blood": {
+        "function": read_blood_dataset, "nlabels": 2},
+    "electricity": {
+        "function": read_electricity_dataset, "nlabels": 2},
+    "german_credit": {
+        "function": read_german_credit_dataset, "nlabels": 2},
+    "wdbc": {
+        "function": read_wdbc_dataset, "nlabels": 2},
+    "water": {
+        "function": read_potability_dataset, "nlabels": 2},
+    "contraceptive": {
+        "function": read_contraceptive_dataset, "nlabels": 3},
+    "hepatitis": {
+        "function": read_hepatitis_dataset, "nlabels": 2},
+    "vehicle": {
+        "function": read_vehicle_dataset, "nlabels": 3},
+    "australian_credit": {
+        "function": read_australian_credit_dataset, "nlabels": 2},
+    "pima": {
+        "function": read_pima_dataset, "nlabels": 2},
+    "heart": {
+        "function": read_heart_dataset, "nlabels": 2},
+    "iris": {
+        "function": read_iris_dataset, "nlabels": 3},
+    "elipses": {
+        "function": read_elipses_dataset, "nlabels": 3},
+    "rectangles": {
+        "function": read_rectangles_dataset, "nlabels": 2},
+    "normal_2_class": {
+        "function": read_normal_dist_dataset, "nlabels": 2},
+    "normal_3_class": {
+        "function": read_normal_dist_multiclass_dataset, "nlabels": 3},
 }
 
 
@@ -253,7 +288,7 @@ def select_dataset_function(dataset):
 
 
 def normalize_data(X_train, X_test):
-    min_max_scaler = StandardScaler()
+    min_max_scaler = MinMaxScaler()
 
     min_max_scaler.fit(X_train)
 

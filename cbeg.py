@@ -40,10 +40,6 @@ from meta_classifier import MetaClassifier
 
 # TODO consolidar bases do Jesus
 
-# TODO tentar adicionar a parte com GA
-
-# TODO melhorar a revisão sistemática
-
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
 
