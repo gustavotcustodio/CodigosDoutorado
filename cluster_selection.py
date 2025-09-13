@@ -475,14 +475,6 @@ class ClusteringModule:
         u_membership[u_membership > 1] = 1
         return u_membership
 
-    def get_closest_centroids(self, arg1):
-        """TODO: Docstring for get_closest_centroids.
-
-        :arg1: TODO
-        :returns: TODO
-
-        """
-        pass
 
 if __name__ == "__main__":
     fcm = FuzzyCMeans(n_clusters=3)

@@ -21,7 +21,7 @@ def split_training_test(X, y, fold, n_runs=10):
     return X_train, X_test, y_train, y_test
 
 def read_electricity_dataset():
-    df = pd.read_csv("./datasets/electricity.csv").astype(np.float32)
+    df = pd.read_csv("./datasets/electricity_sampled.csv").astype(np.float32)
     X = df.values
     np.random.seed(42)
     np.random.shuffle(X)
