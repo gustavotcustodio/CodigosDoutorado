@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set DATASETS=rectangles elipses
-REM australian_credit contraceptive german_credit heart iris pima wdbc wine
+set DATASETS=normal_2_class normal_3_class electricity
+REM australian_credit contraceptive german_credit heart iris pima wdbc wine rectangles elipses
 set BASE_CLASSIFIERS=nb svm knn5 knn7 lr dt rf gb xb
 
 for %%D in (%DATASETS%) do (
