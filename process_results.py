@@ -163,6 +163,7 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = [
+        "blood",
         "normal_2_class",
         "normal_3_class",
         "electricity",
@@ -170,7 +171,7 @@ def main():
         "rectangles",
         "australian_credit",
         "german_credit",
-        "contraceptive", 
+        "contraceptive",
         "wine",
         "wdbc",
         "pima",
@@ -183,7 +184,7 @@ def main():
 
     process_cbeg_results(datasets, mutual_info_percentages)
     process_ciel_results(datasets, mutual_info_percentages)
-    process_base_results(datasets, mutual_info_percentages) 
+    process_base_results(datasets, mutual_info_percentages)
 
 if __name__ == "__main__":
     main()
