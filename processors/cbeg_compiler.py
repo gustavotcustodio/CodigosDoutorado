@@ -357,12 +357,13 @@ class CbegResultsCompiler:
             
             data_weighted_fusion = np.vstack(data_weighted_fusion)
 
-            _, ax = plt.subplots(1, 2, figsize=(13,6), width_ratios=[1, 4])
+            _, ax = plt.subplots(1, 2, figsize=(20, 9), width_ratios=[1, 2])
 
             if data_majority_voting:
                 data_majority_voting = np.vstack(data_majority_voting)
 
-                plt.subplots_adjust( wspace=0.5)
+                # plt.margins(x=5,y=5)
+                plt.subplots_adjust( wspace=0.38)
                 indexes_majority = list(dict_results_majority_vote.keys())
                 columns_majority = ["Majority Voting"]
                 self.add_heatmap(data_majority_voting, columns_majority, indexes_majority, ax[0], cbar=False)
@@ -390,7 +391,7 @@ class CbegResultsCompiler:
         classif_per_clusterer = self.get_classif_values_per_clusterer(
                 xlabels, ylabels, metric)
         
-        _, ax = plt.subplots(figsize=(16, 12))
+        _, ax = plt.subplots(figsize=(15, 12))
         # selections_by_classifier = np.sum(data_count, axis=0)
         # sns.histplot(data=aaa)
         g = sns.heatmap(classif_per_clusterer, annot=True,
@@ -398,7 +399,7 @@ class CbegResultsCompiler:
                         xticklabels=xlabels, yticklabels=ylabels, vmin=0, vmax=1)
 
         g.set_yticklabels(g.get_yticklabels(), size=10)
-        g.set_xticklabels(g.get_xticklabels(), size=12)
+        g.set_xticklabels(g.get_xticklabels(), size=11)
 
         filename = os.path.join(selected_clusterers_folder,
                                 f'clusterers_comparison_{metric}.png')
@@ -445,12 +446,15 @@ class CbegResultsCompiler:
         return np.array(classification_values_per_clusterer)
 
     def add_heatmap(self, data, columns, indexes, ax, cbar=True):
-        sns.heatmap(data, ax=ax, annot=True, cmap='Blues', cbar=cbar,
+        g = sns.heatmap(data, ax=ax, annot=True, cmap='Blues',
+                    cbar=cbar, annot_kws={"size": 14},
                     xticklabels=columns, yticklabels=indexes, vmin=0, vmax=1)
+        g.set_yticklabels(g.get_yticklabels(), size=11)
+        g.set_xticklabels(g.get_xticklabels(), size=13)
 
-        ax.set_xlabel("Fusion Strategy", fontdict={'weight': 'bold'})
+        ax.set_xlabel("Fusion Strategy", fontdict={'weight': 'bold', 'size': 13})
         if not(cbar):
-            ax.set_ylabel("Experiment variation", fontdict={'weight': 'bold'})
+            ax.set_ylabel("Experiment variation", fontdict={'weight': 'bold', 'size': 13})
         # Save the heat map
         ax.tick_params(axis='x', labelrotation=0)
         ax.tick_params(axis='y', labelrotation=0)
