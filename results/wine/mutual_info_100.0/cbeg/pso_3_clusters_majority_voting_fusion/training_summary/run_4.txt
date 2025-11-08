@@ -2,31 +2,20 @@ Clustering algorithm selected: kmeans++
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.7810936643413725
+Clustering evaluation value: 0.4159202430977859
 
 ========== Cluster 0 ==========
 
-Base classifier: LogisticRegression()
+Base classifier: SVC(C=121.7472560335797, gamma=682.2971765645509, probability=True)
 
 Minority Class: 1
 
 Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1]
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1]
 
 ========== Cluster 1 ==========
-
-Base classifier: DecisionTreeClassifier(max_depth=3, min_samples_leaf=10, min_samples_split=5)
-
-Minority Class: 1
-
-Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
-
-Labels: [2 2 2 2 1 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 1 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1]
-
-========== Cluster 2 ==========
 
 Base classifier: DummyClassifier(strategy='most_frequent')
 
@@ -35,5 +24,16 @@ Minority Class: 1
 Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
 
 Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 2 ==========
+
+Base classifier: KNeighborsClassifier(n_neighbors=7)
+
+Minority Class: 1
+
+Selected Features: [ 0  1  2  3  4  5  6  7  8  9 10 11 12]
+
+Labels: [1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1]
 

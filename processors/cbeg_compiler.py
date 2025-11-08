@@ -10,6 +10,7 @@ from collections import Counter
 from cluster_selection import CLUSTERING_ALGORITHMS
 from processors.data_reader import CLASSIFICATION_METRICS, N_FOLDS
 from processors.base_classifiers_compiler import BaseClassifierResult
+from processors.latex_processor import create_latex_table
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -89,7 +90,6 @@ class SingleCbegResult(BaseClassifierResult):
         self.classifier_by_cluster_folds.append(
                 self._get_base_classifiers_by_cluster(content_training))
 
-        # Get selected features TODO
         # Get selected clustering algorithm
         self.clustering_algorithms_folds.append(
                 self._get_selected_clustering_algorithms(content_training))
@@ -315,6 +315,12 @@ class CbegResultsCompiler:
             output += f" ({mutual_info} %)"
         return output
 
+    def generate_latex_table(self):
+        """ Generate a latex table corresponding
+        to the heatmap of the ablation study.
+        """
+        create_latex_table(self.cbeg_results, self.dataset) 
+
     def plot_classification_heatmap(self):
         """ Save the heatmap for the ablation study.
         """
@@ -322,8 +328,9 @@ class CbegResultsCompiler:
         os.makedirs(heatmaps_folder, exist_ok=True)
 
         # All possible methods for
-        vote_fusion_strategies = set([row_cbeg.fusion_strategy for row_cbeg in self.cbeg_results
-                                      if row_cbeg.fusion_strategy != "Majority Voting"])
+        vote_fusion_strategies = set(
+                [row_cbeg.fusion_strategy for row_cbeg in self.cbeg_results
+                 if row_cbeg.fusion_strategy != "Majority Voting"])
         vote_fusion_strategies = sorted(list(vote_fusion_strategies))
 
         # Order the results by the number of experiment variation and

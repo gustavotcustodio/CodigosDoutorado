@@ -1,44 +1,40 @@
 ============== Classifiers Parameters ==============
-{'svm': [{'cost': np.float64(721.3032915345842), 'gamma': np.float64(845.2310832074792)}, {'cost': np.float64(239.7549994598782), 'gamma': np.float64(155.4129497556881)}, {'cost': np.float64(108.7158532343729), 'gamma': np.float64(536.8058119812835)}, {'cost': np.float64(809.9486744594369), 'gamma': np.float64(468.3554380469486)}, {'cost': np.float64(195.35848241357826), 'gamma': np.float64(597.0751092693089)}, {'cost': np.float64(463.1969863634027), 'gamma': np.float64(569.6510824679037)}], 'extra_tree': [{'n_estimators': 219, 'max_depth': 8, 'min_samples_split': 6, 'min_samples_leaf': 7}, {'n_estimators': 102, 'max_depth': 5, 'min_samples_split': 8, 'min_samples_leaf': 4}, {'n_estimators': 140, 'max_depth': 7, 'min_samples_split': 10, 'min_samples_leaf': 8}, {'n_estimators': 207, 'max_depth': 9, 'min_samples_split': 6, 'min_samples_leaf': 1}, {'n_estimators': 138, 'max_depth': 8, 'min_samples_split': 5, 'min_samples_leaf': 8}, {'n_estimators': 494, 'max_depth': 7, 'min_samples_split': 7, 'min_samples_leaf': 9}], 'grad_boost': [{'n_estimators': 81, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 2, 'learning_rate': np.float64(0.6438545425019953)}, {'n_estimators': 463, 'max_depth': 7, 'min_samples_split': 5, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.9548907800911043)}, {'n_estimators': 338, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.43705838447797163)}, {'n_estimators': 474, 'max_depth': 4, 'min_samples_split': 5, 'min_samples_leaf': 9, 'learning_rate': np.float64(0.7550794064657333)}, {'n_estimators': 451, 'max_depth': 8, 'min_samples_split': 7, 'min_samples_leaf': 5, 'learning_rate': np.float64(0.5941552677541172)}, {'n_estimators': 493, 'max_depth': 4, 'min_samples_split': 7, 'min_samples_leaf': 4, 'learning_rate': np.float64(0.9709232517530815)}]}
+[{'n_estimators': 41, 'max_depth': 4, 'min_samples_split': 10, 'min_samples_leaf': 8}, {'n_estimators': 341, 'max_depth': 2, 'min_samples_split': 9, 'min_samples_leaf': 9}, {'n_estimators': 283, 'max_depth': 1, 'min_samples_split': 7, 'min_samples_leaf': 6}, {'n_estimators': 354, 'max_depth': 9, 'min_samples_split': 4, 'min_samples_leaf': 8}, {'n_estimators': 257, 'max_depth': 1, 'min_samples_split': 8, 'min_samples_leaf': 8}]
 
 Optimal clusterer: kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.1573801076447455
-normalized_mutual_info_score: 0.1833522300862422
-v_measure_score: 0.18335223008624224
-fowlkes_mallows_score: 0.4355328894963337
+adjusted_rand_score: 0.5046031505008071
+normalized_mutual_info_score: 0.4114518242594934
+v_measure_score: 0.41145182425949334
+fowlkes_mallows_score: 0.7597100081884273
 
 Internal clustering metrics:
-silhouette: 0.2196053439060748
-davies_bouldin: 1.6222055269605653
-calinski_harabasz_score: 43.57381479996389
+silhouette: 0.16596181381614725
+davies_bouldin: 2.1515206885642137
+calinski_harabasz_score: 46.88751671831424
 
 Base classifier: extra_tree
 ========== Cluster 0 ==========
 
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 0 1 1 1
- 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1]
+Labels: [1 0 0 1 0 1 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0
+ 1 0 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 
 ========== Cluster 1 ==========
 
-Labels: [0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0]
+Labels: [0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0
+ 0 0 1 0 0 0 1 0 0 0 1 1 0 0 0]
 
 ========== Cluster 2 ==========
 
-Labels: [0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 1 1 1 1 1 1 1 0 1 1 1 1 1
+ 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1]
 
 ========== Cluster 3 ==========
 
-Labels: [1 1 0 1 1 1 1 1 1 1 0 1 1 1 1 0 1 1 1 1 1 1 0 1 0 1 0]
+Labels: [1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 1 0 1 1 1 0 0 1 0 1 0 0 1 0 0 0]
 
 ========== Cluster 4 ==========
 
-Labels: [0 0 0 0 1 0 0 0 0 0 1 0 0 0 1 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0
- 0 0 0 1 1 0 1 0 0 1 0 1 0 1 0 0 0 0 0]
-
-========== Cluster 5 ==========
-
-Labels: [0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0
- 0]
+Labels: [0 0 0 1 1 0 1 0 1 0 1 1 1 1 1 1 1 1 1 0]
 
