@@ -4,13 +4,13 @@ import os
 from processors.data_reader import CLASSIFICATION_METRICS
 
 dict_abbrevs = {
-    'Weighted Membership': 'WM',
-    'Meta Classifier': 'MC',
-    'Majority Voting': 'MV',
+    'Weighted Membership': 'Weighted',
+    'Meta Classifier': 'Meta',
+    'Majority Voting': 'Voting',
     "DBC + Rand": "DBC+R",
     "Rand Score": "Rand",
     "DBC": "DBC",
-    "": "N",
+    "": "-",
 }
 
 def format_significant_digits(mean, std) -> tuple[float, float]:
@@ -18,7 +18,7 @@ def format_significant_digits(mean, std) -> tuple[float, float]:
     msd = std
     # 0.0043
 
-    while msd < 1:
+    while msd < 1 and msd > 0:
         n_valid_digits += 1
         msd *= 10
 
@@ -45,9 +45,21 @@ def get_metric(result, metric: str):
 def complete_row_table(result, latex_table):
 
     variation = result.experiment_variation
+
+    if '2' in str(variation):
+        selection_clf = "Crossval"
+
+    elif '5' in str(variation):
+        variation = str(variation).replace("5", "2")
+        variation = "".join(sorted(variation))
+        variation = int(str(variation))
+        selection_clf = "PSO"
+    else:
+        selection_clf = "-"
+
+    cluster_selection = dict_abbrevs[result.cluster_selection_strategy]
     mutual_info = int(result.mutual_info_percentage)
     fusion_strategy = dict_abbrevs[result.fusion_strategy]
-    clustering = dict_abbrevs[result.cluster_selection_strategy]
 
     metric_values = []
 
@@ -57,16 +69,15 @@ def complete_row_table(result, latex_table):
 
         metric_values.append(mean_std_metric)
 
-    experiment_name = f'{variation} {result.cluster_selection_strategy}' + \
-            f'{result.fusion_strategy} {mutual_info}\\% feats.'
-    experiment_name = experiment_name.replace("  ", "")
+    experiment_name = f'{variation} & {cluster_selection} &' + \
+            f' {selection_clf} & {mutual_info} & {fusion_strategy}'
+    experiment_name = experiment_name.replace("  ", " ")
 
     metrics_row = " & ".join(metric_values)
 
     complete_row = f'{experiment_name} & {metrics_row} \\\\'
     pattern_to_replace = \
-        f'[{variation}-{clustering}-{mutual_info}-{fusion_strategy}]'
-
+        f'[{variation}_{cluster_selection}_{selection_clf}_{mutual_info}_{fusion_strategy}]'
     latex_table = latex_table.replace(pattern_to_replace, complete_row)
 
     return latex_table
@@ -94,4 +105,4 @@ def create_latex_table(cbeg_results, dataset: str):
     with open(os.path.join(folder_latex, f'{dataset}.tex'), 'w') as f:
         # content_file = "\n\n".join(tables_dataset)
         f.write(latex_table)
-        print('{dataset}.tex saved.')
+        print(f'{dataset}.tex saved.')
