@@ -62,7 +62,7 @@ def filter_cbeg_experiments_configs(experiment_variation: str, mutual_info_perce
     accepted_variations = [0, 1, 2, 3, 4, 5, 123, 124, 1234, 145]
     variation_number = int(variation_number)
 
-    print(f"Variation {variation_number}...")
+    # print(f"Variation {variation_number}...")
     if variation_number in accepted_variations:
         return {"folder": experiment_variation, "mutual_info": mutual_info_percentage,
                 "variation": variation_number}
@@ -90,7 +90,7 @@ def process_cbeg_results(datasets, mutual_info_percentages):
         )
         cbeg_results = []
 
-        print(dataset)
+        print("Processing results for", dataset)
         for config in experiments_configs:
             path = f"./results/{dataset}/mutual_info_{config['mutual_info']}/cbeg/{config['folder']}"
             loader = DataReader(path, training=True)
@@ -106,8 +106,8 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             cbeg_compilation.plot_clusterers_heatmap(metric)
 
         cbeg_compilation.plot_classification_heatmap()
-        cbeg_compilation.generate_latex_table()
         cbeg_compilation.plot_clusters_scatterplot()
+        cbeg_compilation.generate_latex_table()
 
 
 def process_base_results(datasets: list[str], mutual_info_percentages: list[float]):

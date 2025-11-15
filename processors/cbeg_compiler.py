@@ -186,7 +186,7 @@ class SingleCbegResult(BaseClassifierResult):
         for metric in CLASSIFICATION_METRICS:
             # All patterns found in text corresponding to the searched metric
             found_metric_patterns = re.findall(fr"{metric}: [0-9]\.[0-9]+", content_test)
-            print(self.folder_name)
+            # print(self.folder_name)
             # print(found_metric_patterns)
             dict_classification_results[metric] = [
                     float(pattern.split(": ")[1]) for pattern in found_metric_patterns]

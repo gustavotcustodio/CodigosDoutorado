@@ -18,7 +18,7 @@ def format_significant_digits(mean, std) -> tuple[float, float]:
     msd = std
     # 0.0043
 
-    while msd < 1:
+    while msd < 1 and msd > 0:
         n_valid_digits += 1
         msd *= 10
 
@@ -94,4 +94,4 @@ def create_latex_table(cbeg_results, dataset: str):
     with open(os.path.join(folder_latex, f'{dataset}.tex'), 'w') as f:
         # content_file = "\n\n".join(tables_dataset)
         f.write(latex_table)
-        print('{dataset}.tex saved.')
+        print(f'{dataset}.tex saved.')
