@@ -31,6 +31,7 @@ class SingleCbegResult(BaseClassifierResult):
 
         self._get_experiments_params(folder_name)
 
+        self.n_clusters_by_fold = []
         self.classification_results_folds =  []
         self.cluster_classification_folds = []
         self.labels_by_cluster_folds = []
@@ -42,9 +43,21 @@ class SingleCbegResult(BaseClassifierResult):
         self.n_folds = len(test_info_folds)
         for fold in range(self.n_folds):
             self.extract_training_information(training_info_folds[fold])
+            #print(folder_name)
+            #print(self.experiment_variation)
             self.extract_test_information(test_info_folds[fold])
 
         self.calc_mean_and_std_metrics()
+        self._calc_mean_std_clusters()
+
+    def _calc_mean_std_clusters(self):
+
+        self.mean_n_clusters = np.mean(self.n_clusters_by_fold)
+        self.std_n_clusters = np.std(self.n_clusters_by_fold)
+
+        if int(self.mean_n_clusters) == self.mean_n_clusters:
+            self.mean_n_clusters = int(self.mean_n_clusters)
+
 
     def _get_experiments_params(self, folder_name):
 
@@ -82,14 +95,16 @@ class SingleCbegResult(BaseClassifierResult):
         """ Extract labels by cluster, base classifiers selected and more
         information related to the training stage. """
 
-        self.labels_by_cluster_folds.append( self._get_labels_by_cluster(content_training) )
+        labels_by_cluster = self._get_labels_by_cluster(content_training)
+
+        self.labels_by_cluster_folds.append( labels_by_cluster )
+
         self.idx_synthetic_by_cluster_folds.append(
                 self._get_synthetic_samples_by_cluster(content_training))
         self.minority_class_by_cluster_folds.append(
                 self._get_minority_class_by_cluster(content_training))
         self.classifier_by_cluster_folds.append(
                 self._get_base_classifiers_by_cluster(content_training))
-
         # Get selected clustering algorithm
         self.clustering_algorithms_folds.append(
                 self._get_selected_clustering_algorithms(content_training))
@@ -167,6 +182,9 @@ class SingleCbegResult(BaseClassifierResult):
         self.classification_results_folds.append(
             self.get_general_classification_results(classification_results_fold)
         )
+        n_clusters_fold = classification_results_fold["Number clusters"]
+        self.n_clusters_by_fold.append(n_clusters_fold)
+
 
     def _get_classification_results_by_cluster(
             self, classification_results: dict[str, list[float]]

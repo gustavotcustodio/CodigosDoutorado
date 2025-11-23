@@ -243,39 +243,39 @@ def read_vehicle_dataset():
 
 DATASETS_INFO = {
     "wine": {
-        "function": read_wine_dataset, "nlabels": 3},
+        "function": read_wine_dataset, "nlabels": 3, "full_name": 'wine'},
     "blood": {
-        "function": read_blood_dataset, "nlabels": 2},
+        "function": read_blood_dataset, "nlabels": 2, "full_name": 'blood'},
     "electricity": {
-        "function": read_electricity_dataset, "nlabels": 2},
+        "function": read_electricity_dataset, "nlabels": 2, "full_name": 'electricity'},
     "german_credit": {
-        "function": read_german_credit_dataset, "nlabels": 2},
+        "function": read_german_credit_dataset, "nlabels": 2, "full_name": 'German credit'},
     "wdbc": {
-        "function": read_wdbc_dataset, "nlabels": 2},
+        "function": read_wdbc_dataset, "nlabels": 2, "full_name": 'breast cancer'},
     "water": {
-        "function": read_potability_dataset, "nlabels": 2},
+        "function": read_potability_dataset, "nlabels": 2, "full_name": 'potable water'},
     "contraceptive": {
-        "function": read_contraceptive_dataset, "nlabels": 3},
+        "function": read_contraceptive_dataset, "nlabels": 3, "full_name": 'contraceptive'},
     "hepatitis": {
-        "function": read_hepatitis_dataset, "nlabels": 2},
+        "function": read_hepatitis_dataset, "nlabels": 2, "full_name": 'hepatitis'},
     "vehicle": {
-        "function": read_vehicle_dataset, "nlabels": 3},
+        "function": read_vehicle_dataset, "nlabels": 3, "full_name": 'vehicles'},
     "australian_credit": {
-        "function": read_australian_credit_dataset, "nlabels": 2},
+        "function": read_australian_credit_dataset, "nlabels": 2, "full_name": 'Australian credit'},
     "pima": {
-        "function": read_pima_dataset, "nlabels": 2},
+        "function": read_pima_dataset, "nlabels": 2, "full_name": 'Pima biabetes'},
     "heart": {
-        "function": read_heart_dataset, "nlabels": 2},
+        "function": read_heart_dataset, "nlabels": 2, "full_name": 'heart disease'},
     "iris": {
-        "function": read_iris_dataset, "nlabels": 3},
+        "function": read_iris_dataset, "nlabels": 3, "full_name": 'iris'},
     "elipses": {
-        "function": read_elipses_dataset, "nlabels": 3},
+        "function": read_elipses_dataset, "nlabels": 3, "full_name": 'elipses'},
     "rectangles": {
-        "function": read_rectangles_dataset, "nlabels": 2},
+        "function": read_rectangles_dataset, "nlabels": 2, "full_name": 'rectangles'},
     "normal_2_class": {
-        "function": read_normal_dist_dataset, "nlabels": 2},
+        "function": read_normal_dist_dataset, "nlabels": 2, "full_name": '2-class normal distribution'},
     "normal_3_class": {
-        "function": read_normal_dist_multiclass_dataset, "nlabels": 3},
+        "function": read_normal_dist_multiclass_dataset, "nlabels": 3, "full_name": '3-class normal distribution'},
 }
 
 

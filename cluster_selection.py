@@ -142,7 +142,7 @@ class ClusteringModule:
         candidate_clusters = []
 
         n_samples = self.X.shape[0]
-        max_clusters = 3 # int(np.sqrt(n_samples) / 2)
+        max_clusters = int(np.sqrt(n_samples) / 2)
 
         for clustering_algorithm in CLUSTERING_ALGORITHMS:
             if clustering_algorithm == "fcm" and not(self.allow_fcm):
@@ -156,11 +156,7 @@ class ClusteringModule:
                 # c = len(np.unique(clusters[idx_clusters]))
 
                 clusterer = self.create_clusterer(clustering_algorithm, c)
-                if clustering_algorithm == "spectral":
-                    print("começo spectral")
                 clusters = clusterer.fit_predict(self.X)
-                if clustering_algorithm == "spectral":
-                    print("fim spectral")
 
                 # Merge clusters with very few instances
                 clusters = self.merge_small_clusters(clusters)

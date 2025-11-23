@@ -79,7 +79,8 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             possible_experiments = os.listdir(f'./results/{dataset}/mutual_info_{mutual_info}/cbeg')
 
             experiments_configs += [
-                filter_cbeg_experiments_configs(experiment_variation, mutual_info, n_classes_dataset)
+                filter_cbeg_experiments_configs(
+                    experiment_variation, mutual_info, n_classes_dataset)
                 for experiment_variation in possible_experiments
             ]
 
