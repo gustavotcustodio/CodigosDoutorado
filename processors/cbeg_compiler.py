@@ -1,7 +1,9 @@
 import os
+import copy
 import sys
 import re
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -331,6 +333,9 @@ class CbegResultsCompiler:
 
         if row_cbeg.mutual_info_percentage < 100.0:
             output += f" ({mutual_info} %)"
+
+        if hasattr(row_cbeg, "base_classifier_selection"):
+            output += f" - {row_cbeg.base_classifier_selection}"
         return output
 
     def generate_latex_table(self):
@@ -338,6 +343,98 @@ class CbegResultsCompiler:
         to the heatmap of the ablation study.
         """
         create_latex_table(self.cbeg_results, self.dataset) 
+
+    def calc_increase_decrease_matrix(
+        self, base_result: SingleCbegResult, step_results: list[SingleCbegResult]
+    ) -> NDArray:
+        """Calculate the matrix showing increase/decrease
+        of each metric when an experiment step is added.
+
+        Args:
+            base_result: The result with experiment_variation = 0.
+            step_results: Experiments with only a single improvement
+                experiment_variation is 1, 2, 3 or 4.
+
+        Returns:
+            variation_matrix: Matrix showing increase/decrease of metrics.
+                It has size 9x5 (number of variations x number of metrics).
+        """
+
+        assert base_result.experiment_variation == 0, \
+                f"Invalid experiment variation for variation_heatmap {base_result.experiment_variation}."
+
+        for result in step_results:
+            assert 0 < result.experiment_variation <= 4, \
+                f"Invalid experiment variation for variation_heatmap {result.experiment_variation}."
+
+        variation_matrix = np.empty((9, 5))
+        for i, result in enumerate(step_results):
+            variation_matrix[i, 0] = result.mean_accuracy - base_result.mean_accuracy
+            variation_matrix[i, 1] = result.mean_recall - base_result.mean_recall
+            variation_matrix[i, 2] = result.mean_precision - base_result.mean_precision
+            variation_matrix[i, 3] = result.mean_f1 - base_result.mean_f1
+            variation_matrix[i, 4] = result.mean_auc - base_result.mean_auc
+
+        return variation_matrix
+
+
+    def create_variation_heatmap(self):
+        """Create a heatmap showing how much each metric
+           improved or reduced with the inclusion of each
+           step.
+        """
+        cbeg_results = copy.deepcopy(self.cbeg_results)
+
+        for i in range(len(cbeg_results)):
+            if cbeg_results[i].experiment_variation == 2:
+                cbeg_results[i].base_classifier_selection = "Crossval"
+            elif cbeg_results[i].experiment_variation == 5:
+                cbeg_results[i].experiment_variation = 2
+                cbeg_results[i].base_classifier_selection = "PSO"
+
+        # Sort results by experiment variation
+        sorted_results = sorted(
+            cbeg_results,
+            key=lambda result: result.experiment_variation
+        )
+        # Get only experiments with a single step added
+        # or the base version (0, 1, 2, 3 and 4)
+        base_result = sorted_results[0]
+        single_step_results = sorted_results[1:10]
+         
+        # Calculate the difference between each experiment
+        # variation and the base result (0)
+        variation_matrix = self.calc_increase_decrease_matrix(
+            base_result, single_step_results)
+        
+        # Transform the results in a matrix and create the
+        # heatmap
+        xlabels = ["Accuracy", "Recall", "Precision", "F1", "AUC"]
+        ylabels = []
+        for result in single_step_results:
+            if result.experiment_variation == 4 and "Weighted" in result.fusion_strategy:
+                ylabels.append(f"4 - W. Memb.")
+            elif result.experiment_variation == 4 and "Meta" in result.fusion_strategy:
+                ylabels.append(f"4 - Meta-Clf.")
+            else:
+                ylabels.append(self._get_experiment_params(result))
+
+        # Maximum variance ofr heatmap
+        max_var = max(variation_matrix.max(), abs(variation_matrix.min()))
+        _, ax = plt.subplots(figsize=(9.5, 8)) 
+        sns.heatmap(variation_matrix, annot=True, cmap="RdBu",
+                    vmin=-max_var, vmax=max_var, ax=ax,
+                    fmt='.2f', xticklabels=xlabels, yticklabels=ylabels)
+
+        title = " ".join(self.dataset.capitalize().split("_"))
+        ax.set_title(title)
+
+        output_file = f"results/{self.dataset}/step_ablation_{self.dataset}.png"
+        os.makedirs(f"results/{self.dataset}", exist_ok=True)
+        plt.savefig(output_file)
+        plt.close()
+        print(f"{output_file} saved.")
+
 
     def plot_classification_heatmap(self):
         """ Save the heatmap for the ablation study.
