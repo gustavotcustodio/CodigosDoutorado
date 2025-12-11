@@ -421,13 +421,13 @@ class CbegResultsCompiler:
 
         # Maximum variance ofr heatmap
         max_var = max(variation_matrix.max(), abs(variation_matrix.min()))
-        _, ax = plt.subplots(figsize=(9.5, 8)) 
+        _, ax = plt.subplots(figsize=(9.4, 5.0)) 
         sns.heatmap(variation_matrix, annot=True, cmap="RdBu",
-                    vmin=-max_var, vmax=max_var, ax=ax,
+                    vmin=-max_var, vmax=max_var, ax=ax, annot_kws={"size": 13},
                     fmt='.2f', xticklabels=xlabels, yticklabels=ylabels)
-
-        title = " ".join(self.dataset.capitalize().split("_"))
-        ax.set_title(title)
+        #title = " ".join(self.dataset.capitalize().split("_"))
+        #ax.set_title(title)
+        plt.xticks(fontsize=12)
 
         output_file = f"results/{self.dataset}/step_ablation_{self.dataset}.png"
         os.makedirs(f"results/{self.dataset}", exist_ok=True)
