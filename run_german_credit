@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# CLASSIFIERS_SELECTION="crossval default pso"
+# COMBINATION_METHODS="meta_classifier weighted_membership majority_voting"
+# python cbeg.py -d german_credit -n 2 -m 100 -c majority_voting -p default
+python cbeg.py -d german_credit -n compare -m 75 -e rand -c majority_voting -p crossval
+python cbeg.py -d german_credit -n compare -m 50 -e rand -c majority_voting -p crossval
+
+python cbeg.py -d german_credit -n compare -m 100 -e rand -c meta_classifier -p crossval
+
+python cbeg.py -d german_credit -n compare -m 75 -e rand -c weighted_membership -p crossval
+python cbeg.py -d german_credit -n compare -m 50 -e rand -c weighted_membership -p crossval
+
+python cbeg.py -d german_credit -n compare -m 75 -e rand -c meta_classifier -p crossval
+python cbeg.py -d german_credit -n compare -m 50 -e rand -c meta_classifier -p crossval
