@@ -595,14 +595,102 @@ class CbegResultsCompiler:
                 if experiment_label not in results_dict_heatmap:
                     results_dict_heatmap[experiment_label] = {}
 
-                results_dict_heatmap[experiment_label][fusion_strategy] = float(clf_metric_value)
+                results_dict_heatmap[
+                        experiment_label][fusion_strategy] = float(clf_metric_value)
 
         return results_dict_heatmap
 
     def plot_clusters_scatterplot(self):
-        val_classif_metrics = [metric for metric in CLASSIFICATION_METRICS if metric != "AUC"]
+        val_classif_metrics = [metric for metric in CLASSIFICATION_METRICS
+                               if metric != "AUC"]
 
         for cbeg_result in self.cbeg_results:
             for metric in val_classif_metrics:
                 cbeg_result.plot_clusters_scatterplot(self.dataset, metric)
 
+
+    def format_classifier_name(self, clf_name: str) -> str:
+        """Format the classifier name to remove parameter values.
+        Example: DecisionTree(n_leafs=3) -> decision tree
+
+        :returns: formatted_name
+
+        """
+        # re.sub(pattern, replacement, string)
+        formatted_clf = re.sub(r"(Classifier)*\(.*n_neighbors=7.*\)",
+                               "7", clf_name)
+        formatted_clf = re.sub(r"(Classifier)*\(.*\)", "", formatted_clf)
+
+        formatted_clf = formatted_clf.replace("GaussianNB", "Naive-Bayes")
+        formatted_clf = formatted_clf.replace("KNeighbors7", "k-NN 7")
+        formatted_clf = formatted_clf.replace("KNeighbors", "k-NN 5")
+        formatted_clf = formatted_clf.replace("SVC", "SVM")
+        formatted_clf = formatted_clf.replace("Dummy", "1 Class Cluster")
+        return formatted_clf
+
+
+    def generate_histogram_base_clf(self):
+        """Generate histograms showing the average performance of each
+        base classifier across multiple datasets.
+        """
+        # Filter experiments that do not employ classifier selection
+        valid_results = [result for result in self.cbeg_results
+                         if '2' in str(result.experiment_variation) or
+                         '5' in str(result.experiment_variation)]
+
+        # Filter experiments that do not employ classifier selection
+        base_classifier_results = self.get_base_classifiers_metrics(valid_results)
+
+        sns.histplot(data=base_classifier_results,
+                     x="Classifier", binwidth=3)
+        plt.show()
+        breakpoint()
+
+    def get_base_classifiers_metrics(
+            self, valid_results: list[SingleCbegResult]) -> dict[str, list]:
+        """
+        Get the base classifiers names and their respective results individually.
+
+        Args:
+            valid_results: a list of cbeg results where the classfier selection
+                by PSO or Cross-val is employed.
+
+        Returns:
+            base_classifier_results: a dict containing the base
+                classifier and its metric values.
+
+        """
+        base_classifier_results = {
+            'Classifier': [], 'Accuracy': [], 'Recall': [],
+            'Precision': [], 'F1': []
+        }
+
+        for cbeg_result in valid_results:
+            for f in range(0, N_FOLDS):
+                classifiers_fold = cbeg_result.classifier_by_cluster_folds[f]
+
+                classifiers_fold = [self.format_classifier_name(clf)
+                                    for clf in classifiers_fold]
+                cbeg_result.cluster_classification_folds[f]['Accuracy']
+                # Compare the correct labels with the predicted ones
+                accuracies_fold = \
+                        cbeg_result.cluster_classification_folds[f]['Accuracy']
+                recalls_fold = \
+                        cbeg_result.cluster_classification_folds[f]['Recall']
+                precisions_fold = \
+                        cbeg_result.cluster_classification_folds[f]['Precision']
+                f1_fold = \
+                        cbeg_result.cluster_classification_folds[f]['F1']
+
+                base_classifier_results['Classifier'] += classifiers_fold
+                base_classifier_results['Accuracy'] += accuracies_fold
+                base_classifier_results['Recall'] += recalls_fold
+                base_classifier_results['Precision'] += precisions_fold
+                base_classifier_results['F1'] += f1_fold
+
+        return base_classifier_results
+        # Use regex to replace the name of classifier and params to
+        # the dict keys.
+        # re.sub(pattern, replacement, string,
+        # re.sub("")
+        # GaussianNB e LorigsticRegression no params

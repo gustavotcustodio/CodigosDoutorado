@@ -1,4 +1,4 @@
-Clustering algorithm selected: kmeans
+Clustering algorithm selected: spectral
 =====================================
 
 ------------------------------------
@@ -7,17 +7,24 @@ Clustering algorithm selected: kmeans
 
 ====== Cluster 0 ======
 Base classifier: GaussianNB()
-Accuracy: 0.6666666666666666
-Recall: 0.6666666666666666
+Accuracy: 0.3888888888888889
+Recall: 0.3888888888888889
 Precision: 1.0
-F1: 0.7833333333333333
+F1: 0.56
 
 ====== Cluster 1 ======
-Base classifier: LogisticRegression()
-Accuracy: 0.7222222222222222
-Recall: 0.7222222222222222
+Base classifier: SVC(C=916.1189406793333, gamma=288.63606599442716, probability=True)
+Accuracy: 0.2777777777777778
+Recall: 0.2777777777777778
 Precision: 1.0
-F1: 0.8342830009496676
+F1: 0.43478260869565216
+
+====== Cluster 2 ======
+Base classifier: SVC(C=936.5554555086853, gamma=133.83434557806208, probability=True)
+Accuracy: 0.3333333333333333
+Recall: 0.3333333333333333
+Precision: 1.0
+F1: 0.5
 
 ====== Total ======
 Accuracy: 1.0
@@ -28,25 +35,25 @@ F1: 1.0
 AUC: 1.0
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.3677772977544502
+Clustering evaluation value: 0.9038038260234784
 
 ========= Predictions by sample =========
 
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.18 0.82]
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.16 0.84]
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.15 0.85]
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.26 0.74]
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.12 0.88]
-Prediction: 0, Real label: 0, Votes by cluster: [1 0], Weights: [0.25 0.75]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.46 0.54]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.32 0.68]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.48 0.52]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.24 0.76]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.6 0.4]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.4 0.6]
-Prediction: 1, Real label: 1, Votes by cluster: [1 1], Weights: [0.71 0.29]
-Prediction: 2, Real label: 2, Votes by cluster: [2 1], Weights: [0.87 0.13]
-Prediction: 2, Real label: 2, Votes by cluster: [2 0], Weights: [0.88 0.12]
-Prediction: 2, Real label: 2, Votes by cluster: [2 1], Weights: [0.89 0.11]
-Prediction: 2, Real label: 2, Votes by cluster: [2 1], Weights: [0.92 0.08]
-Prediction: 2, Real label: 2, Votes by cluster: [2 1], Weights: [0.86 0.14]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.73 0.12 0.15]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.47 0.22 0.31]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.51 0.3  0.2 ]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.55 0.19 0.25]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.49 0.33 0.18]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.15 0.09 0.76]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.15 0.09 0.76]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.18 0.12 0.69]
+Prediction: 2, Real label: 2, Votes by cluster: [1 2 0], Weights: [0.11 0.83 0.07]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.15 0.09 0.77]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.17 0.05 0.78]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.66 0.13 0.22]
+Prediction: 1, Real label: 1, Votes by cluster: [1 2 0], Weights: [0.54 0.31 0.15]
+Prediction: 0, Real label: 0, Votes by cluster: [1 2 0], Weights: [0.19 0.07 0.74]
+Prediction: 2, Real label: 2, Votes by cluster: [1 2 0], Weights: [0.18 0.71 0.1 ]
+Prediction: 2, Real label: 2, Votes by cluster: [1 2 0], Weights: [0.1  0.82 0.08]
+Prediction: 2, Real label: 2, Votes by cluster: [1 2 0], Weights: [0.16 0.73 0.11]
+Prediction: 2, Real label: 2, Votes by cluster: [1 2 0], Weights: [0.28 0.53 0.19]

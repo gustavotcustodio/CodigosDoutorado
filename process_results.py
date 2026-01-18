@@ -109,6 +109,7 @@ def process_cbeg_results(datasets, mutual_info_percentages):
 
         # cbeg_compilation.plot_classification_heatmap()
         # cbeg_compilation.plot_clusters_scatterplot()
+        cbeg_compilation.generate_histogram_base_clf()
         cbeg_compilation.create_variation_heatmap()
         cbeg_compilation.generate_latex_table()
 

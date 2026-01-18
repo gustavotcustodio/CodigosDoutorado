@@ -15,7 +15,7 @@ CLUSTERING_ALGORITHMS = {
     'kmeans': KMeans,
     'kmeans++': KMeans,
     'fcm': FuzzyCMeans,
-    # 'spectral': SpectralClustering,
+    'spectral': SpectralClustering,
     #'agglomerative_clustering': AgglomerativeClustering
     #'mini_batch_kmeans': MiniBatchKMeans,
 }

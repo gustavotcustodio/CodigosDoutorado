@@ -1,0 +1,28 @@
+#!/bin/bash
+# COMBINATION_METHODS="weighted_membership majority_voting weighted_membership_entropy cluster_density"
+DATASETS="australian_credit wine iris"
+# naive_bayes_compare_clusters_rand_majority_voting_fusion
+EVALUATION_METRIC="dbc dbc_rand rand"
+COMBINATION_METHODS="weighted_membership"
+POSSIBLE_N_CLUSTERS="2 3"
+CLASSIFIERS_SELECTION="pso"
+
+for dataset in $DATASETS; do
+
+    for mutual_info in 100; do
+
+        for clf_selection_method in $CLASSIFIERS_SELECTION; do
+
+            for combination_method in $COMBINATION_METHODS; do
+
+                for eval_metric in $EVALUATION_METRIC; do
+                    echo "======================================================"
+                    echo "Running ${dataset} ${mutual_info} ${eval_metric} ${combination_method} ${clf_selection_method}..."
+                    echo "======================================================"
+                    echo "python cbeg.py -d ${dataset} -n compare -m ${mutual_info} -e ${eval_metric} -c ${combination_method} -p ${clf_selection_method}"
+                    python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -p "$clf_selection_method"
+                done
+            done
+        done
+    done
+done
