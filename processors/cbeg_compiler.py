@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from dataclasses import dataclass
-from collections import Counter
+from collections import Counter, OrderedDict
 from cluster_selection import CLUSTERING_ALGORITHMS
 from processors.data_reader import CLASSIFICATION_METRICS, N_FOLDS
 from processors.base_classifiers_compiler import BaseClassifierResult
@@ -122,13 +122,14 @@ class SingleCbegResult(BaseClassifierResult):
     def _get_labels_by_cluster(self, content_training: str) -> list[list[int]]:
         # Labels: [0 0 0  0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 0 0
         #  0 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 1 0]
-        found_strings = re.findall(r"Labels:\s\[[0-9\s\n]+\]", content_training)
+        found_strings = re.findall(r"Labels:\s\[[0-9\.\s\n]+\]", content_training)
         self.n_clusters = len(found_strings)
 
         labels_by_cluster = []
 
         for c in range(self.n_clusters):
-            str_labels = found_strings[c].replace("Labels: [", "").replace("]", "")
+            str_labels = found_strings[c].replace(
+                "Labels: [", "").replace("]", "").replace(" ... ", " ")
             labels = re.split(r"[\n\s]+", str_labels)
             labels_by_cluster.append( [int(lbl) for lbl in labels] )
         return labels_by_cluster
@@ -613,7 +614,11 @@ class CbegResultsCompiler:
         """Format the classifier name to remove parameter values.
         Example: DecisionTree(n_leafs=3) -> decision tree
 
-        :returns: formatted_name
+        Args:
+            clf_name: original name of classifier.
+
+        Returns:
+            formatted_clf: Name of classifier formatted.
 
         """
         # re.sub(pattern, replacement, string)
@@ -622,10 +627,13 @@ class CbegResultsCompiler:
         formatted_clf = re.sub(r"(Classifier)*\(.*\)", "", formatted_clf)
 
         formatted_clf = formatted_clf.replace("GaussianNB", "Naive-Bayes")
+        formatted_clf = formatted_clf.replace("DecisionTree", "Decision\nTree")
+        formatted_clf = formatted_clf.replace(
+            "LogisticRegression", "Logistic\nRegression")
         formatted_clf = formatted_clf.replace("KNeighbors7", "k-NN 7")
         formatted_clf = formatted_clf.replace("KNeighbors", "k-NN 5")
         formatted_clf = formatted_clf.replace("SVC", "SVM")
-        formatted_clf = formatted_clf.replace("Dummy", "1 Class Cluster")
+        formatted_clf = formatted_clf.replace("Dummy", "1 Class\nCluster")
         return formatted_clf
 
 
@@ -638,13 +646,20 @@ class CbegResultsCompiler:
                          if '2' in str(result.experiment_variation) or
                          '5' in str(result.experiment_variation)]
 
-        # Filter experiments that do not employ classifier selection
         base_classifier_results = self.get_base_classifiers_metrics(valid_results)
+        df_base_classifiers = pd.DataFrame(base_classifier_results)
+        df_base_classifiers.sort_values(['Classifier'], inplace=True)
 
-        sns.histplot(data=base_classifier_results,
-                     x="Classifier", binwidth=3)
-        plt.show()
-        breakpoint()
+        _, ax = plt.subplots(figsize=(8, 6))
+        sns.histplot(data=df_base_classifiers, x="Classifier",
+                     binwidth=3, ax=ax)
+
+        file_histogram = os.path.join(
+            'results', self.dataset, 'histograms_base_classifiers.png')
+        # os.makedirs(folder_hist, exist_ok=True)
+        plt.savefig(file_histogram)
+        print(file_histogram, 'saved')
+        plt.clf()
 
     def get_base_classifiers_metrics(
             self, valid_results: list[SingleCbegResult]) -> dict[str, list]:
@@ -658,7 +673,6 @@ class CbegResultsCompiler:
         Returns:
             base_classifier_results: a dict containing the base
                 classifier and its metric values.
-
         """
         base_classifier_results = {
             'Classifier': [], 'Accuracy': [], 'Recall': [],
@@ -669,8 +683,9 @@ class CbegResultsCompiler:
             for f in range(0, N_FOLDS):
                 classifiers_fold = cbeg_result.classifier_by_cluster_folds[f]
 
-                classifiers_fold = [self.format_classifier_name(clf)
-                                    for clf in classifiers_fold]
+                classifiers_fold_format = [
+                    self.format_classifier_name(clf) for clf in classifiers_fold
+                ]
                 cbeg_result.cluster_classification_folds[f]['Accuracy']
                 # Compare the correct labels with the predicted ones
                 accuracies_fold = \
@@ -681,8 +696,10 @@ class CbegResultsCompiler:
                         cbeg_result.cluster_classification_folds[f]['Precision']
                 f1_fold = \
                         cbeg_result.cluster_classification_folds[f]['F1']
+                assert len(classifiers_fold) == len(accuracies_fold), \
+                        f"Fold {f+1} - {len(classifiers_fold)} - {len(accuracies_fold)}"
 
-                base_classifier_results['Classifier'] += classifiers_fold
+                base_classifier_results['Classifier'] += classifiers_fold_format
                 base_classifier_results['Accuracy'] += accuracies_fold
                 base_classifier_results['Recall'] += recalls_fold
                 base_classifier_results['Precision'] += precisions_fold
