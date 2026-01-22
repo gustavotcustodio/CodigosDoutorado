@@ -103,7 +103,7 @@ def process_cbeg_results(datasets, mutual_info_percentages):
             cbeg_results.append( cbeg_single_result )
 
         cbeg_compilation = CbegResultsCompiler(cbeg_results, dataset)
-        # TODO
+        # TODO mudar
         # for metric in CLASSIFICATION_METRICS:
         #     cbeg_compilation.plot_clusterers_heatmap(metric)
 

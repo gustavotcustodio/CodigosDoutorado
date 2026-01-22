@@ -493,7 +493,8 @@ class CbegResultsCompiler:
 
             indexes_weighted = list(dict_results_weighted.keys())
             columns_weighted = vote_fusion_strategies
-            self.add_heatmap(data_weighted_fusion, columns_weighted, indexes_weighted, ax[1], cbar=True)
+            self.add_heatmap(data_weighted_fusion, columns_weighted,
+                             indexes_weighted, ax[1], cbar=True)
 
             plt.savefig(filename)
             plt.close()
@@ -646,20 +647,52 @@ class CbegResultsCompiler:
                          if '2' in str(result.experiment_variation) or
                          '5' in str(result.experiment_variation)]
 
-        base_classifier_results = self.get_base_classifiers_metrics(valid_results)
-        df_base_classifiers = pd.DataFrame(base_classifier_results)
-        df_base_classifiers.sort_values(['Classifier'], inplace=True)
+        base_classifier_results = \
+                self.get_base_classifiers_metrics(valid_results)
+        # TODO trocar por um barplot e agrupar a contagem dos classificadores
+        # e a média das métricas
+        df_base_clfs = pd.DataFrame(base_classifier_results)
+        df_base_clfs.sort_values(['Classifier'], inplace=True)
 
-        _, ax = plt.subplots(figsize=(8, 6))
-        sns.histplot(data=df_base_classifiers, x="Classifier",
-                     binwidth=3, ax=ax)
+        df_base_clfs = df_base_clfs.groupby("Classifier").agg(
+             Times_Selected=("Classifier", "size"),  # non-NaN values
+             Mean_Accuracy=("Accuracy", "mean"),
+             Mean_Precision=("Precision", "mean"),
+             Mean_Recall=("Recall", "mean"),
+             Mean_F1=("F1", "mean"),
+             # mean_perf=("Accuracy", "Mean-accuracy")
+        ).reset_index()
+        df_base_clfs = df_base_clfs.loc[
+            df_base_clfs['Classifier'] != "1 Class\nCluster",
+        ].reset_index()
 
-        file_histogram = os.path.join(
-            'results', self.dataset, 'histograms_base_classifiers.png')
-        # os.makedirs(folder_hist, exist_ok=True)
-        plt.savefig(file_histogram)
-        print(file_histogram, 'saved')
-        plt.clf()
+        sns.set_style('darkgrid')
+        for metric in CLASSIFICATION_METRICS[:-1]:
+            df_base_clfs[f'Mean_{metric}'] = df_base_clfs[f'Mean_{metric}'].round(2)
+
+            # series_classifiers = df_base_clfs['Classifier'].str
+            # series_metric_vals = df_base_clfs[f'Mean_{metric}'].astype(str)
+
+            # df_base_clfs[f'Classifier_{metric}'
+            #              ] = series_classifiers.cat(series_metric_vals, sep="\n")
+
+            _, ax = plt.subplots(figsize=(10, 6))
+
+            sns.barplot(data=df_base_clfs, hue=f"Mean_{metric}",
+                        y=f"Classifier", x="Times_Selected", ax=ax,
+                        palette='Blues', linewidth=0.5, edgecolor="black")
+            # TODO separar por PSO Crossval
+
+            for c in ax.containers:
+                ax.bar_label(c)
+            file_histogram = os.path.join(
+                'results', self.dataset,
+                f'Base_classifiers_{self.dataset}_{metric}.png'
+            )
+            # os.makedirs(folder_hist, exist_ok=True)
+            plt.savefig(file_histogram)
+            print(file_histogram, 'saved')
+            plt.close()
 
     def get_base_classifiers_metrics(
             self, valid_results: list[SingleCbegResult]) -> dict[str, list]:
