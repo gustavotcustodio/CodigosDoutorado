@@ -1,26 +1,19 @@
-Clustering algorithm selected: kmeans
+Clustering algorithm selected: spectral
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.15825010715354065
+Clustering evaluation value: 0.282697689647199
 
 ========== Cluster 0 ==========
 
-Base classifier: GaussianNB()
+Base classifier: KNeighborsClassifier()
 
 Minority Class: 1
 
-Selected Features: [1 0]
+Selected Features: [0]
 
-Labels: [2 2 1 2 2 1 2 0 0 1 2 0 2 0 1 0 1 1 2 0 2 2 2 1 1 0 1 2 1 2 2 1 2 1 2 2 1
- 0 2 2 2 2 0 2 2 2 0 2 2 0 0 2 2 1 2 2 2 2 1 2 0 1 2 0 2 1 0 0 2 2 2 0 1 2
- 2 0 0 2 1 2 0 0 1 2 0 2 2 2 2 0 2 2 2 1 2 0 1 2 2 2 1 2 0 2 2 2 0 2 2 2 1
- 1 1 2 2 0 2 2 2 2 1 2 2 0 0 2 0 2 2 0 2 0 2 2 1 1 2 1 1 0 0 2 2 2 2 2 1 2
- 2 0 1 0 2 0 2 0 2 0 2 1 2 2 2 1 2 2 2 2 2 0 2 2 2 2 0 2 2 2 1 2 2 2 1 0 2
- 2 1 2 0 2 2 2 2 0 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 2 1 2 2
- 2 2 2 0 0 1 2 2 2 2 2 2 2 2 2 2 1 2 1 2 2 1 2 1 1 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 1 2 2 2 0 0 1 1 2 2 2 0 0 0 1 2 1 0 0 2 0 2 0 2 0 0 2 1 2 0 2 2
- 2 2 2 2 2 2 2 2 2 0 0 0 2 0 2 1 2 2 0 0]
+Labels: [1 0 0 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0 0 1 0 0
+ 1 1 0 0 0 0 1 0 0 1 0 0 0 1 0 1 0 0 0 1 1 0 0 0 1 1 1 1]
 
 ========== Cluster 1 ==========
 
@@ -28,16 +21,90 @@ Base classifier: LogisticRegression()
 
 Minority Class: 2
 
-Selected Features: [0]
+Selected Features: [1 0]
 
-Labels: [1 0 1 1 0 0 1 1 0 1 1 1 1 0 1 1 1 1 0 0 0 1 0 0 1 2 1 1 0 0 0 1 0 1 0 1 0
- 1 1 1 0 0 1 0 0 1 1 0 1 1 1 0 0 0 0 0 2 0 1 1 0 2 0 2 0 1 1 0 1 0 1 0 1 0
- 1 0 0 0 1 1 1 0 0 0 0 0 1 0 1 0 0 2 0 1 1 0 1 1 0 0 2 0 1 0 1 0 0 1 0 2 1
- 1 0 1 0 1 0 1 0 0 1 1 1 2 0 1 0 1 0 1 1 0 0 1 1 2 1 1 0 0 0 2 1 1 1 0 1 1
- 1 1 1 0 0 0 1 0 1 1 1 0 0 1 0 1 0 0 1 0 2 1 0 0 1 1 0 1 1 1 1 0 1 1 0 2 2
- 0 0 1 1 1 1 1 0 0 2 0 2 1 1 1 1 0 0 0 1 0 1 0 0 1 0 1 1 0 0 1 1 0 1 0 0 1
- 0 1 1 1 0 0 0 0 1 2 2 0 0 0 0 1 1 0 2 1 0 0 2 1 1 1 0 0 0 1 1 1 0 0 0 1 0
- 1 0 1 1 0 0 1 0 1 1 1 1 0 1 1 0 0 0 0 0 2 0 2 0 1 0 1 0 0 2 2 0 1 2 0 0 0
- 2 0 1 1 1 1 2 1 0 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 2 0 1 1 0 1 1 0 1 1 1 0 2
- 1 0 0 1 0 1 1 1 1 1 1 1 1 1 1 0 0 1 1 0 1 0 0 0 1 1]
+Labels: [2 1 1 1 1 2 1 1 1 2 1 1 1 2 1 2 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 2 1 2 1 1
+ 1 1 2 2 1 1 1 1 2 2 2 1 1 1 1 1 1 2 1 2 1 1 2 1 1 2 1 1 1 1 1]
+
+========== Cluster 2 ==========
+
+Base classifier: LogisticRegression()
+
+Minority Class: 2
+
+Selected Features: [1 0]
+
+Labels: [2 1 0 1 1 1 0 0 0 1 0 1 2 0 0 0 1 0 1 1 1 0 0 0 0 0 2 0 1 1 2 2 1 0 1 0 0
+ 1 1 1 2 1 1 1 2 0 2 1 0 1 1 0 1 2 0 0 1 0 1 2 0 0 0 2 1 1 1 1 0 0 0 0 1 1
+ 2 0 0 2 1 0 0 1 1 1 2 2 2 1 1 0 2 2 1 0 0 0 1 0 1 0 1 0 0 1 1 0 0 0 0 1 2
+ 0 0 0 1 1 0 2 2 1 1 0 0 0 1 1 1 0 1 1 1 0 0 2 0 1 0 2 2 1 0 0 2 1 2 0 1 1
+ 1 1 1 2 1 0 1 2 1 0 1 1 1 1 0 1 1 0 1 0 0]
+
+========== Cluster 3 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 2
+
+Selected Features: [1]
+
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2]
+
+========== Cluster 4 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 1
+
+Selected Features: [1]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1]
+
+========== Cluster 5 ==========
+
+Base classifier: LogisticRegression()
+
+Minority Class: 0
+
+Selected Features: [1 0]
+
+Labels: [2 1 0 0 1 2 2 0 1 0 1 2 1 0 1 1 2 1 1 0 2 2 2 0 0 2 1 2 2 0 1 2 1 0 2 0 1
+ 0 0 1 1 2 2 0 1 1 2 0 2 1 1 1 1 2 1 2 2 0 2 0 2 1 2 1 2 0 2 0 1 2 2 2 0 2
+ 2 2 1 2 1 2 2 2 2 2 2 2 2 2 2 0 1 2 2 0 0 2 2 2 2 1 0 1 2 1 1 2 2 2 2 0 2
+ 2 2 2 0 0 0 1 1 1 0 0 2 2 2 1 2 2 2 0 0 1 2 0]
+
+========== Cluster 6 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [1]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0]
+
+========== Cluster 7 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 2
+
+Selected Features: [1]
+
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2 2]
+
+========== Cluster 8 ==========
+
+Base classifier: KNeighborsClassifier()
+
+Minority Class: 2
+
+Selected Features: [1 0]
+
+Labels: [0 0 0 2 2 0 2 0 0 2 0 0 0 0 2 0 0 0 2 2 0 2 0 2 0 0 0 0 0 2 0 0 0 0 2 2 2
+ 2 2 0 0 2 2 2 0 2 2 2 0 0 0 0 0 0 0 0 2 2 0 0 2 0]
 

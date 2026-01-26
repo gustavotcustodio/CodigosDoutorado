@@ -1,11 +1,12 @@
 #!/bin/bash
 # COMBINATION_METHODS="weighted_membership majority_voting weighted_membership_entropy cluster_density"
-DATASETS="electricity blood rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart normal_2_class normal_3_class"
+# DATASETS="electricity blood rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart normal_2_class normal_3_class"
+DATASETS="electricity rectangles elipses pima wdbc heart normal_2_class normal_3_class contraceptive"
 # naive_bayes_compare_clusters_rand_majority_voting_fusion
 EVALUATION_METRIC="dbc dbc_rand rand"
 COMBINATION_METHODS="meta_classifier weighted_membership majority_voting"
 POSSIBLE_N_CLUSTERS="2 3"
-CLASSIFIERS_SELECTION="crossval default pso"
+CLASSIFIERS_SELECTION="pso"
 
 for dataset in $DATASETS; do
 
@@ -23,13 +24,13 @@ for dataset in $DATASETS; do
                     python cbeg.py -d "$dataset" -n compare -m "$mutual_info" -e "$eval_metric" -c "$combination_method" -p "$clf_selection_method"
                 done
 
-                for n_clusters in $POSSIBLE_N_CLUSTERS; do
-                    echo "======================================================"
-                    echo "Running ${dataset} ${mutual_info} ${n_clusters} ${combination_method} ${clf_selection_method}"
-                    echo "======================================================"
-                    echo "python cbeg.py -d ${dataset} -m ${mutual_info} -n ${n_clusters} -c ${combination_method} -p ${clf_selection_method}"
-                    python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method" -p "$clf_selection_method"
-                done
+                # for n_clusters in $POSSIBLE_N_CLUSTERS; do
+                #     echo "======================================================"
+                #     echo "Running ${dataset} ${mutual_info} ${n_clusters} ${combination_method} ${clf_selection_method}"
+                #     echo "======================================================"
+                #     echo "python cbeg.py -d ${dataset} -m ${mutual_info} -n ${n_clusters} -c ${combination_method} -p ${clf_selection_method}"
+                #     python cbeg.py -d "$dataset" -n "$n_clusters" -m "$mutual_info" -c "$combination_method" -p "$clf_selection_method"
+                # done
             done
         done
     done

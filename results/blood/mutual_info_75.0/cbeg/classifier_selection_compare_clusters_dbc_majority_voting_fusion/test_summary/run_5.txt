@@ -20,7 +20,7 @@ Precision: 0.1111111111111111
 F1: 0.18181818181818182
 
 ====== Cluster 2 ======
-Base classifier: KNeighborsClassifier(n_neighbors=7)
+Base classifier: LogisticRegression()
 Accuracy: 0.76
 Recall: 0.0
 Precision: 0.0
@@ -49,11 +49,11 @@ F1: 0.0
 
 ====== Total ======
 Accuracy: 0.76
-Recall: 0.0
-Precision: 0.0
-F1: 0.0
+Recall: 0.5
+Precision: 0.1111111111111111
+F1: 0.18181818181818182
 
-AUC: 0.6345029239766081
+AUC: 0.5994152046783626
 
 Clustering evaluation metric: dbc
 Clustering evaluation value: 0.2678393487797161
@@ -61,7 +61,7 @@ Clustering evaluation value: 0.2678393487797161
 ========= Predictions by sample =========
 
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
-Prediction: 0, Real label: 1, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
+Prediction: 1, Real label: 1, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
@@ -85,7 +85,7 @@ Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
-Prediction: 0, Real label: 1, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
+Prediction: 1, Real label: 1, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
@@ -116,7 +116,7 @@ Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
-Prediction: 0, Real label: 0, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
+Prediction: 1, Real label: 0, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
@@ -128,7 +128,7 @@ Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
-Prediction: 0, Real label: 0, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
+Prediction: 1, Real label: 0, Votes by cluster: [0 1 0 1 1 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0], Weights: [0.17 0.17 0.17 0.17 0.17 0.17]
