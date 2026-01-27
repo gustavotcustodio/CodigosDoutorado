@@ -1,100 +1,53 @@
-Clustering algorithm selected: spectral
+Clustering algorithm selected: fcm
 =====================================
 
 Clustering evaluation metric: rand
-Clustering evaluation value: 0.35090422165435675
+Clustering evaluation value: 0.2965786297098193
 
 ========== Cluster 0 ==========
 
 Base classifier: LogisticRegression()
 
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 2 2 1 2 1 2 2 2 2 2 2 1 1 1 2 1 2 2 2 1 1 2 2 2 1 2 2 1 1 2 2 2 2 2
- 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 1 2 1 2 1 2 2 2 2 2 2 1 2 1 2
- 2 1 1 2 1 2 2 2]
-
-========== Cluster 1 ==========
-
-Base classifier: SVC(C=541.7875226552698, gamma=540.3964045486093, probability=True)
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 0 0 0 2 2 0 1 2 0 0 0 0 0 2 0 2 2 2 0 1 2 2 2 0 0 2 1 0 2 2 2 2 0 2 0 2
- 0 0 2 1 1 0 0 0 2 2 2 0 2 2 0 1 2 2 2 2 2 2 2 2 2 2 2 0 2 2 2 0 0 0 2 0 2
- 2 2 2 2 2 0 0 2 2 2 0 2 0 2 0 2 2 2 2 2 0 2 2 2 2 2 2 2 2 2 2 2 2 0 2 0 0
- 0 0 0 2 0 2 0 0 2 2 2 2 2 0 0 2 0 2 1 0 0 1 1]
-
-========== Cluster 2 ==========
-
-Base classifier: GaussianNB()
-
 Minority Class: 2
 
 Selected Features: [0 1]
 
-Labels: [1 1 1 1 1 1 0 0 0 1 0 0 0 2 0 1 1 2 1 2 1 0 1 1 0 0 1 1 1 1 1 0 2 1 1 1 2
- 0 0 2 1 0 1 0 1 0 1 1 1 2 0 0 1 1 0 2 1 2 0 2 0 0 0 2 1 1 1 1 1 0 0 2 0 1
- 1 2 0 0 0 2 1 0 2 0 2 1 1 1 0 2 2 2 1 1 2 0 2 2 1 1 0 1 0 0 1 0 1 0 1 0 1
- 0 1 1 1 0 0 0 0 1 2 0 0 2 1 1 1 0 1 0 1 1 0 2 0 1 0 2 0 1 0 2 0 1 1 1 1 0
- 2 2 1 0 0 0 0 1 1 1 1 0 1 0 1 1 1 0 0 0 2 2 0 1 0 2 2 1 0 0 0 2 0 1 2 0 1
- 1 1 1 1 1 1 2 1 1 0 2 1 2 1 0 1 1 1 1 1 0 1 1 0 1 0 2 0]
+Labels: [1 1 0 0 0 0 0 0 1 0 2 0 0 1 0 0 0 1 0 1 0 0 2 0 0 0 0 0 0 0 0 2 0 1 0 0 0
+ 1 0 1 0 0 0 0 0 0 0 0 2 1 0 1 0 1 0 2 0 0 1 1 0 0 2 1 0 0 0 0 0 0 2 0 0 1
+ 0 2 0 0 0 0 0 0 0 0 1 0 1 0 1 0 2 0 2 0 1 1 1 1 0 2 0 0 0 0 0 0 0 0 0 0 1
+ 0 0 0 0 2 0 0 1 0 0 0 0 0 2 1 0 1 1 0 1 0 1 1 2 0 0 0 0 0 2 0 0 2 1 2 0 0
+ 2 1 0 0 0 1 0 0 0 0 0 1 0 0 1 0 1 0 2 0 0 0 0 2 0 1 0 0 0 2 2 0 0 0 2 0 0
+ 0 0 0 0 1 0 0 1 0 2 0 0 1 1 0 0 0 2 0 2 0 0 1 1 0 1 0 0 0 0]
 
-========== Cluster 3 ==========
+========== Cluster 1 ==========
 
-Base classifier: DummyClassifier(strategy='most_frequent')
+Base classifier: DecisionTreeClassifier(max_depth=4, min_samples_leaf=10, min_samples_split=9)
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 1 1 0 0 2 0 0 2 2 1 2 2 2 2 2 0 1 2 2 0 2 2 2 0 2 2 0 0 1 2 0 2 2 2 2 0
+ 2 2 2 2 1 2 2 2 2 2 2 2 0 2 2 2 1 1 2 2 0 2 2 2 2 0 0 0 2 2 0 2 0 2 2 2 1
+ 2 2 2 2 1 2 0 1 0 0 2 0 2 1 2 2 2 2 2 2 2 0 2 2 2 0 2 2 2 1 2 1 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 0 2 2 2 0 2 0 0 2 2 0 2 2 2 2 2 2 2 2 0 2 2 2 2 0 2
+ 2 2 0 2 2 2 0 2 2 2 2 2 0 0 2 2 2 2 2 2 2 2 2 2 1 2 2 2 1 2 1 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2 0 1 2 2 2 0 0 2 0 0 2 0 2 2 0 2 2 2 2 2 2 2 2 2 2
+ 0 0 2 0 2 1 2 0 0]
+
+========== Cluster 2 ==========
+
+Base classifier: SVC(C=553.8444192896725, gamma=581.2206535777639, probability=True)
 
 Minority Class: 0
 
 Selected Features: [0 1]
 
-Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-
-========== Cluster 4 ==========
-
-Base classifier: GaussianNB()
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 1 0 0 0 0 1 0 1 1 0 0 0 0 0 1 0 0 0
- 1 1 0 1 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 1 1]
-
-========== Cluster 5 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 2
-
-Selected Features: [0 1]
-
-Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
- 2 2 2 2 2 2 2 2 2 2 2 2]
-
-========== Cluster 6 ==========
-
-Base classifier: DummyClassifier(strategy='most_frequent')
-
-Minority Class: 1
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-
-========== Cluster 7 ==========
-
-Base classifier: SVC(C=440.90337998419113, gamma=837.9589383744035, probability=True)
-
-Minority Class: 2
-
-Selected Features: [0 1]
-
-Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- 2 2 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2]
+Labels: [1 1 1 1 1 1 1 0 0 1 1 1 1 1 0 2 2 0 1 1 2 1 1 1 0 1 1 0 1 1 1 1 1 2 1 1 1
+ 2 1 0 1 1 1 1 0 1 1 0 1 1 1 1 0 1 1 2 1 2 2 1 1 0 2 1 1 1 1 1 1 1 1 1 1 1
+ 0 1 1 1 1 2 1 2 1 2 1 1 1 1 2 1 1 1 2 1 2 0 2 2 1 1 1 1 1 2 1 2 1 0 1 1 1
+ 0 1 1 1 0 1 1 1 1 0 0 2 2 1 2 2 1 1 1 1 0 1 0 1 1 0 2 2 1 1 1 1 1 0 0 1 1
+ 0 1 0 1 1 2 2 1 1 1 0 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 2 0 2 1 1 1 2 0
+ 0 0 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 2 1 0 1 2 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 0 1 0 2 1 1]
 

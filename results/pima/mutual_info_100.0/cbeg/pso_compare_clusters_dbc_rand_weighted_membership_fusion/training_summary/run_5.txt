@@ -2,55 +2,34 @@ Clustering algorithm selected: fcm
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.12557736080586102
+Clustering evaluation value: 0.12069903217679512
 
 ========== Cluster 0 ==========
 
-Base classifier: SVC(C=758.7994509786477, gamma=293.49709312038095, probability=True)
+Base classifier: KNeighborsClassifier()
 
-Minority Class: 1
+Minority Class: 0
 
 Selected Features: [0 1 2 3 4 5 6 7]
 
-Labels: [0 0 0 0 1 0 0 0 1 1 1 0 0 1 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0
- 1 1 0 0 0 0 0 0 0 1 1 1 1 0 0 1 0 1 1 1 1 1 0 1 1 0 0 0 0 1]
+Labels: [0 1 0 0 0 1 0 1 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 1 1 0 0 1 1 1
+ 1 0 0 1 1 1 1 1 1 1 0 1 1 0 0 0 0 1 1 0 0 0 1 0 1 0 1 0 0 0 1 1]
 
 ========== Cluster 1 ==========
 
-Base classifier: LogisticRegression()
-
-Minority Class: 0
-
-Selected Features: [0 1 2 3 4 5 6 7]
-
-Labels: [0 1 0 0 1 1 1 1 0 1 1 1 0 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0 1 1 1 1 1 0 1 0 1
- 1 1 1 1 1 0 1 0 0 0 1 1 0 0 1 0 0 0 0 1 0 1 1 0 1]
-
-========== Cluster 2 ==========
-
-Base classifier: SVC(C=461.2627853212132, gamma=356.3698008353772, probability=True)
+Base classifier: DecisionTreeClassifier(max_depth=3, min_samples_leaf=5, min_samples_split=4)
 
 Minority Class: 1
 
 Selected Features: [0 1 2 3 4 5 6 7]
 
-Labels: [0 0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 0 0 1 1 1 1 1 1]
+Labels: [0 0 1 0 0 0 1 0 1 1 0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 1 0 0 1 1 0 0 0 0 1 0 1
+ 0 0 1 0 0 0 0 1 1 0 0 1 1 0 0 1 1 0 0 0 0 0 0 0 0 0 1 0 1 1 0 0 1 0 1 1 1
+ 1 1 1 0 0 0 1 1 0 1]
 
-========== Cluster 3 ==========
+========== Cluster 2 ==========
 
-Base classifier: KNeighborsClassifier(n_neighbors=7)
-
-Minority Class: 0
-
-Selected Features: [0 1 2 3 4 5 6 7]
-
-Labels: [0 0 0 1 1 0 0 0 1 1 0 1 1 0 1 1 0 1 1 1 1 0 1 0 0 1 1 1 0 1 0 1 0 1 1 1 1
- 1 0 1 1 1 1 1 0 1 0 0 1 1 1 1 0 0 1 1 1 1 1 0 0 1 1 1 0 0 1 0 1 1 0 0 0 1
- 0 1 1 1 1 0 1 1 1 0 1 1 1 0 1]
-
-========== Cluster 4 ==========
-
-Base classifier: KNeighborsClassifier()
+Base classifier: SVC(C=167.4911723449988, gamma=147.27564882453458, probability=True)
 
 Minority Class: 1
 
@@ -62,7 +41,19 @@ Labels: [0 1 1 1 0 1 1 1 1 0 0 1 0 0 0 1 1 0 0 1 0 1 0 1 0 1 1 0 1 0 1 1 0 0 1 0
  0 0 1 0 1 1 1 1 0 1 0 0 0 0 0 1 0 0 0 1 1 1 1 1 1 0 0 0 0 1 1 0 0 1 1 1 1
  0 1 1 0 1 1 0 1 0 1 0 1 1 1 0 0 0 0]
 
-========== Cluster 5 ==========
+========== Cluster 3 ==========
+
+Base classifier: LogisticRegression()
+
+Minority Class: 0
+
+Selected Features: [0 1 2 3 4 5 6 7]
+
+Labels: [0 0 0 0 0 1 1 1 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 0 0 1 0 1
+ 1 0 1 0 1 0 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 0 0 1 1 1 0 1 1
+ 1 0 1 1 0 0 1 1 0 1]
+
+========== Cluster 4 ==========
 
 Base classifier: GaussianNB()
 

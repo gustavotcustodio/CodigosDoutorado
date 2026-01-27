@@ -2,11 +2,12 @@
 setlocal enabledelayedexpansion
 
 REM Define variable lists
-set DATASETS=rectangles elipses australian_credit german_credit contraceptive wine pima wdbc iris heart
+set DATASETS=rectangles elipses pima wdbc heart normal_2_class normal_3_class contraceptive
 set EVALUATION_METRIC=dbc dbc_rand rand
 set COMBINATION_METHODS=meta_classifier weighted_membership majority_voting
 set POSSIBLE_N_CLUSTERS=2 3
-set CLASSIFIERS_SELECTION=crossval default pso
+REM set CLASSIFIERS_SELECTION=crossval default pso
+set CLASSIFIERS_SELECTION=pso
 
 REM Loop through datasets
 for %%D in (%DATASETS%) do (
@@ -23,12 +24,12 @@ for %%D in (%DATASETS%) do (
                 )
 
                 REM Second loop: trying different number of clusters
-                for %%N in (%POSSIBLE_N_CLUSTERS%) do (
-                    echo ======================================================
-                    echo Running %%D %%M %%N %%C %%S
-                    echo ======================================================
-                    python cbeg.py -d %%D -n %%N -m %%M -c %%C -p %%S
-                )
+                REM for %%N in (%POSSIBLE_N_CLUSTERS%) do (
+                REM     echo ======================================================
+                REM     echo Running %%D %%M %%N %%C %%S
+                REM     echo ======================================================
+                REM     python cbeg.py -d %%D -n %%N -m %%M -c %%C -p %%S
+                REM )
             )
         )
     )
