@@ -20,25 +20,25 @@ Precision: 0.0
 F1: 0.0
 
 ====== Cluster 2 ======
-Base classifier: KNeighborsClassifier(n_neighbors=7)
-Accuracy: 0.7837837837837838
-Recall: 1.0
-Precision: 0.058823529411764705
-F1: 0.1111111111111111
-
-====== Cluster 3 ======
-Base classifier: DecisionTreeClassifier()
-Accuracy: 0.7027027027027027
-Recall: 0.14285714285714285
-Precision: 0.058823529411764705
-F1: 0.08333333333333333
-
-====== Cluster 4 ======
 Base classifier: LogisticRegression()
 Accuracy: 0.7702702702702703
 Recall: 0.0
 Precision: 0.0
 F1: 0.0
+
+====== Cluster 3 ======
+Base classifier: SVC(probability=True)
+Accuracy: 0.7702702702702703
+Recall: 0.0
+Precision: 0.0
+F1: 0.0
+
+====== Cluster 4 ======
+Base classifier: GaussianNB()
+Accuracy: 0.7702702702702703
+Recall: 0.5
+Precision: 0.23529411764705882
+F1: 0.32
 
 ====== Cluster 5 ======
 Base classifier: DecisionTreeClassifier()
@@ -48,11 +48,11 @@ Precision: 0.29411764705882354
 F1: 0.2857142857142857
 
 ====== Cluster 6 ======
-Base classifier: LogisticRegression()
-Accuracy: 0.7702702702702703
-Recall: 0.0
-Precision: 0.0
-F1: 0.0
+Base classifier: DecisionTreeClassifier()
+Accuracy: 0.5945945945945946
+Recall: 0.21739130434782608
+Precision: 0.29411764705882354
+F1: 0.25
 
 ====== Cluster 7 ======
 Base classifier: LogisticRegression()
@@ -74,7 +74,7 @@ Recall: 0.0
 Precision: 0.0
 F1: 0.0
 
-AUC: 0.54437564499484
+AUC: 0.5789473684210527
 
 Clustering evaluation metric: dbc
 Clustering evaluation value: 0.1949590287754056
@@ -82,76 +82,76 @@ Clustering evaluation value: 0.1949590287754056
 ========= Predictions by sample =========
 
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 1 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 1 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 1 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 1 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 1 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 1 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 1 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
 Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
 Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 1 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 1 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 1, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
-Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 0 0 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 0 1 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]
+Prediction: 0, Real label: 0, Votes by cluster: [0 0 0 0 1 0 1 0 0], Weights: [0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11 0.11]

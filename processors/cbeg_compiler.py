@@ -638,53 +638,59 @@ class CbegResultsCompiler:
         return formatted_clf
 
 
-    def generate_histogram_base_clf(self):
+    def generate_barplot_base_clf(self):
         """Generate histograms showing the average performance of each
         base classifier across multiple datasets.
         """
         # Filter experiments that do not employ classifier selection
-        valid_results = [result for result in self.cbeg_results
-                         if '2' in str(result.experiment_variation) or
-                         '5' in str(result.experiment_variation)]
+        valid_crossval = [result for result in self.cbeg_results
+                          if '2' in str(result.experiment_variation)]
 
-        base_classifier_results = \
-                self.get_base_classifiers_metrics(valid_results)
-        # TODO trocar por um barplot e agrupar a contagem dos classificadores
+        valid_pso = [result for result in self.cbeg_results
+                     if '5' in str(result.experiment_variation)]
+        base_classifier_info_crossval = \
+                self.get_base_classifiers_metrics(valid_crossval)
+        base_classifier_info_pso = \
+                self.get_base_classifiers_metrics(valid_pso)
+
         # e a média das métricas
-        df_base_clfs = pd.DataFrame(base_classifier_results)
-        df_base_clfs.sort_values(['Classifier'], inplace=True)
+        df_base_clfs_crossval = self.group_classifier_info_in_dframe(
+            base_classifier_info_crossval)
+        df_base_clfs_crossval.rename(
+            columns={'Classifier': 'Classifier (cross-validation)'}, inplace=True)
 
-        df_base_clfs = df_base_clfs.groupby("Classifier").agg(
-             Times_Selected=("Classifier", "size"),  # non-NaN values
-             Mean_Accuracy=("Accuracy", "mean"),
-             Mean_Precision=("Precision", "mean"),
-             Mean_Recall=("Recall", "mean"),
-             Mean_F1=("F1", "mean"),
-             # mean_perf=("Accuracy", "Mean-accuracy")
-        ).reset_index()
-        df_base_clfs = df_base_clfs.loc[
-            df_base_clfs['Classifier'] != "1 Class\nCluster",
-        ].reset_index()
-
+        df_base_clfs_pso = self.group_classifier_info_in_dframe(
+            base_classifier_info_pso)
+        df_base_clfs_pso.rename(
+            columns={'Classifier': 'Classifier (PSO)'}, inplace=True)
         sns.set_style('darkgrid')
+
         for metric in CLASSIFICATION_METRICS[:-1]:
-            df_base_clfs[f'Mean_{metric}'] = df_base_clfs[f'Mean_{metric}'].round(2)
+            df_base_clfs_crossval[f'Mean_{metric}'] = \
+                df_base_clfs_crossval[f'Mean_{metric}'].round(2)
+            df_base_clfs_pso[f'Mean_{metric}'] = \
+                df_base_clfs_pso[f'Mean_{metric}'].round(2)
+            max_crossval = df_base_clfs_crossval[f'Mean_{metric}'].max()
+            max_pso = df_base_clfs_pso[f'Mean_{metric}'].max()
+            max_val = max(max_crossval, max_pso)
 
-            # series_classifiers = df_base_clfs['Classifier'].str
-            # series_metric_vals = df_base_clfs[f'Mean_{metric}'].astype(str)
+            _, (ax1, ax2) = plt.subplots(2, figsize=(10, 6))
 
-            # df_base_clfs[f'Classifier_{metric}'
-            #              ] = series_classifiers.cat(series_metric_vals, sep="\n")
+            sns.barplot(data=df_base_clfs_crossval,
+                        x=f"Mean_{metric}", y=f"Classifier (cross-validation)",
+                        hue="Times_Selected", palette='Blues',
+                        linewidth=0.5, ax=ax1, edgecolor="black")
+            ax1.set_xlim(0, max_val)
 
-            _, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(data=df_base_clfs_pso,
+                        x=f"Mean_{metric}", y=f"Classifier (PSO)",
+                        hue="Times_Selected", palette='Greens', linewidth=0.5, ax=ax2, edgecolor="black")
+            ax2.set_xlim(0, max_val)
 
-            sns.barplot(data=df_base_clfs, hue=f"Mean_{metric}",
-                        y=f"Classifier", x="Times_Selected", ax=ax,
-                        palette='Blues', linewidth=0.5, edgecolor="black")
-            # TODO separar por PSO Crossval
+            for c1, c2 in zip(ax1.containers, ax2.containers):
+                ax1.bar_label(c1)
+                ax2.bar_label(c2)
 
-            for c in ax.containers:
-                ax.bar_label(c)
             file_histogram = os.path.join(
                 'results', self.dataset,
                 f'Base_classifiers_{self.dataset}_{metric}.png'
@@ -693,6 +699,23 @@ class CbegResultsCompiler:
             plt.savefig(file_histogram)
             print(file_histogram, 'saved')
             plt.close()
+
+    def group_classifier_info_in_dframe(self, base_classifier_info_crossval):
+        df_base_clfs_crossval = pd.DataFrame(base_classifier_info_crossval)
+        df_base_clfs_crossval.sort_values(['Classifier'], inplace=True)
+
+        df_base_clfs_crossval = df_base_clfs_crossval.groupby("Classifier").agg(
+             Times_Selected=("Classifier", "size"),  # non-NaN values
+             Mean_Accuracy=("Accuracy", "mean"),
+             Mean_Precision=("Precision", "mean"),
+             Mean_Recall=("Recall", "mean"),
+             Mean_F1=("F1", "mean"),
+             # mean_perf=("Accuracy", "Mean-accuracy")
+        ).reset_index()
+        df_base_clfs_crossval = df_base_clfs_crossval.loc[
+            df_base_clfs_crossval['Classifier'] != "1 Class\nCluster",
+        ].reset_index()
+        return df_base_clfs_crossval
 
     def get_base_classifiers_metrics(
             self, valid_results: list[SingleCbegResult]) -> dict[str, list]:

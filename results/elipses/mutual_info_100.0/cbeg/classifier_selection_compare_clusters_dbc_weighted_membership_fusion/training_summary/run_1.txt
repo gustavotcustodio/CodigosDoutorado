@@ -1,28 +1,35 @@
-Clustering algorithm selected: fcm
+Clustering algorithm selected: spectral
 =====================================
 
 Clustering evaluation metric: dbc
-Clustering evaluation value: 0.09859637557646292
+Clustering evaluation value: 0.38687675010577227
 
 ========== Cluster 0 ==========
 
-Base classifier: LogisticRegression()
+Base classifier: GaussianNB()
 
 Minority Class: 1
 
 Selected Features: [0 1]
 
-Labels: [1 1 1 1 1 0 0 0 0 2 2 0 0 2 2 1 2 2 2 2 1 2 0 1 2 0 2 1 0 0 2 2 2 0 1 2 2
- 0 0 2 1 2 0 0 1 2 0 2 0 2 2 2 0 2 2 1 2 1 1 2 0 1 2 2 2 1 2 0 2 0 2 2 0 2
- 2 2 1 1 1 2 2 0 2 2 2 2 1 1 2 2 0 0 2 0 2 2 0 2 0 2 2 1 1 2 1 1 0 0 2 2 2
- 2 2 1 2 2 0 1 0 2 0 2 0 2 0 2 1 2 2 2 1 2 2 2 2 2 1 0 2 2 0 2 2 0 2 2 2 1
- 2 0 2 2 1 0 2 2 1 0 2 0 2 2 2 2 0 1 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 2 2 2 1
- 2 2 0 2 0 0 2 2 0 2 2 2 2 2 2 2 2 2 2 0 2 0 2 2 2 0 2 2 2 2 1 0 2 0 2 2 2
- 0 2 2 2 1 2 2 2 2 2 0 0 1 2 2 2 2 0 2 2 2 2 2 2 1 2 1 0 2 0 2 1 2 1 1 2 2
- 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 1 2 2 2 0 0 2 0 1 1 2 2 2 0 0 0 1 2 1 0 0
- 2 0 2 0 2 0 0 2 1 2 0 2 2 2 2 2 2 2 2 2 2 1 2 0 0 0 2 0 2 1 2 2 0 0]
+Labels: [1 1 1 2 2 1 2 1 2 2 2 2 2 2 1 1 1 2 1 2 2 2 1 1 2 2 2 1 2 2 1 1 2 2 2 2 2
+ 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 1 2 1 2 1 2 2 2 2 2 2 1 2 1 2
+ 2 1 1 2 1 2 2 2]
 
 ========== Cluster 1 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 0 0 0 2 2 0 1 2 0 0 0 0 0 2 0 2 2 2 0 1 2 2 2 0 0 2 1 0 2 2 2 2 0 2 0 2
+ 0 0 2 1 1 0 0 0 2 2 2 0 2 2 0 1 2 2 2 2 2 2 2 2 2 2 2 0 2 2 2 0 0 0 2 0 2
+ 2 2 2 2 2 0 0 2 2 2 0 2 0 2 0 2 2 2 2 2 0 2 2 2 2 2 2 2 2 2 2 2 2 0 2 0 0
+ 0 0 0 2 0 2 0 0 2 2 2 2 2 0 0 2 0 2 1 0 0 1 1]
+
+========== Cluster 2 ==========
 
 Base classifier: LogisticRegression()
 
@@ -30,14 +37,64 @@ Minority Class: 2
 
 Selected Features: [0 1]
 
-Labels: [1 1 1 1 1 1 1 0 0 1 1 1 1 1 0 0 0 0 0 2 0 1 1 0 2 0 2 0 1 1 0 1 0 1 0 1 0
- 1 0 0 0 1 1 1 0 0 0 0 1 0 1 0 0 2 0 1 0 1 0 0 2 0 1 1 0 0 1 0 2 1 1 0 1 0
- 1 0 1 0 0 1 1 1 2 0 1 0 1 0 1 0 0 1 1 2 1 1 0 0 0 2 1 1 1 0 1 1 1 1 1 0 0
- 0 1 0 1 1 1 0 0 1 0 1 0 0 1 0 2 1 0 0 1 1 0 1 1 1 1 0 1 0 2 2 0 1 1 1 1 1
- 0 0 2 0 2 1 1 1 1 0 0 1 0 1 0 1 0 1 1 0 0 1 1 0 1 0 0 1 0 1 1 1 0 0 0 0 1
- 2 2 0 0 1 0 0 1 1 1 0 1 1 0 1 1 0 1 0 0 1 1 1 1 0 2 0 0 1 1 1 0 1 1 0 0 0
- 1 0 0 1 0 1 1 1 1 1 0 2 1 0 0 2 1 1 1 0 0 0 1 1 1 0 0 0 1 0 1 1 1 0 1 1 1
- 1 1 0 1 1 0 0 0 0 0 2 0 2 0 1 1 0 0 2 2 0 1 2 0 0 0 1 1 1 1 2 1 0 0 0 0 0
- 0 1 1 0 1 1 1 1 1 1 1 2 0 1 1 0 1 1 0 1 1 1 0 2 1 0 0 1 0 1 1 1 1 1 1 1 1
- 1 0 0 1 1 0 1 0 0 0 1 1]
+Labels: [1 1 1 1 1 1 0 0 0 1 0 0 0 2 0 1 1 2 1 2 1 0 1 1 0 0 1 1 1 1 1 0 2 1 1 1 2
+ 0 0 2 1 0 1 0 1 0 1 1 1 2 0 0 1 1 0 2 1 2 0 2 0 0 0 2 1 1 1 1 1 0 0 2 0 1
+ 1 2 0 0 0 2 1 0 2 0 2 1 1 1 0 2 2 2 1 1 2 0 2 2 1 1 0 1 0 0 1 0 1 0 1 0 1
+ 0 1 1 1 0 0 0 0 1 2 0 0 2 1 1 1 0 1 0 1 1 0 2 0 1 0 2 0 1 0 2 0 1 1 1 1 0
+ 2 2 1 0 0 0 0 1 1 1 1 0 1 0 1 1 1 0 0 0 2 2 0 1 0 2 2 1 0 0 0 2 0 1 2 0 1
+ 1 1 1 1 1 1 2 1 1 0 2 1 2 1 0 1 1 1 1 1 0 1 1 0 1 0 2 0]
+
+========== Cluster 3 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 0
+
+Selected Features: [0 1]
+
+Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+========== Cluster 4 ==========
+
+Base classifier: LogisticRegression()
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 1 0 0 0 0 1 0 1 1 0 0 0 0 0 1 0 0 0
+ 1 1 0 1 0 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 1 1]
+
+========== Cluster 5 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 2
+
+Selected Features: [0 1]
+
+Labels: [2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2]
+
+========== Cluster 6 ==========
+
+Base classifier: DummyClassifier(strategy='most_frequent')
+
+Minority Class: 1
+
+Selected Features: [0 1]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+========== Cluster 7 ==========
+
+Base classifier: GaussianNB()
+
+Minority Class: 2
+
+Selected Features: [0 1]
+
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 2 2 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2]
 

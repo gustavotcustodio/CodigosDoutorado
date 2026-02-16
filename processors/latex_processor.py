@@ -1,4 +1,5 @@
 import sys
+import re
 import os
 import math
 # import re
@@ -34,6 +35,83 @@ def format_mean_std(mean, std) -> str:
     # std_sd = round(std, n_valid_digits)
     return f'{mean_sd:.{n_valid_digits}f}({msd})'
 
+def get_best_mean_std(latex_table, pattern):
+    matches = pattern.findall(latex_table)
+    matches = [tuple(match[:-1].split('(')) for match in matches]
+    mean_values = [float(mean) for mean, _ in matches]
+    max_mean = max(mean_values)
+
+    min_std = min(int(std) for mean, std in matches
+                  if float(mean) == max_mean)
+    return max_mean, min_std
+
+
+def update_best_mean_and_std(column_val, max_mean, min_std):
+    if "(" not in column_val:
+        return 0, 0
+    mean, std = tuple(column_val[:-1].split('('))
+    meanf, stdf = float(mean), float(std)
+
+    max_meanf, min_stdf = float(max_mean), float(min_std)
+
+    if meanf > max_meanf:
+        max_meanf = float(meanf)
+        max_mean = mean
+        min_stdf = int(stdf)
+        min_std = std
+    elif meanf == max_meanf:
+        if stdf < min_stdf:
+            min_stdf = int(stdf)
+            min_std = std
+    return max_mean, min_std
+
+
+def highlight_best(latex_table):
+    rows_table = latex_table.strip().split('\n')
+    max_mean_acc, max_mean_rec, max_mean_prec = 0, 0, 0
+    max_mean_f1, max_mean_auc = 0, 0
+    min_std_acc, min_std_f1, min_std_auc = float('inf'), float('inf'), float('inf')
+    min_std_rec, min_std_prec = float('inf'), float('inf')
+    # First valid row = 9
+    # Last valid rpw = 48
+    n_columns = 0
+
+    for row in rows_table[9:49]:
+        row = re.sub(r' \\.*$', '', row)
+        columns = re.split(r"\s+&\s+", row)
+        assert len(columns) == 11 or len(columns) == 10, "Error. Invalid row size."
+        n_columns = len(columns)
+
+        first_col = 6
+        max_mean_acc, min_std_acc = update_best_mean_and_std(
+            columns[first_col], max_mean_acc, min_std_acc)
+
+        max_mean_rec, min_std_rec = update_best_mean_and_std(
+            columns[first_col+1], max_mean_rec, min_std_rec)
+        max_mean_prec, min_std_prec = update_best_mean_and_std(
+            columns[first_col+2], max_mean_prec, min_std_prec)
+        max_mean_f1, min_std_f1 = update_best_mean_and_std(
+            columns[first_col+3], max_mean_f1, min_std_f1)
+        max_mean_auc, min_std_auc = update_best_mean_and_std(
+            columns[first_col+4], max_mean_auc, min_std_auc)
+
+    best_clf_vals = [f'{max_mean_acc}({min_std_acc})',
+                     f'{max_mean_rec}({min_std_rec})',
+                     f'{max_mean_prec}({min_std_prec})',
+                     f'{max_mean_f1}({min_std_f1})',
+                     f'{max_mean_auc}({min_std_auc})']
+
+    for idx_row in range(9,49):
+        row = rows_table[idx_row]
+        columns = re.split(r"\s+&\s+", row)
+
+        for i in range(6, n_columns):
+            best = best_clf_vals[i-6]
+            if f'{best_clf_vals[i-6]}' in columns[i]:
+                columns[i] = columns[i].replace(best, f'\\cellcolor{{blue!25}}\\textbf{{{best}}}')
+        rows_table[idx_row] = ' & '.join(columns)
+    return '\n'.join(rows_table)
+
 
 def get_mean_std_metric(result, metric: str) -> str:
     attr_mean = f"mean_{metric.strip().lower()}"
@@ -52,18 +130,18 @@ def get_mean_std_metric(result, metric: str) -> str:
 
 def complete_row_table(result, latex_table):
 
-    variation = result.experiment_variation
+    variation = str(result.experiment_variation)
 
     if '2' in str(variation):
         selection_clf = "CV"
 
     elif '5' in str(variation):
-        variation = str(variation).replace("5", "2")
+        variation = variation.replace("5", "2")
         variation = "".join(sorted(variation))
-        variation = int(str(variation))
         selection_clf = "PSO"
     else:
         selection_clf = "-"
+    variation = '-'.join(variation)
 
     cluster_selection = dict_abbrevs[result.cluster_selection_strategy]
     mutual_info = int(result.mutual_info_percentage)
@@ -108,6 +186,9 @@ def create_latex_table(cbeg_results, dataset: str):
     latex_table = latex_table.replace("[dataset-label]", dataset)
     latex_table = latex_table.replace(
         "[dataset-caption]", DATASETS_INFO[dataset]['full_name'])
+
+    # Highlight best results in latex table
+    latex_table = highlight_best(latex_table)
 
     folder_latex = os.path.join('results', 'latex')
     os.makedirs(folder_latex, exist_ok=True)

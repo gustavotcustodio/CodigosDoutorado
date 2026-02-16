@@ -2,55 +2,34 @@ Clustering algorithm selected: fcm
 =====================================
 
 Clustering evaluation metric: dbc_rand
-Clustering evaluation value: 0.12557736080586102
+Clustering evaluation value: 0.12069903217679512
 
 ========== Cluster 0 ==========
 
-Base classifier: SVC(C=315.7524167657109, gamma=154.72627651676424, probability=True)
+Base classifier: KNeighborsClassifier()
 
-Minority Class: 1
+Minority Class: 0
 
 Selected Features: [0 1 2 3 4 5 6 7]
 
-Labels: [0 0 0 0 1 0 0 0 1 1 1 0 0 1 0 0 1 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 0
- 1 1 0 0 0 0 0 0 0 1 1 1 1 0 0 1 0 1 1 1 1 1 0 1 1 0 0 0 0 1]
+Labels: [0 1 0 0 0 1 0 1 1 1 1 1 1 0 1 1 1 1 0 0 0 0 0 1 1 1 1 1 0 0 1 1 0 0 1 1 1
+ 1 0 0 1 1 1 1 1 1 1 0 1 1 0 0 0 0 1 1 0 0 0 1 0 1 0 1 0 0 0 1 1]
 
 ========== Cluster 1 ==========
 
-Base classifier: SVC(C=720.8897526525266, gamma=261.5410659756583, probability=True)
-
-Minority Class: 0
-
-Selected Features: [0 1 2 3 4 5 6 7]
-
-Labels: [0 1 0 0 1 1 1 1 0 1 1 1 0 1 0 1 1 1 1 1 0 1 0 0 1 0 1 0 1 1 1 1 1 0 1 0 1
- 1 1 1 1 1 0 1 0 0 0 1 1 0 0 1 0 0 0 0 1 0 1 1 0 1]
-
-========== Cluster 2 ==========
-
-Base classifier: SVC(C=745.0462160288389, gamma=373.24114219655587, probability=True)
+Base classifier: DecisionTreeClassifier(max_depth=3, min_samples_leaf=6, min_samples_split=4)
 
 Minority Class: 1
 
 Selected Features: [0 1 2 3 4 5 6 7]
 
-Labels: [0 0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 0 0 1 1 1 1 1 1]
+Labels: [0 0 1 0 0 0 1 0 1 1 0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 1 0 0 1 1 0 0 0 0 1 0 1
+ 0 0 1 0 0 0 0 1 1 0 0 1 1 0 0 1 1 0 0 0 0 0 0 0 0 0 1 0 1 1 0 0 1 0 1 1 1
+ 1 1 1 0 0 0 1 1 0 1]
 
-========== Cluster 3 ==========
+========== Cluster 2 ==========
 
-Base classifier: LogisticRegression()
-
-Minority Class: 0
-
-Selected Features: [0 1 2 3 4 5 6 7]
-
-Labels: [0 0 0 1 1 0 0 0 1 1 0 1 1 0 1 1 0 1 1 1 1 0 1 0 0 1 1 1 0 1 0 1 0 1 1 1 1
- 1 0 1 1 1 1 1 0 1 0 0 1 1 1 1 0 0 1 1 1 1 1 0 0 1 1 1 0 0 1 0 1 1 0 0 0 1
- 0 1 1 1 1 0 1 1 1 0 1 1 1 0 1]
-
-========== Cluster 4 ==========
-
-Base classifier: LogisticRegression()
+Base classifier: SVC(C=293.3949670946812, gamma=131.7683114142593, probability=True)
 
 Minority Class: 1
 
@@ -62,7 +41,19 @@ Labels: [0 1 1 1 0 1 1 1 1 0 0 1 0 0 0 1 1 0 0 1 0 1 0 1 0 1 1 0 1 0 1 1 0 0 1 0
  0 0 1 0 1 1 1 1 0 1 0 0 0 0 0 1 0 0 0 1 1 1 1 1 1 0 0 0 0 1 1 0 0 1 1 1 1
  0 1 1 0 1 1 0 1 0 1 0 1 1 1 0 0 0 0]
 
-========== Cluster 5 ==========
+========== Cluster 3 ==========
+
+Base classifier: KNeighborsClassifier(n_neighbors=7)
+
+Minority Class: 0
+
+Selected Features: [0 1 2 3 4 5 6 7]
+
+Labels: [0 0 0 0 0 1 1 1 0 0 1 1 1 0 1 0 0 0 1 1 1 1 1 1 1 0 0 1 1 1 1 1 0 0 1 0 1
+ 1 0 1 0 1 0 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 0 0 0 1 1 1 0 1 1
+ 1 0 1 1 0 0 1 1 0 1]
+
+========== Cluster 4 ==========
 
 Base classifier: GaussianNB()
 

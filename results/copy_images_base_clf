@@ -1,0 +1,11 @@
+#!/bin/bash
+DATASETS="australian_credit blood contraceptive electricity elipses german_credit heart iris normal_2_class normal_3_class pima rectangles wdbc wine"
+TESE_DIR="/home/gustavo/Public/tese/figures/defesa/base_classifiers"
+mkdir "$TESE_DIR"
+
+for dataset in $DATASETS; do
+    magick "./${dataset}/Base_classifiers_${dataset}_Accuracy.png" -trim "$TESE_DIR/Base_classifiers_${dataset}_Accuracy.png"
+    magick "./${dataset}/Base_classifiers_${dataset}_Recall.png" -trim "$TESE_DIR/Base_classifiers_${dataset}_Recall.png"
+    magick "./${dataset}/Base_classifiers_${dataset}_Precision.png" -trim "$TESE_DIR/Base_classifiers_${dataset}_Precision.png"
+    magick "./${dataset}/Base_classifiers_${dataset}_F1.png" -trim "$TESE_DIR/Base_classifiers_${dataset}_F1.png"
+done
