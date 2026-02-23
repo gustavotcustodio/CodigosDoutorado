@@ -1,0 +1,8 @@
+#!/bin/bash
+DATASETS="australian_credit blood contraceptive electricity elipses german_credit heart iris normal_2_class normal_3_class pima rectangles wdbc wine"
+TESE_DIR="/home/gustavo/Public/tese/figures/defesa/comparison"
+mkdir "$TESE_DIR"
+
+for dataset in $DATASETS; do
+    magick "./${dataset}/comparison_classifiers_${dataset}.png" -trim "$TESE_DIR/comparison_classifiers_${dataset}.png"
+done

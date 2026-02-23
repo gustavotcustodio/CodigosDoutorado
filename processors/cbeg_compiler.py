@@ -674,7 +674,7 @@ class CbegResultsCompiler:
             max_pso = df_base_clfs_pso[f'Mean_{metric}'].max()
             max_val = max(max_crossval, max_pso)
 
-            _, (ax1, ax2) = plt.subplots(2, figsize=(10, 6))
+            _, (ax1, ax2) = plt.subplots(2, figsize=(11, 6))
 
             sns.barplot(data=df_base_clfs_crossval,
                         x=f"Mean_{metric}", y=f"Classifier (cross-validation)",
@@ -687,8 +687,10 @@ class CbegResultsCompiler:
                         hue="Times_Selected", palette='Greens', linewidth=0.5, ax=ax2, edgecolor="black")
             ax2.set_xlim(0, max_val)
 
-            for c1, c2 in zip(ax1.containers, ax2.containers):
+            for c1 in ax1.containers:
                 ax1.bar_label(c1)
+
+            for c2 in ax2.containers:
                 ax2.bar_label(c2)
 
             file_histogram = os.path.join(
