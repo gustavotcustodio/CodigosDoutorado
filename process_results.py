@@ -1,12 +1,78 @@
 import os
 import re
 import seaborn as sns
+import pandas as pd
 import matplotlib.pyplot as plt
 from dataset_loader import DATASETS_INFO
 from processors.base_classifiers_compiler import BaseClassifiersCompiler, BaseClassifierResult
 from processors.cbeg_compiler import SingleCbegResult, CbegResultsCompiler
 from processors.ciel_compiler import SingleCielResult, CielCompiler
 from processors.data_reader import DataReader, CLASSIFIERS_FULLNAMES, CLASSIFICATION_METRICS
+
+
+BEST_CBEG_CONFIG_BY_DATASET = {
+    'australian_credit': { # 1-2-4 Rand PSO 100 MC
+        'folder': 'pso_compare_clusters_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'german_credit': { # 1-2-3-4 DBC CV 75 MC
+        'folder': 'classifier_selection_clusters_dbc_meta_classifier_fusion',
+        'mutual_info': 75
+    },
+    'heart': { # 1-2-4 DBC CV 100 MC
+        'folder': 'classifier_selection_clusters_dbc_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'pima': { # 1-2-4 DBC+R PSO 100 WM
+        'folder': 'pso_compare_clusters_dbc_rand_weighted_membership_fusion',
+        'mutual_info': 100
+    },
+    'wdbc': { # 1-2-4 DBC+R PSO 100 MC
+        'folder': 'pso_compare_clusters_dbc_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'blood': { # 1 Rand - 100 MV
+        'folder': 'naive_bayes_compare_clusters_rand_majority_voting_fusion',
+        'mutual_info': 100
+    },
+    'electricity': { # 2 - PSO 100 MV 2
+        'folder': 'pso_2_clusters_majority_voting_fusion',
+        'mutual_info': 100
+    },
+    'iris': { # 1 Rand - 100 MV
+        'folder': 'naive_bayes_compare_clusters_rand_majority_voting_fusion',
+        'mutual_info': 100
+    },
+    'wine': { # 1-2-4 Rand PSO 100 MC
+        'folder': 'pso_compare_clusters_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'contraceptive': { # 1-2-4 DBC PSO 100 MC
+        'folder': 'pso_compare_clusters_dbc_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'rectangles': {  # 1-2-4 Rand PSO 100 MC
+        'folder': 'pso_compare_clusters_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'elipses': { # 1-2-3-4 DBC+R CV 75 WM
+        'folder': 'classifier_selection_compare_clusters_dbc_rand_weighted_membership_fusion',
+        'mutual_info': 75
+    },
+    'normal_2_class': { # 2 - CV 100 MV 2
+        'folder': 'classifier_selection_2_clusters_majority_voting_fusion',
+        'mutual_info': 100
+    },
+    'normal_3_class': {  # 1-2-4 Rand CV 100 MC
+        'folder': 'classifier_selection_compare_clusters_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+    'universal_config': {
+        'folder': 'classifier_selection_compare_clusters_rand_meta_classifier_fusion',
+        'mutual_info': 100
+    },
+}
+
 
 def experiment_already_performed(dataset, experiment_folder, mutual_info):
     folder_path = f'./results/{dataset}/mutual_info_{mutual_info}/cbeg/{experiment_folder}'
@@ -149,60 +215,147 @@ def extract_ciel_results(dataset: str, mutual_info_percentages: list[float]):
     return ciel_compiler
 
 
-def plot_comparison_graphs(cbeg_compiler, ciel_compiler, baseline_compiler):
+# def plot_comparison_graphs(cbeg_compiler, ciel_compiler, baseline_compiler):
+#     dataset = cbeg_compiler.dataset
+#     path_results = os.path.join(
+#         'results', dataset, f'comparison_classifiers_{dataset}.png')
+# 
+#     universal_config = 'classifier_selection_compare_clusters_rand_meta_classifier_fusion'
+# 
+#     valid_cbeg_results = [result for result in cbeg_compiler.cbeg_results
+#                           if result.folder_name == universal_config
+#                           and result.mutual_info_percentage == 100]
+#     baseline_results = [result for result in baseline_compiler.baseline_results
+#                         if result.mutual_info_percentage == 100]
+#     ciel_results = [result for result in ciel_compiler.ciel_results if
+#                    result.mutual_info_percentage == 100.0]
+# 
+#     all_results = valid_cbeg_results + baseline_results + ciel_results
+# 
+#     baselines_names = [result.classifier_name for result in baseline_results]
+# 
+#     classification_metrics = CLASSIFICATION_METRICS.copy()
+#     color_palette = ['blue', 'red', 'orange', 'green', 'purple']
+# 
+#     if DATASETS_INFO[dataset]['nlabels'] >= 3:
+#         classification_metrics[0] = "Accuracy / Recall"
+#         classification_metrics.remove("Recall")
+#         color_palette.remove('blue')
+# 
+#     classifiers = ['CBEG (general)'] + baselines_names + ['CIEL']
+#     classifiers_ylabel = []
+#     metric_names = []
+#     metric_values = []
+# 
+#     for metric_name in classification_metrics:
+#         classifiers_ylabel += classifiers
+#         metric_names += [metric_name] * len(all_results)
+# 
+#     if DATASETS_INFO[dataset]['nlabels'] < 3:
+#         metric_values += [result.mean_accuracy for result in all_results]
+#     metric_values += [result.mean_recall for result in all_results]
+#     metric_values += [result.mean_precision for result in all_results]
+#     metric_values += [result.mean_f1 for result in all_results]
+#     metric_values += [result.mean_auc for result in all_results]
+# 
+#     dict_values = {
+#         'Value': metric_values, 'Metric name': metric_names,
+#         'Classifier': classifiers_ylabel
+#     }
+#     sns.set_style("darkgrid")
+#     _, ax = plt.subplots(figsize=(13, 6.5))
+# 
+#     sns.scatterplot(
+#         data=dict_values, x="Value", y="Classifier",
+#         alpha=0.5, hue="Metric name", s=120, ax=ax, palette=color_palette,
+#     )
+#     plt.savefig(path_results)
+#     print(path_results, 'saved.')
+#     plt.clf()
+
+
+def is_cbeg_variation_valid(result, dataset):
+    best_config_dataset = BEST_CBEG_CONFIG_BY_DATASET[dataset]
+    universal_config = BEST_CBEG_CONFIG_BY_DATASET['universal_config']
+
+    if (result.folder_name == universal_config['folder']
+            and result.mutual_info_percentage == universal_config['mutual_info']):
+        return True
+    if (result.folder_name == best_config_dataset['folder']
+            and result.mutual_info_percentage == best_config_dataset['mutual_info']):
+        return True
+    return False
+
+
+def filter_classif_results(cbeg_compiler, baseline_compiler, ciel_compiler):
     dataset = cbeg_compiler.dataset
-    path_results = os.path.join(
-        'results', dataset, f'comparison_classifiers_{dataset}.png')
+    universal_config = BEST_CBEG_CONFIG_BY_DATASET['universal_config']
 
-    universal_config = 'classifier_selection_compare_clusters_rand_meta_classifier_fusion'
+    cbeg_results = cbeg_compiler.cbeg_results
 
-    valid_cbeg_results = [result for result in cbeg_compiler.cbeg_results
-                          if result.folder_name == universal_config
-                          and result.mutual_info_percentage == 100]
+    valid_cbeg_results = list(filter(
+        lambda x: is_cbeg_variation_valid(x, dataset), cbeg_results
+    ))
+
+    # This only happens when the general config and the best one aren't the same
+    if len(valid_cbeg_results) > 1:
+        folder_name =  valid_cbeg_results[0].folder_name
+        mutual_info = valid_cbeg_results[0].mutual_info_percentage
+
+        # Check if the best config is the first one
+        if (folder_name == universal_config['folder']
+            and mutual_info == universal_config['mutual_info']
+        ):
+            aux = valid_cbeg_results[0]
+            valid_cbeg_results[0] = valid_cbeg_results[1]
+            valid_cbeg_results[1] = aux
+        cbeg_variations = ['CBEG (best)', 'CBEG (general)']
+    else:
+        cbeg_variations = ['CBEG (best)']
+
     baseline_results = [result for result in baseline_compiler.baseline_results
                         if result.mutual_info_percentage == 100]
-    ciel_results = [result for result in ciel_compiler.ciel_results if
-                   result.mutual_info_percentage == 100.0]
-
+    ciel_results = [result for result in ciel_compiler.ciel_results
+                    if result.mutual_info_percentage == 100]
     all_results = valid_cbeg_results + baseline_results + ciel_results
 
-    baselines_names = [result.classifier_name for result in baseline_results]
+    baselines_names = [result.classifier_name
+                       for result in baseline_results]
+    classifiers = cbeg_variations + baselines_names + ['CIEL']
+    return all_results, classifiers
 
-    classification_metrics = CLASSIFICATION_METRICS.copy()
-    color_palette = ['blue', 'red', 'orange', 'green', 'purple']
+
+def plot_comparison_graphs(cbeg_compiler, ciel_compiler, baseline_compiler):
+    all_results, classifiers = filter_classif_results(
+        cbeg_compiler, baseline_compiler, ciel_compiler
+    )
+    dataset = cbeg_compiler.dataset
 
     if DATASETS_INFO[dataset]['nlabels'] >= 3:
-        classification_metrics[0] = "Accuracy / Recall"
-        classification_metrics.remove("Recall")
-        color_palette.remove('blue')
+        metric_values = {
+            'Accuracy/Recall': [
+                result.mean_recall for result in all_results],
+        }
+    else:
+        metric_values = {
+            'Accuracy': [result.mean_accuracy for result in all_results],
+            'Recall': [result.mean_recall for result in all_results],
+        }
+    metric_values['Precision'] = [result.mean_precision for result in all_results]
+    metric_values['F1'] = [result.mean_f1 for result in all_results]
+    metric_values['AUC'] = [result.mean_auc for result in all_results]
 
-    classifiers = ['CBEG (general)'] + baselines_names + ['CIEL']
-    classifiers_ylabel = []
-    metric_names = []
-    metric_values = []
+    data_classification = pd.DataFrame(data=metric_values)
 
-    for metric_name in classification_metrics:
-        classifiers_ylabel += classifiers
-        metric_names += [metric_name] * len(all_results)
-
-    if DATASETS_INFO[dataset]['nlabels'] < 3:
-        metric_values += [result.mean_accuracy for result in all_results]
-    metric_values += [result.mean_recall for result in all_results]
-    metric_values += [result.mean_precision for result in all_results]
-    metric_values += [result.mean_f1 for result in all_results]
-    metric_values += [result.mean_auc for result in all_results]
-
-    dict_values = {
-        'Value': metric_values, 'Metric name': metric_names,
-        'Classifier': classifiers_ylabel
-    }
     sns.set_style("darkgrid")
-    _, ax = plt.subplots(figsize=(13, 6.5))
+    _, ax = plt.subplots(figsize=(7.5, 5))
 
-    sns.scatterplot(
-        data=dict_values, x="Value", y="Classifier",
-        alpha=0.5, hue="Metric name", s=120, ax=ax, palette=color_palette,
-    )
+    sns.heatmap(data=data_classification, annot=True, cmap="Blues",
+                annot_kws={"size": 11}, ax=ax, fmt='.2f',
+                yticklabels=classifiers)
+    plt.tight_layout()
+    path_results = os.path.join(
+        'results', dataset, f'comparison_classifiers_{dataset}.png')
     plt.savefig(path_results)
     print(path_results, 'saved.')
     plt.clf()
@@ -239,19 +392,20 @@ def filter_no_experim_datasets(datasets: list[str]) -> list[str]:
 
 def main():
     datasets = ["australian_credit",
+                "german_credit",
+                "heart",
+                "pima",
+                "wdbc",
                 "blood",
+                "electricity",
+                "iris",
+                "wine",
+                "contraceptive",
+                "rectangles",
+                "elipses",
                 "normal_2_class",
                 "normal_3_class",
-                "electricity",
-                "elipses",
-                "rectangles",
-                "german_credit",
-                "contraceptive",
-                "wine",
-                "wdbc",
-                "pima",
-                "iris",
-                "heart", ]
+                ]
     datasets = filter_no_experim_datasets(datasets)
 
     mutual_info_percentages = [100.0, 75.0, 50.0]
