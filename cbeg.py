@@ -38,8 +38,6 @@ from meta_classifier import MetaClassifier
 
 # TODO ideia: visualizar a separação dimensional no meta classificador
 
-# TODO consolidar bases do Jesus
-
 # TODO informações úteis:
 #   Relação entre distribuição por classe e acurácia por classe
 
