@@ -59,6 +59,42 @@ internal_metrics = {
     'calinski_harabasz_score': calinski_harabasz_score
 }
 
+class RestartGlobalBestPSO(ps.single.GlobalBestPSO):
+    def __init__(self, *args, restart_prob=0.1, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.restart_prob = restart_prob
+
+    def random_restart(self):
+        prob_particles = np.random.rand(self.n_particles)
+        particle_indices = np.where(prob_particles < self.restart_prob)[0]
+
+        if len(particle_indices) == 0:
+            return
+
+        lb, ub = self.bounds
+        lb, ub = np.array(lb), np.array(ub)
+
+        self.swarm.position[particle_indices] = np.random.uniform(
+            low=lb,
+            high=ub,
+            size=(len(particle_indices), self.dimensions)
+        )
+
+        self.swarm.velocity[particle_indices] = np.random.uniform(
+            low=-np.abs(ub - lb),
+            high=np.abs(ub - lb),
+            size=(len(particle_indices), self.dimensions)
+        )
+
+        self.swarm.pbest_pos[particle_indices] = self.swarm.position[particle_indices]
+        self.swarm.pbest_cost[particle_indices] = np.inf
+
+    def optimize(self, objective_func, iters, **kwargs):
+        for _ in range(iters):
+            cost, pos = super().optimize(objective_func, iters=1, **kwargs)
+            self.random_restart()
+        return self.swarm.best_cost, self.swarm.best_pos
+
 
 class Ciel:
     def __init__(self, n_iters=10, n_particles=30, ftol_iter=10):
@@ -383,7 +419,7 @@ class Ciel:
         print("Searching for best ensemble...")
 
         self.current_iter = 0
-        self.pso = ps.single.GlobalBestPSO(
+        self.pso = RestartGlobalBestPSO(
             n_particles=self.n_particles, dimensions=dimensions,
             options=self.options, bounds=self.bounds,
             ftol_iter=self.ftol_iter, ftol=1e-4
