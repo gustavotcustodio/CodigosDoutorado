@@ -215,9 +215,8 @@ class CielOptimizer:
 
         # Dynamic weighted probability combination strategy for the final classification results;
         for c, classifier in enumerate(self.classifiers):
-            if isinstance(classifier, DummyClassifier):
-                continue
-
+            # if isinstance(classifier, DummyClassifier):
+            #     continue
             predicted_probs = classifier.predict_proba(X)
 
             replace_nan_probs_by_predictions(predicted_probs, classifier, X)

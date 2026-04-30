@@ -278,7 +278,7 @@ class Ciel:
 
     def fitness_eval(self, X, y):
         def wrapper(possible_solutions):
-            kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
+            kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
             # cost_values = []
 
             # for solution in possible_solutions:
