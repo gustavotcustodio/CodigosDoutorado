@@ -5,7 +5,6 @@ import sys
 import time
 import math
 import pyswarms as ps
-from multiprocessing.pool import ThreadPool
 from numpy.typing import NDArray
 import argparse
 import numpy as np
@@ -17,16 +16,17 @@ from ciel_optimizer import N_FOLDS
 from logger import PredictionResults
 from logger import Logger
 from dataset_loader import normalize_data
-import dask
 from dask.base import compute
 from dask.delayed import delayed
-from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
+
+PSO_SPLITS = 5
 
 POSSIBLE_CLUSTERERS = [
     'kmeans',
@@ -43,7 +43,8 @@ POSSIBLE_CLUSTERERS = [
 BASE_CLASSIFIERS = [
     'gb',
     'extra_tree',
-    'svm'
+    'svm',
+    'rf'
 ]
 
 external_metrics = {
@@ -113,9 +114,15 @@ class Ciel:
             self.n_params_clf = 4
             classifier_bounds = ([1, 1, 2, 1], [500, 10, 10, 10])
 
-        else: # == 'gb':
+        elif self.best_classifier == 'rf':
+            self.n_params_clf = 4
+            classifier_bounds = ([1, 1, 2, 1], [500, 30, 20, 10])
+
+        elif self.best_classifier == 'gb':
             self.n_params_clf = 5
             classifier_bounds = ([1, 1, 2, 1, 0.1], [500, 10, 10, 10, 1.0])
+        else:
+            sys.exit(1)
 
         lower_bounds = [2] + (classifier_bounds[0] * self.max_n_clusters
                               ) + ([0.1] * self.max_n_clusters)
@@ -258,6 +265,12 @@ class Ciel:
                 clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
                 clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
 
+            elif self.best_classifier == 'rf':
+                clf_params[c]['n_estimators'] = round(solution[n_params * c + 1])
+                clf_params[c]['max_depth'] = round(solution[n_params * c + 2])
+                clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
+                clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
+
             else:
                 clf_params[c]['n_estimators'] = round(solution[n_params * c + 1])
                 clf_params[c]['max_depth'] = round(solution[n_params * c + 2])
@@ -278,7 +291,7 @@ class Ciel:
 
     def fitness_eval(self, X, y):
         def wrapper(possible_solutions):
-            kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+            kf = StratifiedKFold(n_splits=PSO_SPLITS, shuffle=True, random_state=42)
             # cost_values = []
 
             # for solution in possible_solutions:
@@ -287,20 +300,19 @@ class Ciel:
 
                 # Convert PSO particle to the parameters
             inicio = time.time()
-            cost_values = [self.calc_cost(solution, kf, X, y)
-                           for solution in possible_solutions]
+            # cost_values = [
+            #     self.calc_cost(solution, kf, X, y)
+            #     for solution in possible_solutions
+            # ]
 
-            # delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
-            #                  for solution in possible_solutions]
+            delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
+                             for solution in possible_solutions]
 
-            # with dask.config.set(pool=ThreadPool(4)):
-            # Compute in parallel
-            # compute(*delayed_costs)  #, scheduler="threads")
+            cost_values = compute(*delayed_costs, scheduler="processes", num_workers=4)
             print("Tempo solução:", time.time() - inicio)
 
             # self.update_inertia()
 
-            self.random_restart()
             print("PSO params:", self.pso.options)
 
             return cost_values
@@ -396,6 +408,8 @@ class Ciel:
             return SVC(probability=True)
         elif classifier_name == 'extra_tree':
             return ExtraTreesClassifier()
+        elif classifier_name == 'rf':
+            return RandomForestClassifier()
         elif classifier_name == 'gb':
             return GradientBoostingClassifier()
         else:
@@ -425,7 +439,9 @@ class Ciel:
             ftol_iter=self.ftol_iter, ftol=1e-4
         )
         fitness_func = self.fitness_eval(X, y)
-        cost, solution = self.pso.optimize(fitness_func, iters=self.n_iters)
+        cost, solution = self.pso.optimize(
+            fitness_func, iters=self.n_iters, verbose=False
+        )
 
         self.best_solution = solution
         self.best_cost = cost
@@ -453,24 +469,24 @@ class Ciel:
                 self.best_opt.predict_proba(X)
         return y_score, voting_weights, y_pred_by_cluster
 
-    def random_restart(self):
-        prob_particles = np.random.rand(self.n_particles)
-        particle_indices = np.where(prob_particles < 0.1)[0]
+    # def random_restart(self):
+    #     prob_particles = np.random.rand(self.n_particles)
+    #     particle_indices = np.where(prob_particles < 0.1)[0]
 
-        """Resets given particles to random positions in bounds."""
-        lb, ub = self.pso.bounds
-        self.pso.swarm.position[particle_indices] = np.random.uniform(
-            low=lb, high=ub,
-            size=(len(particle_indices), self.pso.dimensions)
-        )
-        lb, ub = np.array(lb), np.array(ub)
-        self.pso.swarm.velocity[particle_indices] = np.random.uniform(
-            low=-abs(ub - lb), high=abs(ub - lb), 
-            size=(len(particle_indices), self.pso.dimensions)
-        )
-        self.pso.swarm.pbest_pos[
-                particle_indices] = self.pso.swarm.position[particle_indices]
-        self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
+    #     """Resets given particles to random positions in bounds."""
+    #     lb, ub = self.pso.bounds
+    #     self.pso.swarm.position[particle_indices] = np.random.uniform(
+    #         low=lb, high=ub,
+    #         size=(len(particle_indices), self.pso.dimensions)
+    #     )
+    #     lb, ub = np.array(lb), np.array(ub)
+    #     self.pso.swarm.velocity[particle_indices] = np.random.uniform(
+    #         low=-abs(ub - lb), high=abs(ub - lb), 
+    #         size=(len(particle_indices), self.pso.dimensions)
+    #     )
+    #     self.pso.swarm.pbest_pos[
+    #             particle_indices] = self.pso.swarm.position[particle_indices]
+    #     self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
 
 
 def main():

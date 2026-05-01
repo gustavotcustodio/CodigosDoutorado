@@ -9,12 +9,12 @@ from sklearn.cluster import DBSCAN, AffinityPropagation, AgglomerativeClustering
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
 from sklearn.svm import SVC
 import dataset_loader
-from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
-from sklearn.multiclass import OneVsRestClassifier
+# from sklearn.multiclass import OneVsRestClassifier
 from utils.clusters import fix_predict_prob, replace_nan_probs_by_predictions
 
 N_FOLDS = 10
@@ -93,6 +93,18 @@ class CielOptimizer:
                     min_samples_split=clf_params[cluster]['min_samples_split'],
                     min_samples_leaf=clf_params[cluster]['min_samples_leaf']
                 )
+
+        elif classifier_name == 'rf':
+            if self.classifiers_params is None or cluster is None:
+                return RandomForestClassifier()
+            else:
+                clf_params = self.classifiers_params
+                return RandomForestClassifier(
+                    n_estimators=clf_params[cluster]["n_estimators"],
+                    max_depth=clf_params[cluster]['max_depth'],
+                    min_samples_split=clf_params[cluster]['min_samples_split'],
+                    min_samples_leaf=clf_params[cluster]['min_samples_leaf']
+                )
         elif classifier_name == 'gb':
             if self.classifiers_params is None or cluster is None:
                 return GradientBoostingClassifier()
@@ -119,8 +131,8 @@ class CielOptimizer:
 
             y_cluster = labels_by_cluster[c]
             possible_classes = np.unique(y_cluster)
-            if len(possible_classes) > 2:
-                clf = OneVsRestClassifier(clf)
+            #if len(possible_classes) > 2:
+            #    clf = OneVsRestClassifier(clf)
 
             clf.fit(samples_by_cluster[c], labels_by_cluster[c])
 
