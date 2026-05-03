@@ -35,7 +35,7 @@ PSO_SPLITS = 5
 POSSIBLE_CLUSTERERS = [
     'kmeans',
     'kmeans++',
-    'mini_batch_kmeans',
+    #'mini_batch_kmeans',
     #'mean_shift',
     #'dbscan',
     #'birch',
@@ -111,7 +111,7 @@ class Ciel:
         self.n_iters = n_iters
         self.n_particles = n_particles
         self.ftol_iter = ftol_iter
-        self.max_n_clusters = 5
+        self.max_n_clusters = 7
         self.options = { 'c1': 1.49445, 'c2': 1.49445, 'w': 0.729, }
 
     def set_bounds_pso(self):
@@ -142,7 +142,8 @@ class Ciel:
             print("No valid classifier found")
             sys.exit(1)
 
-        lower_bounds = [2] + (classifier_bounds[0] * self.max_n_clusters
+        min_n_clusters = 2
+        lower_bounds = [min_n_clusters] + (classifier_bounds[0] * self.max_n_clusters
                               ) + ([0.1] * self.max_n_clusters)
         upper_bounds = [self.max_n_clusters] + (classifier_bounds[1] * self.max_n_clusters
                                ) + ([1.0] * self.max_n_clusters)
@@ -388,6 +389,7 @@ class Ciel:
             else:
                 auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
 
+            # acc = accuracy_score(y_test, y_pred)
             auc_values.append(auc_val)
 
         one_class_penalty = one_class_penalty / kf.get_n_splits()
