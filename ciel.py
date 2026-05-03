@@ -4,6 +4,10 @@
 import sys
 import time
 import math
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
 import pyswarms as ps
 from numpy.typing import NDArray
 import argparse
@@ -32,19 +36,22 @@ POSSIBLE_CLUSTERERS = [
     'kmeans',
     'kmeans++',
     'mini_batch_kmeans',
-    'mean_shift',
-    'dbscan',
-    'birch',
-    'spectral_clustering',
+    #'mean_shift',
+    #'dbscan',
+    #'birch',
+    #'spectral_clustering',
     'agglomerative_clustering',
-    'affinity_propagation'
+    #'affinity_propagation'
 ]
 
 BASE_CLASSIFIERS = [
     'gb',
     'extra_tree',
     'svm',
-    'rf'
+    'rf',
+    'lr',
+    # 'nb',
+    'dt',
 ]
 
 external_metrics = {
@@ -91,9 +98,11 @@ class RestartGlobalBestPSO(ps.single.GlobalBestPSO):
         self.swarm.pbest_cost[particle_indices] = np.inf
 
     def optimize(self, objective_func, iters, **kwargs):
-        for _ in range(iters):
+        for it in range(iters):
             cost, pos = super().optimize(objective_func, iters=1, **kwargs)
-            self.random_restart()
+            if it < (iters - 1):
+                self.random_restart()
+            print('Best so far:',self.swarm.best_cost)
         return self.swarm.best_cost, self.swarm.best_pos
 
 
@@ -102,13 +111,21 @@ class Ciel:
         self.n_iters = n_iters
         self.n_particles = n_particles
         self.ftol_iter = ftol_iter
-        self.max_n_clusters = 10
+        self.max_n_clusters = 5
         self.options = { 'c1': 1.49445, 'c2': 1.49445, 'w': 0.729, }
 
     def set_bounds_pso(self):
         if self.best_classifier == 'svm':
             self.n_params_clf = 2
             classifier_bounds = ([1e-4, 1e-4], [1000, 1000])
+
+        elif self.best_classifier == 'lr':
+            self.n_params_clf = 1
+            classifier_bounds = ([0.1], [10])
+
+        elif self.best_classifier == 'dt':
+            self.n_params_clf = 3
+            classifier_bounds = ([1, 2, 1], [30, 20, 10])
 
         elif self.best_classifier == 'extra_tree':
             self.n_params_clf = 4
@@ -122,11 +139,12 @@ class Ciel:
             self.n_params_clf = 5
             classifier_bounds = ([1, 1, 2, 1, 0.1], [500, 10, 10, 10, 1.0])
         else:
+            print("No valid classifier found")
             sys.exit(1)
 
         lower_bounds = [2] + (classifier_bounds[0] * self.max_n_clusters
                               ) + ([0.1] * self.max_n_clusters)
-        upper_bounds = [10] + (classifier_bounds[1] * self.max_n_clusters
+        upper_bounds = [self.max_n_clusters] + (classifier_bounds[1] * self.max_n_clusters
                                ) + ([1.0] * self.max_n_clusters)
         # lower_bounds = [2] + ([1e-4, 1e-4] + [1, 1, 2, 1] + [1, 1, 2, 1, 0.1]
         #                       ) * self.max_n_clusters + [0.1] * self.max_n_clusters
@@ -185,30 +203,22 @@ class Ciel:
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
             return True
 
-        # CUrrent best sum of external clustering metrics
-        best_sum_external = sum(best_clustering_metrics["external"].values())
-        sum_external = sum(clustering_metrics['external'].values())
+        best_score = sum(best_clustering_metrics["external"].values())
+        score = sum(clustering_metrics["external"].values())
 
-        if sum_external > best_sum_external:
+        if score > best_score:
             best_clustering_metrics['external'] = clustering_metrics['external'].copy()
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
-
-        # n_external_improved = 0
-
-        # for metric, value_metric in clustering_metrics['external'].items():
-        #     best_value_metric = best_clustering_metrics['external'][metric]
-
-        #     if value_metric > best_value_metric:
-        #         n_external_improved += 1
-
-        # Tie break with internal metrics if external metric are a draw
-        if sum_external == best_sum_external and \
-                self.internal_breaks_tie(clustering_metrics, best_clustering_metrics):
-
-            best_clustering_metrics['external'] = clustering_metrics['external'].copy()
-            best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
-
             return True
+
+        # tie-break with internal metrics
+        if score == best_score and \
+        self.internal_breaks_tie(clustering_metrics, best_clustering_metrics):
+
+            best_clustering_metrics['external'] = clustering_metrics['external'].copy()
+            best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
+            return True
+
         return False
 
     def select_optimal_clustering_algorithm(self, X: NDArray, y: NDArray):
@@ -227,7 +237,6 @@ class Ciel:
                     self.calc_metrics_clustering(clusters, X, y)
 
             # if clusterer_name == "birch":
-            # print(external_metrics_evals)
 
             clustering_metrics['external'] = external_metrics_evals
             clustering_metrics['internal'] = internal_metrics_evals
@@ -271,15 +280,26 @@ class Ciel:
                 clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
                 clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
 
-            else:
+            elif self.best_classifier == 'dt':
+                clf_params[c]['max_depth'] = round(solution[n_params * c + 1])
+                clf_params[c]['min_samples_split'] = round(solution[n_params * c + 2])
+                clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 3])
+
+            elif self.best_classifier == 'lr':
+                clf_params[c]['cost'] = solution[n_params * c + 1]
+
+            elif self.best_classifier == 'gb':
                 clf_params[c]['n_estimators'] = round(solution[n_params * c + 1])
                 clf_params[c]['max_depth'] = round(solution[n_params * c + 2])
                 clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
                 clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
                 clf_params[c]['learning_rate'] = solution[n_params * c + 5]
+            else:
+                print("Invalid classifier.")
+                sys.exit(1)
             
             weights[c] = solution[c + start_idx_weights]
-
+        weights = weights + 1e-3
         weights  = weights / weights.sum()
 
         params = {}
@@ -333,7 +353,7 @@ class Ciel:
         params = self.unwrap_solution(solution)
 
         auc_values = []
-        folds_splits = kf.split(X, y)
+        one_class_penalty = 0.0
 
         ciel_opt = CielOptimizer(
             self.best_clusterer,
@@ -343,24 +363,36 @@ class Ciel:
             params['weights'],
         )
 
-        for fold, (train_indexes, test_indexes) in enumerate(folds_splits):
+        for fold, (train_indexes, test_indexes) in enumerate(kf.split(X, y)):
 
             X_train, y_train = X[train_indexes], y[train_indexes]
             X_test, y_test = X[test_indexes], y[test_indexes]
 
             ciel_opt.fit(X_train, y_train)
-            # Predict probability
+
+            # Penalize one-class clusters
+            for labels in ciel_opt.labels_by_cluster:
+                if len(labels) == 0:
+                    one_class_penalty += 0.2
+                elif len(np.unique(labels)) == 1:
+                    one_class_penalty += 0.1
+
             y_score, _, _ = ciel_opt.predict_proba(X_test)
+            y_pred = np.argmax(y_score, axis=1)
+
+            if len(np.unique(y_pred)) < self.n_labels:
+                return 1.0
 
             if self.n_labels == 2:
-                auc_val = roc_auc_score(y_test, y_score[:,1])
+                auc_val = roc_auc_score(y_test, y_score[:, 1])
             else:
                 auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
 
-            # acc = (accuracy_score(y_test, y_score.argmax(axis=1))
             auc_values.append(auc_val)
-        
-        cost = 1 - np.mean(auc_values)
+
+        one_class_penalty = one_class_penalty / kf.get_n_splits()
+
+        cost = 1 - np.mean(auc_values) + one_class_penalty
 
         return cost
 
@@ -412,6 +444,12 @@ class Ciel:
             return RandomForestClassifier()
         elif classifier_name == 'gb':
             return GradientBoostingClassifier()
+        elif classifier_name == 'lr':
+            return LogisticRegression()
+        elif classifier_name == 'dt':
+            return DecisionTreeClassifier()
+        elif classifier_name == 'nb':
+            return GaussianNB()
         else:
             print(f"Error: invalid base classifier: {classifier_name}")
             sys.exit(1)
@@ -423,6 +461,8 @@ class Ciel:
 
         self.best_clusterer = \
                 self.select_optimal_clustering_algorithm(X, y)
+
+        print("Best clusterer:", self.best_clusterer)
 
         self.best_classifier = self.select_optimal_classifier(X, y)
 
@@ -455,6 +495,17 @@ class Ciel:
             params['clf_params'],
             params['weights'])
         self.best_opt.fit(X, y)
+        ####################################### DEBUG
+        print("best cost:", self.best_cost)
+        print("n_clusters:", params["n_clusters"])
+        print("weights:", self.best_opt.weights)
+
+        for c in range(params["n_clusters"]):
+            print(
+                "cluster", c,
+                "labels:", np.unique(self.best_opt.labels_by_cluster[c], return_counts=True)
+            )
+        ####################################### DEBUG
 
         self.best_opt.base_classifier = self.best_classifier
         self.best_opt.best_clustering_metrics = self.best_clustering_metrics
@@ -511,9 +562,18 @@ def main():
         y_score, voting_weights, y_pred_by_cluster = ciel.predict_proba(X_val)
         y_pred = np.argmax(y_score, axis=1)
 
+        if ciel.n_labels == 2:
+            auc_val = roc_auc_score(y_val, y_score[:, 1])
+        else:
+            auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
+
         prediction_results = PredictionResults(
             y_pred, y_val, voting_weights, y_pred_by_cluster, y_score
         )
+        print("y-val:", y_val)
+        print("y-pred:", y_pred)
+        print("y-prob:", y_score.T)
+        print("AUC:", auc_val)
         log = Logger(ciel.best_opt, args.dataset, prediction_results)
         log.save_data_fold_ciel(fold)
         print("Best clustering algorithm:", ciel.best_clusterer)
