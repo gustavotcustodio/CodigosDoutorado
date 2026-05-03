@@ -94,7 +94,8 @@ def generate_normal_distributed_data(
     info_file_name =  f"info_{info_file_no_ext}.txt"
     path_info_file = "/".join(output_file.split('/')[:-1])
     full_info_file_path = f"{path_info_file}/{info_file_name}"
-    save_information_random_generation(full_info_file_path, means_by_class, cov_by_class)
+    save_information_random_generation(
+            full_info_file_path, means_by_class, cov_by_class)
 
 
 def create_elipse(width=1, height=1, shift_x=0.0, shift_y=0.0, label=0,

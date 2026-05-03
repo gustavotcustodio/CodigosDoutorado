@@ -9,7 +9,7 @@ CLASSIFICATION_METRICS = ["Accuracy", "Recall", "Precision", "F1", "AUC"]
 CLASSIFIERS_FULLNAMES = {
     'nb': "Naive Bayes", 'svm': "SVM", 'lr': "Logistic Reg", 'dt': "Decision Tree",
     'rf': "Random Forest", 'gb': "Grad. Boosting", 'xb': "XGBoost",
-    'sc_dt': 'S. Clustering (DT)', 'sc_svm': 'S. Clustering (SVM)', 'sc_lr': 'S. Clustering (LR)'}
+    'sc_dt': 'ECSC (DT)', 'sc_svm': 'ECSC (SVM)', 'sc_lr': 'ECSC (LR)'}
 
 LABELS_CLASSIFIERS = ['GaussianNB', 'SVC', 'KNeighborsClassifier',
                       'LogisticRegression', 'DecisionTreeClassifier', 'RandomForestClassifier', ]

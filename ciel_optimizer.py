@@ -1,3 +1,4 @@
+from itertools import pairwise
 import sys
 import warnings
 from numpy.typing import NDArray
@@ -6,15 +7,19 @@ import math
 import time
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.cluster import DBSCAN, AffinityPropagation, AgglomerativeClustering, Birch, KMeans, MeanShift, MiniBatchKMeans, SpectralClustering
-from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, adjusted_rand_score, normalized_mutual_info_score, silhouette_score, v_measure_score, fowlkes_mallows_score
+from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, adjusted_rand_score, normalized_mutual_info_score, pairwise_distances_argmin, silhouette_score, v_measure_score, fowlkes_mallows_score
+from sklearn.neighbors import NearestCentroid
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 import dataset_loader
-from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
-from sklearn.multiclass import OneVsRestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+# from sklearn.multiclass import OneVsRestClassifier
 from utils.clusters import fix_predict_prob, replace_nan_probs_by_predictions
 
 N_FOLDS = 10
@@ -93,6 +98,18 @@ class CielOptimizer:
                     min_samples_split=clf_params[cluster]['min_samples_split'],
                     min_samples_leaf=clf_params[cluster]['min_samples_leaf']
                 )
+
+        elif classifier_name == 'rf':
+            if self.classifiers_params is None or cluster is None:
+                return RandomForestClassifier()
+            else:
+                clf_params = self.classifiers_params
+                return RandomForestClassifier(
+                    n_estimators=clf_params[cluster]["n_estimators"],
+                    max_depth=clf_params[cluster]['max_depth'],
+                    min_samples_split=clf_params[cluster]['min_samples_split'],
+                    min_samples_leaf=clf_params[cluster]['min_samples_leaf']
+                )
         elif classifier_name == 'gb':
             if self.classifiers_params is None or cluster is None:
                 return GradientBoostingClassifier()
@@ -104,6 +121,25 @@ class CielOptimizer:
                     min_samples_split=clf_params[cluster]['min_samples_split'],
                     min_samples_leaf=clf_params[cluster]['min_samples_leaf'],
                     learning_rate=clf_params[cluster]['learning_rate'])
+
+        elif classifier_name == 'nb':
+            return GaussianNB()
+
+        elif classifier_name == 'lr':
+            if self.classifiers_params is None or cluster is None:
+                return LogisticRegression()
+            else:
+                return LogisticRegression(C=self.classifiers_params[cluster]['cost'])
+            
+        elif classifier_name == 'dt':
+            if self.classifiers_params is None or cluster is None:
+                return DecisionTreeClassifier()
+            else:
+                clf_params = self.classifiers_params
+                return DecisionTreeClassifier(
+                    max_depth=clf_params[cluster]['max_depth'],
+                    min_samples_split=clf_params[cluster]['min_samples_split'],
+                    min_samples_leaf=clf_params[cluster]['min_samples_leaf'],)
         else:
             print(f"Error: invalid base classifier: {classifier_name}")
             sys.exit(1)
@@ -119,27 +155,27 @@ class CielOptimizer:
 
             y_cluster = labels_by_cluster[c]
             possible_classes = np.unique(y_cluster)
-            if len(possible_classes) > 2:
-                clf = OneVsRestClassifier(clf)
+            #if len(possible_classes) > 2:
+            #    clf = OneVsRestClassifier(clf)
 
             clf.fit(samples_by_cluster[c], labels_by_cluster[c])
 
             self.classifiers.append( clf )
 
-    def cluster_samples(self, X, y, optimal_clusterer):
-        # Use the optimal clustering algorithm to divide the training set into clusters
-        clusters = optimal_clusterer.fit_predict(X)
+    # def cluster_samples(self, X, y, optimal_clusterer):
+    #     # Use the optimal clustering algorithm to divide the training set into clusters
+    #     clusters = optimal_clusterer.fit_predict(X)
 
-        # Split the samples according to the cluster they are assigned
-        samples_by_cluster = []
-        labels_by_cluster = []
+    #     # Split the samples according to the cluster they are assigned
+    #     samples_by_cluster = []
+    #     labels_by_cluster = []
 
-        for c in range(self.n_clusters):
-            indexes_c = np.where(clusters == c)[0]
-            samples_by_cluster.append( X[indexes_c] )
-            labels_by_cluster.append( y[indexes_c] )
+    #     for c in range(self.n_clusters):
+    #         indexes_c = np.where(clusters == c)[0]
+    #         samples_by_cluster.append( X[indexes_c] )
+    #         labels_by_cluster.append( y[indexes_c] )
 
-        return samples_by_cluster, labels_by_cluster
+    #     return samples_by_cluster, labels_by_cluster
 
     def split_clusters_in_lists(self, clusters, X, y):
         # Split the samples according to the cluster they are assigned
@@ -184,11 +220,32 @@ class CielOptimizer:
         self.clusterer = create_clusterer(self.best_clusterer, self.n_clusters)
         clusters = self.clusterer.fit_predict(X)
 
+        # Get centroids
+        valid = clusters != -1
+        unique_clusters = np.unique(clusters[valid])
+
+        if len(unique_clusters) > 1:
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message="self.within_class_std_dev_ has at least 1 zero standard deviation.*"
+                )
+                clf = NearestCentroid()
+                clf.fit(X, clusters[valid])
+            self.centroids = clf.centroids_
+        else:
+            self.centroids = np.mean(X, axis=0, keepdims=True)
+
         # samples_by_cluster, self.labels_by_cluster = \
         #         cluster_samples(X, y, optimal_clusterer)
         samples_by_cluster, self.labels_by_cluster = \
                 self.split_clusters_in_lists(clusters, X, y)
         # print("Num. clusters:", len(samples_by_cluster))
+        self.single_class_clusters = self.get_almost_pure_clusters()
+
+        for c in self.single_class_clusters:
+            self.weights[c] = 1e-15
+        self.weights = self.weights / self.weights.sum()
 
         # Generate and train classifiers
         self.train_classifiers(
@@ -208,53 +265,79 @@ class CielOptimizer:
         #     labels = self.y_clustering[samples_unique_cluster]
         return np.array(y_pred_by_clusters).T
 
-    def predict_proba(self, X):
-        probability_by_class = np.zeros((len(X), self.n_classes))
 
-        self.y_clustering = self.get_y_uniform_clusters(X)
+    def get_almost_pure_clusters(self, threshold=0.95):
+        pure_clusters = {}
 
-        # Dynamic weighted probability combination strategy for the final classification results;
-        for c, classifier in enumerate(self.classifiers):
-            if isinstance(classifier, DummyClassifier):
+        for c in range(self.n_clusters):
+            labels_c = self.labels_by_cluster[c]
+            if len(labels_c) == 0:
                 continue
 
-            predicted_probs = classifier.predict_proba(X)
+            vals, counts = np.unique(labels_c, return_counts=True)
+            purity = counts.max() / counts.sum()
 
-            replace_nan_probs_by_predictions(predicted_probs, classifier, X)
+            if purity >= threshold:
+                pure_clusters[c] = vals[np.argmax(counts)]
+
+        return pure_clusters
+
+    def get_samples_need_voting(self, X, probability_by_class, y_pred_by_cluster):
+        if hasattr(self.clusterer, 'predict'):
+            clusters = self.clusterer.predict(X)
+        else:
+            clusters = pairwise_distances_argmin(X, self.centroids)
+
+        valid_mask = np.ones(len(X), dtype=bool)
+
+        # Get all the samples that are not in a single-class cluster
+        for c in self.single_class_clusters:
+            solved_samples = np.where(clusters == c)[0]
+
+            c_class = int(self.labels_by_cluster[c][0])
+            probability_by_class[solved_samples, c_class] = 1.0
+
+            y_pred_by_cluster[solved_samples, c] = c_class
+
+            valid_mask[solved_samples] = False
+
+        return np.where(valid_mask)[0]
+
+
+    def predict_proba(self, X):
+        probability_by_class = np.zeros((len(X), self.n_classes))
+        y_pred_by_cluster = np.full((len(X), self.n_clusters), -1)
+
+        samples_for_vote = self.get_samples_need_voting(
+            X, probability_by_class, y_pred_by_cluster
+        )
+
+        weights = np.tile(self.weights, (len(X), 1))
+
+        if samples_for_vote.size == 0:
+            return probability_by_class, weights, y_pred_by_cluster
+
+        X_valid = X[samples_for_vote]
+            
+        # Dynamic weighted probability combination strategy for the final classification results;
+        for c, classifier in enumerate(self.classifiers):
+            # if isinstance(classifier, DummyClassifier):
+            #     continue
+            predicted_probs = classifier.predict_proba(X_valid)
+
+            replace_nan_probs_by_predictions(predicted_probs, classifier, X_valid)
 
             predicted_probs = fix_predict_prob(
                 predicted_probs, self.labels_by_cluster[c], self.n_classes)
 
-            # predicted_probs np.nan_to_num(y_prob_cluster, nan=1/3)
-
-            #print(self.labels_by_cluster[c])
-            #print(predicted_probs)
-            #print("---------------------------")
-            # # If the classifier was not trained with instances from some classes, add
-            # # columns with zeros in the predicted_probs for the missing classes
-            # if len(classifier.classes_) < self.n_classes:
-            #     missing_labels = [label for label in range(self.n_classes)
-            #                       if label not in classifier.classes_]
-
-            #     for lbl in missing_labels:
-            #         col_zeros = np.zeros((X.shape[0], 1))
-            #         predicted_probs = np.hstack(
-            #             (predicted_probs[:, :lbl], col_zeros, predicted_probs[:, lbl:])
-            #         )
-            probability_by_class += predicted_probs * self.weights[c]
-
-        if np.any(self.y_clustering >= 0):
-            samples_unique_cluster = np.where(self.y_clustering >= 0)[0]
-            labels = self.y_clustering[samples_unique_cluster]
-
-            probability_by_class[samples_unique_cluster, :] = 0
-            probability_by_class[samples_unique_cluster, labels] = 1.0
+            probability_by_class[samples_for_vote] += predicted_probs * self.weights[c]
         
         p_class = probability_by_class
         probability_by_class = p_class / p_class.sum(axis=1)[:, np.newaxis]
+        y_pred_by_cluster[samples_for_vote] = self.predict_labels_by_cluster(X_valid)
+
         weights = np.tile(self.weights, (len(X), 1))
 
-        y_pred_by_cluster = self.predict_labels_by_cluster(X)
         return probability_by_class, weights, y_pred_by_cluster
 
     def predict(self, X):
@@ -268,7 +351,7 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     # TODO colocar o kmeans e outro classificador
-    ciel_opt = CielOptimizer(n_clusters=7)
+    ciel_opt = CielOptimizer(n_clusters=5)
     ciel_opt.fit(X_train, y_train)
     y_pred, _, _ = ciel_opt.predict(X_test)
 

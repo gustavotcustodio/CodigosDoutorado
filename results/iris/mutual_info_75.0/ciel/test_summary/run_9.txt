@@ -2,54 +2,60 @@
 ------ Classification results ------
 ------------------------------------
 
-Base classifier: svm
+Base classifier: extra_tree
 ====== Cluster 0 ======
-Accuracy: 0.3333333333333333
-Recall: 0.3333333333333333
-Precision: 1.0
-F1: 0.5
+Accuracy: 0.4
+Recall: 0.4
+Precision: 0.6133333333333333
+F1: 0.4507936507936508
 
 ====== Cluster 1 ======
-Accuracy: 0.0
-Recall: 0.0
-Precision: 0.0
-F1: 0.0
-
-====== Total ======
 Accuracy: 0.3333333333333333
 Recall: 0.3333333333333333
 Precision: 1.0
 F1: 0.5
 
-AUC: 0.8333333333333334
+====== Cluster 2 ======
+Accuracy: 0.3333333333333333
+Recall: 0.3333333333333333
+Precision: 0.6666666666666666
+F1: 0.4444444444444444
 
-Optimal clusterer: kmeans
+====== Total ======
+Accuracy: 0.8666666666666667
+Recall: 0.8666666666666667
+Precision: 0.92
+F1: 0.8722222222222222
+
+AUC: 1.0
+
+Optimal clusterer: mini_batch_kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.7068570499460483
-normalized_mutual_info_score: 0.7429951809355757
-v_measure_score: 0.7429951809355757
-fowlkes_mallows_score: 0.8056168767082635
+adjusted_rand_score: 0.7191973981752954
+normalized_mutual_info_score: 0.7355849893984642
+v_measure_score: 0.7355849893984642
+fowlkes_mallows_score: 0.8121828027114152
 
 Internal clustering metrics:
-silhouette: 0.510041161300585
-davies_bouldin: 0.7546318191479725
-calinski_harabasz_score: 327.674148142561
+silhouette: 0.47728648234048615
+davies_bouldin: 0.7819926601242639
+calinski_harabasz_score: 312.9660026501728
 
 ========= Predictions by sample =========
 
-Prediction: 0, Real label: 0, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 0, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 0, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 0, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 1, Votes by cluster: [0 2], Weights: [0.56 0.44]
-Prediction: 0, Real label: 1, Votes by cluster: [0 2], Weights: [0.56 0.44]
-Prediction: 0, Real label: 0, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 1, Votes by cluster: [0 2], Weights: [0.56 0.44]
-Prediction: 0, Real label: 1, Votes by cluster: [0 2], Weights: [0.56 0.44]
-Prediction: 0, Real label: 2, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 2, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 2, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 1, Votes by cluster: [0 2], Weights: [0.56 0.44]
-Prediction: 0, Real label: 2, Votes by cluster: [0 3], Weights: [0.56 0.44]
-Prediction: 0, Real label: 2, Votes by cluster: [0 3], Weights: [0.56 0.44]
+Prediction: 0, Real label: 0, Votes by cluster: [-1  0 -1], Weights: [0.52 0.   0.48]
+Prediction: 0, Real label: 0, Votes by cluster: [-1  0 -1], Weights: [0.52 0.   0.48]
+Prediction: 0, Real label: 0, Votes by cluster: [-1  0 -1], Weights: [0.52 0.   0.48]
+Prediction: 0, Real label: 0, Votes by cluster: [-1  0 -1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 1, Votes by cluster: [1 0 1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 0, Real label: 0, Votes by cluster: [-1  0 -1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 2, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 1, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 2, Real label: 2, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]
+Prediction: 1, Real label: 2, Votes by cluster: [2 0 1], Weights: [0.52 0.   0.48]

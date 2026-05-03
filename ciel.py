@@ -4,8 +4,11 @@
 import sys
 import time
 import math
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
 import pyswarms as ps
-from multiprocessing.pool import ThreadPool
 from numpy.typing import NDArray
 import argparse
 import numpy as np
@@ -17,10 +20,9 @@ from ciel_optimizer import N_FOLDS
 from logger import PredictionResults
 from logger import Logger
 from dataset_loader import normalize_data
-import dask
 from dask.base import compute
 from dask.delayed import delayed
-from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
@@ -28,22 +30,28 @@ from sklearn.dummy import DummyClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
+PSO_SPLITS = 5
+
 POSSIBLE_CLUSTERERS = [
     'kmeans',
     'kmeans++',
-    'mini_batch_kmeans',
-    'mean_shift',
-    'dbscan',
-    'birch',
-    'spectral_clustering',
+    #'mini_batch_kmeans',
+    #'mean_shift',
+    #'dbscan',
+    #'birch',
+    #'spectral_clustering',
     'agglomerative_clustering',
-    'affinity_propagation'
+    #'affinity_propagation'
 ]
 
 BASE_CLASSIFIERS = [
     'gb',
     'extra_tree',
-    'svm'
+    'svm',
+    'rf',
+    'lr',
+    # 'nb',
+    'dt',
 ]
 
 external_metrics = {
@@ -59,13 +67,51 @@ internal_metrics = {
     'calinski_harabasz_score': calinski_harabasz_score
 }
 
+class RestartGlobalBestPSO(ps.single.GlobalBestPSO):
+    def __init__(self, *args, restart_prob=0.1, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.restart_prob = restart_prob
+
+    def random_restart(self):
+        prob_particles = np.random.rand(self.n_particles)
+        particle_indices = np.where(prob_particles < self.restart_prob)[0]
+
+        if len(particle_indices) == 0:
+            return
+
+        lb, ub = self.bounds
+        lb, ub = np.array(lb), np.array(ub)
+
+        self.swarm.position[particle_indices] = np.random.uniform(
+            low=lb,
+            high=ub,
+            size=(len(particle_indices), self.dimensions)
+        )
+
+        self.swarm.velocity[particle_indices] = np.random.uniform(
+            low=-np.abs(ub - lb),
+            high=np.abs(ub - lb),
+            size=(len(particle_indices), self.dimensions)
+        )
+
+        self.swarm.pbest_pos[particle_indices] = self.swarm.position[particle_indices]
+        self.swarm.pbest_cost[particle_indices] = np.inf
+
+    def optimize(self, objective_func, iters, **kwargs):
+        for it in range(iters):
+            cost, pos = super().optimize(objective_func, iters=1, **kwargs)
+            if it < (iters - 1):
+                self.random_restart()
+            print('Best so far:',self.swarm.best_cost)
+        return self.swarm.best_cost, self.swarm.best_pos
+
 
 class Ciel:
     def __init__(self, n_iters=10, n_particles=30, ftol_iter=10):
         self.n_iters = n_iters
         self.n_particles = n_particles
         self.ftol_iter = ftol_iter
-        self.max_n_clusters = 10
+        self.max_n_clusters = 7
         self.options = { 'c1': 1.49445, 'c2': 1.49445, 'w': 0.729, }
 
     def set_bounds_pso(self):
@@ -73,17 +119,33 @@ class Ciel:
             self.n_params_clf = 2
             classifier_bounds = ([1e-4, 1e-4], [1000, 1000])
 
+        elif self.best_classifier == 'lr':
+            self.n_params_clf = 1
+            classifier_bounds = ([0.1], [10])
+
+        elif self.best_classifier == 'dt':
+            self.n_params_clf = 3
+            classifier_bounds = ([1, 2, 1], [30, 20, 10])
+
         elif self.best_classifier == 'extra_tree':
             self.n_params_clf = 4
             classifier_bounds = ([1, 1, 2, 1], [500, 10, 10, 10])
 
-        else: # == 'gb':
+        elif self.best_classifier == 'rf':
+            self.n_params_clf = 4
+            classifier_bounds = ([1, 1, 2, 1], [500, 30, 20, 10])
+
+        elif self.best_classifier == 'gb':
             self.n_params_clf = 5
             classifier_bounds = ([1, 1, 2, 1, 0.1], [500, 10, 10, 10, 1.0])
+        else:
+            print("No valid classifier found")
+            sys.exit(1)
 
-        lower_bounds = [2] + (classifier_bounds[0] * self.max_n_clusters
+        min_n_clusters = 2
+        lower_bounds = [min_n_clusters] + (classifier_bounds[0] * self.max_n_clusters
                               ) + ([0.1] * self.max_n_clusters)
-        upper_bounds = [10] + (classifier_bounds[1] * self.max_n_clusters
+        upper_bounds = [self.max_n_clusters] + (classifier_bounds[1] * self.max_n_clusters
                                ) + ([1.0] * self.max_n_clusters)
         # lower_bounds = [2] + ([1e-4, 1e-4] + [1, 1, 2, 1] + [1, 1, 2, 1, 0.1]
         #                       ) * self.max_n_clusters + [0.1] * self.max_n_clusters
@@ -142,30 +204,22 @@ class Ciel:
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
             return True
 
-        # CUrrent best sum of external clustering metrics
-        best_sum_external = sum(best_clustering_metrics["external"].values())
-        sum_external = sum(clustering_metrics['external'].values())
+        best_score = sum(best_clustering_metrics["external"].values())
+        score = sum(clustering_metrics["external"].values())
 
-        if sum_external > best_sum_external:
+        if score > best_score:
             best_clustering_metrics['external'] = clustering_metrics['external'].copy()
             best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
-
-        # n_external_improved = 0
-
-        # for metric, value_metric in clustering_metrics['external'].items():
-        #     best_value_metric = best_clustering_metrics['external'][metric]
-
-        #     if value_metric > best_value_metric:
-        #         n_external_improved += 1
-
-        # Tie break with internal metrics if external metric are a draw
-        if sum_external == best_sum_external and \
-                self.internal_breaks_tie(clustering_metrics, best_clustering_metrics):
-
-            best_clustering_metrics['external'] = clustering_metrics['external'].copy()
-            best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
-
             return True
+
+        # tie-break with internal metrics
+        if score == best_score and \
+        self.internal_breaks_tie(clustering_metrics, best_clustering_metrics):
+
+            best_clustering_metrics['external'] = clustering_metrics['external'].copy()
+            best_clustering_metrics['internal'] = clustering_metrics['internal'].copy()
+            return True
+
         return False
 
     def select_optimal_clustering_algorithm(self, X: NDArray, y: NDArray):
@@ -184,7 +238,6 @@ class Ciel:
                     self.calc_metrics_clustering(clusters, X, y)
 
             # if clusterer_name == "birch":
-            # print(external_metrics_evals)
 
             clustering_metrics['external'] = external_metrics_evals
             clustering_metrics['internal'] = internal_metrics_evals
@@ -222,15 +275,32 @@ class Ciel:
                 clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
                 clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
 
-            else:
+            elif self.best_classifier == 'rf':
+                clf_params[c]['n_estimators'] = round(solution[n_params * c + 1])
+                clf_params[c]['max_depth'] = round(solution[n_params * c + 2])
+                clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
+                clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
+
+            elif self.best_classifier == 'dt':
+                clf_params[c]['max_depth'] = round(solution[n_params * c + 1])
+                clf_params[c]['min_samples_split'] = round(solution[n_params * c + 2])
+                clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 3])
+
+            elif self.best_classifier == 'lr':
+                clf_params[c]['cost'] = solution[n_params * c + 1]
+
+            elif self.best_classifier == 'gb':
                 clf_params[c]['n_estimators'] = round(solution[n_params * c + 1])
                 clf_params[c]['max_depth'] = round(solution[n_params * c + 2])
                 clf_params[c]['min_samples_split'] = round(solution[n_params * c + 3])
                 clf_params[c]['min_samples_leaf'] = round(solution[n_params * c + 4])
                 clf_params[c]['learning_rate'] = solution[n_params * c + 5]
+            else:
+                print("Invalid classifier.")
+                sys.exit(1)
             
             weights[c] = solution[c + start_idx_weights]
-
+        weights = weights + 1e-3
         weights  = weights / weights.sum()
 
         params = {}
@@ -242,7 +312,7 @@ class Ciel:
 
     def fitness_eval(self, X, y):
         def wrapper(possible_solutions):
-            kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
+            kf = StratifiedKFold(n_splits=PSO_SPLITS, shuffle=True, random_state=42)
             # cost_values = []
 
             # for solution in possible_solutions:
@@ -251,20 +321,19 @@ class Ciel:
 
                 # Convert PSO particle to the parameters
             inicio = time.time()
-            cost_values = [self.calc_cost(solution, kf, X, y)
-                           for solution in possible_solutions]
+            # cost_values = [
+            #     self.calc_cost(solution, kf, X, y)
+            #     for solution in possible_solutions
+            # ]
 
-            # delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
-            #                  for solution in possible_solutions]
+            delayed_costs = [delayed(self.calc_cost)(solution, kf, X, y)
+                             for solution in possible_solutions]
 
-            # with dask.config.set(pool=ThreadPool(4)):
-            # Compute in parallel
-            # compute(*delayed_costs)  #, scheduler="threads")
+            cost_values = compute(*delayed_costs, scheduler="processes", num_workers=4)
             print("Tempo solução:", time.time() - inicio)
 
             # self.update_inertia()
 
-            self.random_restart()
             print("PSO params:", self.pso.options)
 
             return cost_values
@@ -285,7 +354,7 @@ class Ciel:
         params = self.unwrap_solution(solution)
 
         auc_values = []
-        folds_splits = kf.split(X, y)
+        one_class_penalty = 0.0
 
         ciel_opt = CielOptimizer(
             self.best_clusterer,
@@ -295,24 +364,37 @@ class Ciel:
             params['weights'],
         )
 
-        for fold, (train_indexes, test_indexes) in enumerate(folds_splits):
+        for fold, (train_indexes, test_indexes) in enumerate(kf.split(X, y)):
 
             X_train, y_train = X[train_indexes], y[train_indexes]
             X_test, y_test = X[test_indexes], y[test_indexes]
 
             ciel_opt.fit(X_train, y_train)
-            # Predict probability
+
+            # Penalize one-class clusters
+            for labels in ciel_opt.labels_by_cluster:
+                if len(labels) == 0:
+                    one_class_penalty += 0.2
+                elif len(np.unique(labels)) == 1:
+                    one_class_penalty += 0.1
+
             y_score, _, _ = ciel_opt.predict_proba(X_test)
+            y_pred = np.argmax(y_score, axis=1)
+
+            if len(np.unique(y_pred)) < self.n_labels:
+                return 1.0
 
             if self.n_labels == 2:
-                auc_val = roc_auc_score(y_test, y_score[:,1])
+                auc_val = roc_auc_score(y_test, y_score[:, 1])
             else:
                 auc_val = roc_auc_score(y_test, y_score, multi_class="ovr")
 
-            # acc = (accuracy_score(y_test, y_score.argmax(axis=1))
+            # acc = accuracy_score(y_test, y_pred)
             auc_values.append(auc_val)
-        
-        cost = 1 - np.mean(auc_values)
+
+        one_class_penalty = one_class_penalty / kf.get_n_splits()
+
+        cost = 1 - np.mean(auc_values) + one_class_penalty
 
         return cost
 
@@ -360,8 +442,16 @@ class Ciel:
             return SVC(probability=True)
         elif classifier_name == 'extra_tree':
             return ExtraTreesClassifier()
+        elif classifier_name == 'rf':
+            return RandomForestClassifier()
         elif classifier_name == 'gb':
             return GradientBoostingClassifier()
+        elif classifier_name == 'lr':
+            return LogisticRegression()
+        elif classifier_name == 'dt':
+            return DecisionTreeClassifier()
+        elif classifier_name == 'nb':
+            return GaussianNB()
         else:
             print(f"Error: invalid base classifier: {classifier_name}")
             sys.exit(1)
@@ -374,6 +464,8 @@ class Ciel:
         self.best_clusterer = \
                 self.select_optimal_clustering_algorithm(X, y)
 
+        print("Best clusterer:", self.best_clusterer)
+
         self.best_classifier = self.select_optimal_classifier(X, y)
 
         self.set_bounds_pso()
@@ -383,13 +475,15 @@ class Ciel:
         print("Searching for best ensemble...")
 
         self.current_iter = 0
-        self.pso = ps.single.GlobalBestPSO(
+        self.pso = RestartGlobalBestPSO(
             n_particles=self.n_particles, dimensions=dimensions,
             options=self.options, bounds=self.bounds,
             ftol_iter=self.ftol_iter, ftol=1e-4
         )
         fitness_func = self.fitness_eval(X, y)
-        cost, solution = self.pso.optimize(fitness_func, iters=self.n_iters)
+        cost, solution = self.pso.optimize(
+            fitness_func, iters=self.n_iters, verbose=False
+        )
 
         self.best_solution = solution
         self.best_cost = cost
@@ -403,6 +497,17 @@ class Ciel:
             params['clf_params'],
             params['weights'])
         self.best_opt.fit(X, y)
+        ####################################### DEBUG
+        print("best cost:", self.best_cost)
+        print("n_clusters:", params["n_clusters"])
+        print("weights:", self.best_opt.weights)
+
+        for c in range(params["n_clusters"]):
+            print(
+                "cluster", c,
+                "labels:", np.unique(self.best_opt.labels_by_cluster[c], return_counts=True)
+            )
+        ####################################### DEBUG
 
         self.best_opt.base_classifier = self.best_classifier
         self.best_opt.best_clustering_metrics = self.best_clustering_metrics
@@ -417,24 +522,24 @@ class Ciel:
                 self.best_opt.predict_proba(X)
         return y_score, voting_weights, y_pred_by_cluster
 
-    def random_restart(self):
-        prob_particles = np.random.rand(self.n_particles)
-        particle_indices = np.where(prob_particles < 0.1)[0]
+    # def random_restart(self):
+    #     prob_particles = np.random.rand(self.n_particles)
+    #     particle_indices = np.where(prob_particles < 0.1)[0]
 
-        """Resets given particles to random positions in bounds."""
-        lb, ub = self.pso.bounds
-        self.pso.swarm.position[particle_indices] = np.random.uniform(
-            low=lb, high=ub,
-            size=(len(particle_indices), self.pso.dimensions)
-        )
-        lb, ub = np.array(lb), np.array(ub)
-        self.pso.swarm.velocity[particle_indices] = np.random.uniform(
-            low=-abs(ub - lb), high=abs(ub - lb), 
-            size=(len(particle_indices), self.pso.dimensions)
-        )
-        self.pso.swarm.pbest_pos[
-                particle_indices] = self.pso.swarm.position[particle_indices]
-        self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
+    #     """Resets given particles to random positions in bounds."""
+    #     lb, ub = self.pso.bounds
+    #     self.pso.swarm.position[particle_indices] = np.random.uniform(
+    #         low=lb, high=ub,
+    #         size=(len(particle_indices), self.pso.dimensions)
+    #     )
+    #     lb, ub = np.array(lb), np.array(ub)
+    #     self.pso.swarm.velocity[particle_indices] = np.random.uniform(
+    #         low=-abs(ub - lb), high=abs(ub - lb), 
+    #         size=(len(particle_indices), self.pso.dimensions)
+    #     )
+    #     self.pso.swarm.pbest_pos[
+    #             particle_indices] = self.pso.swarm.position[particle_indices]
+    #     self.pso.swarm.pbest_cost[particle_indices] = np.inf  # force re-evaluation
 
 
 def main():
@@ -459,9 +564,18 @@ def main():
         y_score, voting_weights, y_pred_by_cluster = ciel.predict_proba(X_val)
         y_pred = np.argmax(y_score, axis=1)
 
+        if ciel.n_labels == 2:
+            auc_val = roc_auc_score(y_val, y_score[:, 1])
+        else:
+            auc_val = roc_auc_score(y_val, y_score, multi_class="ovr")
+
         prediction_results = PredictionResults(
             y_pred, y_val, voting_weights, y_pred_by_cluster, y_score
         )
+        print("y-val:", y_val)
+        print("y-pred:", y_pred)
+        print("y-prob:", y_score.T)
+        print("AUC:", auc_val)
         log = Logger(ciel.best_opt, args.dataset, prediction_results)
         log.save_data_fold_ciel(fold)
         print("Best clustering algorithm:", ciel.best_clusterer)

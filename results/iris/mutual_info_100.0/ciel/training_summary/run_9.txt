@@ -1,28 +1,32 @@
 ============== Classifiers Parameters ==============
-[{'cost': 87.7317794550416, 'gamma': 323.5332658414613}, {'cost': 481.3152641855723, 'gamma': 647.4806200590906}]
+[{'n_estimators': 471, 'max_depth': 2, 'min_samples_split': 5, 'min_samples_leaf': 7}, {'n_estimators': 131, 'max_depth': 8, 'min_samples_split': 10, 'min_samples_leaf': 9}, {'n_estimators': 489, 'max_depth': 1, 'min_samples_split': 7, 'min_samples_leaf': 9}]
 
-Optimal clusterer: kmeans
+Optimal clusterer: mini_batch_kmeans
 
 External clustering metrics:
-adjusted_rand_score: 0.7068570499460483
-normalized_mutual_info_score: 0.7429951809355757
-v_measure_score: 0.7429951809355757
-fowlkes_mallows_score: 0.8056168767082635
+adjusted_rand_score: 0.7191973981752954
+normalized_mutual_info_score: 0.7355849893984642
+v_measure_score: 0.7355849893984642
+fowlkes_mallows_score: 0.8121828027114152
 
 Internal clustering metrics:
-silhouette: 0.510041161300585
-davies_bouldin: 0.7546318191479725
-calinski_harabasz_score: 327.674148142561
+silhouette: 0.47728648234048615
+davies_bouldin: 0.7819926601242639
+calinski_harabasz_score: 312.9660026501728
 
-Base classifier: svm
+Base classifier: extra_tree
 ========== Cluster 0 ==========
+
+Labels: [2 1 2 2 1 2 2 2 2 2 2 2 2 1 2 1 2 1 1 2 2 1 2 2 2 2 2 2 2 2 2 1 2 1 2 2 2
+ 2 2 2 1 2 1 2 2 2 2 2 2 2 2 2]
+
+========== Cluster 1 ==========
 
 Labels: [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
  0 0 0 0 0 0 0 0]
 
-========== Cluster 1 ==========
+========== Cluster 2 ==========
 
-Labels: [1 2 1 1 1 2 1 1 2 1 2 1 1 2 2 2 2 2 2 2 1 2 1 2 1 1 1 2 2 1 2 1 2 1 2 1 1
- 2 1 1 2 1 2 2 2 1 1 2 1 1 2 1 1 2 1 1 2 1 2 2 1 2 2 1 2 2 2 1 1 2 1 2 2 1
- 2 1 1 1 2 2 1 2 1 1 2 2 1 2 1 2]
+Labels: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 2 1 2 1 1 1 1 1 1 1 1 1 1 2
+ 1]
 
